@@ -12,7 +12,6 @@ import {
   SlashCommandIntegerOption
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
-import { getTreeHeight } from "../util/tree-height";
 
 type LeaderboardButtonState = {
   page: number;
@@ -21,10 +20,7 @@ type LeaderboardButtonState = {
 const MEDAL_EMOJIS = ["🥇", "🥈", "🥉"];
 
 export class Forest implements ISlashCommand {
-  public builder = new SlashCommandBuilder(
-    "forest",
-    "The tallest trees in the forest. (Global Leaderboard)"
-  ).addIntegerOption(
+  public builder = new SlashCommandBuilder("forest", "See the tallest trees in the whole forest.").addIntegerOption(
     new SlashCommandIntegerOption("page", "Leaderboard page to display.").setMinValue(1).setMaxValue(10)
   );
 
@@ -34,14 +30,14 @@ export class Forest implements ISlashCommand {
 
   public components = [
     new Button(
-      "refresh",
+      "forest.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
-      "back",
+      "forest.back",
       new ButtonBuilder().setEmoji({ name: "◀️" }).setStyle(2),
       async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
         if (!ctx.state) return;
@@ -51,7 +47,7 @@ export class Forest implements ISlashCommand {
       }
     ),
     new Button(
-      "next",
+      "forest.next",
       new ButtonBuilder().setEmoji({ name: "▶️" }).setStyle(2),
       async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
         if (!ctx.state) return;
@@ -68,14 +64,14 @@ async function buildLeaderboardMessage(
 ): Promise<MessageBuilder> {
   const state: LeaderboardButtonState =
     ctx instanceof SlashCommandContext
-      ? { page: ctx.hasOption("page") ? Number(ctx.getIntegerOption("page").value) : 1 }
+      ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
       : (ctx.state as LeaderboardButtonState);
 
-  let description = "The tallest trees in all the Discord servers.\n\n";
+  let description = `*The tallest trees of all.*\n\n`;
 
   const start = (state.page - 1) * 10;
 
-  const trees = await Guild.find().sort({ size: -1, id: 1 }).skip(start).limit(11);
+  const trees = await Guild.find().sort({ size: -1 }).skip(start).limit(11);
 
   if (trees.length === 0) return SimpleError("This page is empty.");
 
@@ -87,23 +83,22 @@ async function buildLeaderboardMessage(
 
     description += `${pos < 3 ? `${MEDAL_EMOJIS[i]}` : `\`\`${pos + 1}${pos < 9 ? " " : ""}\`\``} - \`\`${
       tree.name
-    }\`\` - ${getTreeHeight(tree)}ft\n`;
+    }\`\` - ${tree.size}ft\n`;
   }
 
-  const actionRow = new ActionRowBuilder([await ctx.createComponent("refresh", state)]);
+  const actionRow = new ActionRowBuilder().addComponents(
+    await ctx.manager.components.createInstance("forest.refresh", state)
+  );
 
-  const backButton = await ctx.createComponent("back", state);
-  const nextButton = await ctx.createComponent("next", state);
-
-  if (state.page <= 1) {
-    backButton.setDisabled(true);
+  if (state.page > 1) {
+    actionRow.addComponents(await ctx.manager.components.createInstance("forest.back", state));
   }
 
-  if (trees.length <= 10) {
-    nextButton.setDisabled(true);
+  if (trees.length > 10) {
+    actionRow.addComponents(await ctx.manager.components.createInstance("forest.next", state));
   }
 
-  actionRow.addComponents(backButton, nextButton);
-
-  return new MessageBuilder(new EmbedBuilder().setTitle("Forest").setDescription(description)).addComponents(actionRow);
+  return new MessageBuilder()
+    .addEmbed(new EmbedBuilder().setTitle("Forest").setDescription(description))
+    .addComponents(actionRow);
 }

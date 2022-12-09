@@ -12,10 +12,7 @@ RUN yarn install
 # Build
 FROM base AS builder
 
-COPY .eslintrc .
-COPY .prettierrc .
-COPY tsconfig.json .
-COPY src src
+COPY . .
 
 RUN yarn build
 

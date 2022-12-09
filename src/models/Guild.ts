@@ -1,15 +1,10 @@
 import { model, Schema } from "mongoose";
 
-interface ITree {
+interface IGuild {
   id: string;
 
   name: string;
-
   size: number;
-  pieces: number[];
-
-  background: string;
-  backgroundStyle: string;
 
   lastWateredBy: string;
   lastWateredAt: number;
@@ -27,16 +22,11 @@ const ContributorSchema = new Schema<IContributor>({
   count: { type: Number, required: true, default: 1 }
 });
 
-const GuildSchema = new Schema<ITree>({
+const GuildSchema = new Schema<IGuild>({
   id: { type: String, required: true, unique: true },
 
   name: { type: String, required: true },
-
-  background: { type: String, required: true, default: "Ground" },
-  backgroundStyle: { type: String, required: true, default: "Base" },
-
-  size: { type: Number, required: true },
-  pieces: { type: [Number], required: true },
+  size: { type: Number, required: true, default: 1 },
 
   lastWateredBy: { type: String, required: false },
   lastWateredAt: { type: Number, required: false },
@@ -45,6 +35,6 @@ const GuildSchema = new Schema<ITree>({
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);
-const Guild = model<ITree>("Guild", GuildSchema);
+const Guild = model<IGuild>("Guild", GuildSchema);
 
-export { Guild, GuildSchema, Contributor, ContributorSchema, ITree, IContributor };
+export { Guild, GuildSchema, Contributor, ContributorSchema, IGuild, IContributor };
