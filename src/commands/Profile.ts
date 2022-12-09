@@ -16,7 +16,7 @@ type State = {
   nick: string;
 };
 
-const builder = new SlashCommandBuilder("profile", "View a user's contributions to the tree.").addUserOption(
+const builder = new SlashCommandBuilder("profile", "View a user's contributions to the christmas tree.").addUserOption(
   new SlashCommandUserOption("target", "User whose profile you want to view.")
 );
 
@@ -77,7 +77,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
                     .sort((a, b) => b.count - a.count)
                     .findIndex((contributor) => contributor.userId === id) + 1
                 } out of ${ctx.game.contributors.length}.`
-              : "not yet watered the tree."
+              : "not yet watered the christmas tree."
           }`
         )
     )

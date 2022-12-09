@@ -10,8 +10,8 @@ import {
 import { Guild } from "../models/Guild";
 import { validateTreeName } from "../util/validate-tree-name";
 
-const builder = new SlashCommandBuilder("plant", "Plant a tree for your server.").addStringOption(
-  new SlashCommandStringOption("name", "A name for your server's tree.").setRequired(true)
+const builder = new SlashCommandBuilder("plant", "Plant a christmas tree for your server.").addStringOption(
+  new SlashCommandStringOption("name", "A name for your server's christmas tree.").setRequired(true)
 );
 
 builder.setDMEnabled(false);
@@ -21,7 +21,7 @@ export class Plant implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.game !== null)
-      return ctx.reply(`A tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`);
+      return ctx.reply(`A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`);
     if (ctx.interaction.guild_id === undefined) return ctx.reply(SimpleError("Guild ID missing."));
 
     const name = ctx.options.get("name")?.value as string | undefined;
@@ -30,7 +30,7 @@ export class Plant implements ISlashCommand {
     if (!validateTreeName(name))
       return ctx.reply(
         SimpleError(
-          "Your tree name must be 1-36 characters, and contain only alphanumeric characters, hyphens, and apostrophes."
+          "Your christmas tree name must be 1-36 characters, and contain only alphanumeric characters, hyphens, and apostrophes."
         )
       );
 

@@ -14,7 +14,7 @@ import {
 
 const builder = new SlashCommandBuilder(
   "leaderboard",
-  "See a leaderboard of contributors to this server's tree."
+  "See a leaderboard of contributors to this server's christmas tree."
 ).addIntegerOption(
   new SlashCommandIntegerOption("page", "Leaderboard page to display.").setMinValue(1).setMaxValue(10)
 );
@@ -30,7 +30,7 @@ export class Leaderboard implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.game === null) return ctx.reply("Use /plant to plant a tree for your server first.");
+    if (ctx.game === null) return ctx.reply("Use /plant to plant a christmas tree for your server first.");
 
     return ctx.reply(await buildLeaderboardMessage(ctx));
   };

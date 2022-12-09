@@ -133,7 +133,7 @@ if (keys.some((key) => !(key in process.env))) {
     }
   });
 
-  connect(`mongodb://mongo/trees`)
+  connect(process.env.MONGO_URI ?? `mongodb://mongo/trees`)
     .then(async () => {
       const address = "0.0.0.0";
       const port = process.env.PORT as string;

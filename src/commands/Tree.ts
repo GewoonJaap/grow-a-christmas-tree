@@ -10,7 +10,6 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import { calculateTreeSize } from "../util/tree-size-calculator";
 import { calculateTreeTierImage } from "../util/tree-tier-calculator";
 import { getWateringInterval } from "../util/watering-inteval";
 
@@ -130,15 +129,11 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
 
   if (canBeWateredAt < Date.now() / 1000) {
     embed.setDescription(
-      `**Your tree is ${calculateTreeSize(ctx.game.size)}ft tall.**\n\nLast watered by: <@${
-        ctx.game.lastWateredBy
-      }>\n**Ready to be watered!**`
+      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${ctx.game.lastWateredBy}>\n**Ready to be watered!**`
     );
   } else {
     embed.setDescription(
-      `**Your tree is ${calculateTreeSize(ctx.game.size)}ft tall.**\n\nLast watered by: <@${
-        ctx.game.lastWateredBy
-      }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*`
+      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${ctx.game.lastWateredBy}>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
