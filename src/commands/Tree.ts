@@ -33,25 +33,25 @@ export class Tree implements ISlashCommand {
       async (ctx: ButtonContext): Promise<void> => {
         if (!ctx.game) throw new Error("Game data missing.");
 
-        // if (ctx.game.lastWateredBy === ctx.user.id) {
-        //   const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        //   if (timeout) clearTimeout(timeout);
+        if (ctx.game.lastWateredBy === ctx.user.id) {
+          const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+          if (timeout) clearTimeout(timeout);
 
-        //   ctx.reply(
-        //     SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
-        //   );
+          ctx.reply(
+            SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
+          );
 
-        //   ctx.timeouts.set(
-        //     ctx.interaction.message.id,
-        //     setTimeout(async () => {
-        //       ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+          ctx.timeouts.set(
+            ctx.interaction.message.id,
+            setTimeout(async () => {
+              ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
-        //       await ctx.edit(await buildTreeDisplayMessage(ctx));
-        //     }, 3000)
-        //   );
+              await ctx.edit(await buildTreeDisplayMessage(ctx));
+            }, 3000)
+          );
 
-        //   return;
-        // }
+          return;
+        }
 
         const wateringInterval = getWateringInterval(ctx.game.size),
           time = Math.floor(Date.now() / 1000);
