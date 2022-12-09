@@ -10,6 +10,8 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
+import { calculateTreeSize } from "../util/tree-size-calculator";
+import { calculateTreeTierImage } from "../util/tree-tier-calculator";
 import { getWateringInterval } from "../util/watering-inteval";
 
 const builder = new SlashCommandBuilder("tree", "Display your server's tree.");
@@ -32,25 +34,25 @@ export class Tree implements ISlashCommand {
       async (ctx: ButtonContext): Promise<void> => {
         if (!ctx.game) throw new Error("Game data missing.");
 
-        if (ctx.game.lastWateredBy === ctx.user.id) {
-          const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-          if (timeout) clearTimeout(timeout);
+        // if (ctx.game.lastWateredBy === ctx.user.id) {
+        //   const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        //   if (timeout) clearTimeout(timeout);
 
-          ctx.reply(
-            SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
-          );
+        //   ctx.reply(
+        //     SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
+        //   );
 
-          ctx.timeouts.set(
-            ctx.interaction.message.id,
-            setTimeout(async () => {
-              ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+        //   ctx.timeouts.set(
+        //     ctx.interaction.message.id,
+        //     setTimeout(async () => {
+        //       ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
-              await ctx.edit(await buildTreeDisplayMessage(ctx));
-            }, 3000)
-          );
+        //       await ctx.edit(await buildTreeDisplayMessage(ctx));
+        //     }, 3000)
+        //   );
 
-          return;
-        }
+        //   return;
+        // }
 
         const wateringInterval = getWateringInterval(ctx.game.size),
           time = Math.floor(Date.now() / 1000);
@@ -124,13 +126,19 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
 
+  embed.setImage(calculateTreeTierImage(ctx.game.size));
+
   if (canBeWateredAt < Date.now() / 1000) {
     embed.setDescription(
-      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${ctx.game.lastWateredBy}>\n**Ready to be watered!**`
+      `**Your tree is ${calculateTreeSize(ctx.game.size)}ft tall.**\n\nLast watered by: <@${
+        ctx.game.lastWateredBy
+      }>\n**Ready to be watered!**`
     );
   } else {
     embed.setDescription(
-      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${ctx.game.lastWateredBy}>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*`
+      `**Your tree is ${calculateTreeSize(ctx.game.size)}ft tall.**\n\nLast watered by: <@${
+        ctx.game.lastWateredBy
+      }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {

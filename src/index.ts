@@ -145,3 +145,5 @@ if (keys.some((key) => !(key in process.env))) {
       console.error(err);
     });
 })();
+
+console.log("Grow a christmas tree - V1.0");

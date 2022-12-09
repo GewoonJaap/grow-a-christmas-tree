@@ -22,4 +22,4 @@ FROM base AS runner
 COPY .env .
 COPY --from=builder /usr/app/dist ./dist
 
-CMD yarn start
+CMD yarn dockerStart
