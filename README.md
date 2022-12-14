@@ -1,4 +1,6 @@
-[Invite me!](https://discord.com/api/oauth2/authorize?client_id=1050722873569968128&permissions=2147486720&scope=bot%20applications.commands)
+![afbeelding](https://user-images.githubusercontent.com/33700526/207620719-ccedcf07-3c4f-438d-89ed-012dfd8bb38c.png)
+
+# [Invite me!](https://discord.com/api/oauth2/authorize?client_id=1050722873569968128&permissions=2147486720&scope=bot%20applications.commands)
 
 Work with your Discord community to grow the biggest tree you can!
 
