@@ -11,7 +11,8 @@ import {
   SlashCommandContext
 } from "interactions.ts";
 import { calculateTreeTierImage } from "../util/tree-tier-calculator";
-import { getWateringInterval } from "../util/watering-inteval";
+import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
+import humanizeDuration = require("humanize-duration");
 
 const builder = new SlashCommandBuilder("tree", "Display your server's tree.");
 
@@ -124,8 +125,17 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
   const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size);
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
+  const time = Math.floor(Date.now() / 1000);
 
   embed.setImage(calculateTreeTierImage(ctx.game.size));
+
+  embed.setFooter({
+    text: `Your tree has spent ${humanizeDuration(
+      ctx.game.lastWateredAt + getWateringInterval(ctx.game.size) < time
+        ? getTreeAge(ctx.game.size) * 1000
+        : (getTreeAge(ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
+    )} growing. Nice!`
+  });
 
   if (canBeWateredAt < Date.now() / 1000) {
     embed.setDescription(
