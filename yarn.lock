@@ -121,6 +121,11 @@
   resolved "https://registry.yarnpkg.com/@sapphire/snowflake/-/snowflake-3.2.1.tgz#027f217779ec7fd324d35cf941b3de49b4f67877"
   integrity sha512-vmZq1I6J6iNRQVXP+N9HzOMOY4ORB3MunoFeWCw/aBnZTf1cDgDvP0RZFQS53B1TN95AIgFY9T+ItQ/fWAUYWQ==
 
+"@types/humanize-duration@^3.27.1":
+  version "3.27.1"
+  resolved "https://registry.yarnpkg.com/@types/humanize-duration/-/humanize-duration-3.27.1.tgz#f14740d1f585a0a8e3f46359b62fda8b0eaa31e7"
+  integrity sha512-K3e+NZlpCKd6Bd/EIdqjFJRFHbrq5TzPPLwREk5Iv/YoIjQrs6ljdAUCo+Lb2xFlGNOjGSE0dqsVD19cZL137w==
+
 "@types/json-schema@^7.0.9":
   version "7.0.11"
   resolved "https://registry.yarnpkg.com/@types/json-schema/-/json-schema-7.0.11.tgz#d421b6c527a3037f7c84433fd2c4229e016863d3"

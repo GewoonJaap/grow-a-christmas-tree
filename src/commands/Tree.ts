@@ -130,7 +130,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
   embed.setImage(calculateTreeTierImage(ctx.game.size));
 
   embed.setFooter({
-    text: `Your tree has spent ${humanizeDuration(
+    text: `Your christmas tree has spent ${humanizeDuration(
       ctx.game.lastWateredAt + getWateringInterval(ctx.game.size) < time
         ? getTreeAge(ctx.game.size) * 1000
         : (getTreeAge(ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
