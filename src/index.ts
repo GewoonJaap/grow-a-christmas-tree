@@ -15,7 +15,7 @@ import {
 } from "interactions.ts";
 import { connect, HydratedDocument } from "mongoose";
 import { createClient } from "redis";
-import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree } from "./commands";
+import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 
 declare module "interactions.ts" {
@@ -80,7 +80,7 @@ if (keys.some((key) => !(key in process.env))) {
   });
 
   app.commands.register(
-    [new Ping(), new Plant(), new Tree(), new Leaderboard(), new Forest(), new Profile(), new About()],
+    [new Ping(), new Plant(), new Tree(), new Leaderboard(), new Forest(), new Profile(), new About(), new Recycle()],
     false
   );
 
