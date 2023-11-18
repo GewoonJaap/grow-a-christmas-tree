@@ -46,7 +46,7 @@ export function permissionsExtractor(permBitfield: number): string[] {
   const currentPermissions: string[] = [];
   const permissionUpper = Math.floor(permBitfield / 0x100000000);
   const permissionLower = Math.floor(permBitfield % 0x100000000);
-  for (let key in permissions) {
+  for (const key in permissions) {
     if (
       (permissions[key] >= 0x100000000 && permissionUpper & Math.floor(permissions[key] / 0x100000000)) ||
       (permissions[key] < 0x100000000 && permissionLower & permissions[key])
