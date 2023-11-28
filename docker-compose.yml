@@ -4,9 +4,11 @@ services:
 
   mongo:
     image: mongo
+    restart: always
 
   redis:
     image: redis
+    restart: always
 
   grow-a-tree:
     build:
