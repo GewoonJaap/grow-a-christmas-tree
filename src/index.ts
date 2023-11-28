@@ -17,7 +17,7 @@ import { connect, HydratedDocument } from "mongoose";
 import { createClient } from "redis";
 import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
-import { fetchStats, StatsModel } from "./api/stats";
+import { fetchStats } from "./api/stats";
 
 const VERSION = "1.1";
 

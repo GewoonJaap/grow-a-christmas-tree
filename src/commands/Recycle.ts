@@ -25,7 +25,7 @@ export class Recycle implements ISlashCommand {
 
     if (guildToRemove === null) return ctx.reply(`You don't have a christmas tree planted in this server.`);
 
-    await guildToRemove.delete();
+    await guildToRemove.deleteOne();
 
     return ctx.reply(
       new MessageBuilder().addEmbed(
