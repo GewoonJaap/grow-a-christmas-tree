@@ -20,5 +20,12 @@ export function calculateTreeTierImage(size: number): string {
   if (size < 830) return "https://i.imgur.com/7oVEPVi.jpg";
   if (size < 920) return "https://i.imgur.com/XmNcPJ0.jpg";
   if (size < 1015) return "https://i.imgur.com/njsJl3K.jpg";
+  if (size < 1120) return "https://i.imgur.com/gcsLYQk.jpg";
+  if (size < 1225) return "https://i.imgur.com/aihyW7K.jpg";
+  if (size < 1340) return "https://i.imgur.com/NgBRdeX.jpg";
+  if (size < 1465) return "https://i.imgur.com/dNvOk7I.jpg";
+  if (size < 1600) return "https://i.imgur.com/2Sahas9.jpg";
+  if (size < 1745) return "https://i.imgur.com/36LMXH1.jpg";
+  if (size < 1900) return "https://i.imgur.com/Q8v0Opk.jpeg";
   return "https://i.imgur.com/njsJl3K.jpg";
 }
