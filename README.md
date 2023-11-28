@@ -27,3 +27,7 @@ Returns the current health of the bot.
 ```json
 {"status":"healthy","version":"V1.1"}
 ```
+
+### `GET /images/<FileName>`
+
+Returns the image with the given filename from the `images` folder.
