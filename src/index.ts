@@ -19,6 +19,8 @@ import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from 
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats, StatsModel } from "./api/stats";
 
+const VERSION = "1.1";
+
 declare module "interactions.ts" {
   interface BaseInteractionContext {
     game: HydratedDocument<IGuild> | null;
@@ -148,7 +150,7 @@ if (keys.some((key) => !(key in process.env))) {
   });
 
   server.get("/api/health", async (request, reply) => {
-    reply.code(200).send();
+    reply.code(200).send({ status: "healthy", version: `V${VERSION}` });
     return;
   });
 
@@ -165,4 +167,4 @@ if (keys.some((key) => !(key in process.env))) {
     });
 })();
 
-console.log("Grow a christmas tree - V1.1");
+console.log(`Grow a christmas tree - V${VERSION}`);
