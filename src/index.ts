@@ -17,6 +17,7 @@ import { connect, HydratedDocument } from "mongoose";
 import { createClient } from "redis";
 import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
+import { fetchStats, StatsModel } from "./api/stats";
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {
@@ -133,6 +134,24 @@ if (keys.some((key) => !(key in process.env))) {
     }
   });
 
+  server.get("/api/stats", async (request, reply) => {
+    //api/stats.ts
+    try {
+      const stats = await fetchStats();
+      reply.code(200).send(stats);
+      return;
+    } catch (err: unknown) {
+      console.error(err);
+      reply.code(500).send();
+      return;
+    }
+  });
+
+  server.get("/api/health", async (request, reply) => {
+    reply.code(200).send();
+    return;
+  });
+
   connect(process.env.MONGO_URI ?? `mongodb://mongo/trees`)
     .then(async () => {
       const address = "0.0.0.0";
@@ -146,4 +165,4 @@ if (keys.some((key) => !(key in process.env))) {
     });
 })();
 
-console.log("Grow a christmas tree - V1.0");
+console.log("Grow a christmas tree - V1.1");
