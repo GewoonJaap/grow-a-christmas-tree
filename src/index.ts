@@ -167,8 +167,8 @@ if (keys.some((key) => !(key in process.env))) {
       const address = "0.0.0.0";
       const port = process.env.PORT as string;
 
-      server.listen(port, address);
-      console.log(`Listening for interactions on ${address}:${port}.`);
+      server.listen({ port: parseInt(port), host: address });
+      console.log(`Listening for interactions on http://${address}:${port}.`);
     })
     .catch((err: unknown) => {
       console.error(err);
