@@ -7,3 +7,21 @@ Work with your Discord community to grow the biggest tree you can!
 The tree cannot be watered by the same person twice, and takes longer to grow as its size increases. Work together to keep it growing regularly and compete to make yours the biggest tree in the forest.
 
 Uses the [interactions.ts](https://github.com/ssMMiles/interactions.ts) framework.
+
+## API Endpoints
+
+### `GET /api/stats`
+
+Returns the current stats for the bot.
+
+```json
+{"totalTrees":548,"totalContributors":4226,"activeTrees":106,"activeUsers":1498}
+```
+
+### `GET /api/health`
+
+Returns the current health of the bot.
+
+```json
+{"status":"healthy","version":"V1.1"}
+```

@@ -15,11 +15,13 @@ interface IGuild {
 interface IContributor {
   userId: string;
   count: number;
+  lastWateredAt: number;
 }
 
 const ContributorSchema = new Schema<IContributor>({
   userId: { type: String, required: true },
-  count: { type: Number, required: true, default: 1 }
+  count: { type: Number, required: true, default: 1 },
+  lastWateredAt: { type: Number, required: true, default: 0 }
 });
 
 const GuildSchema = new Schema<IGuild>({
