@@ -4,9 +4,11 @@ services:
 
   mongo:
     image: mongo
+    restart: always
 
   redis:
     image: redis
+    restart: always
 
   grow-a-tree:
     build:
@@ -14,6 +16,6 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8089:8080"
-    restart: unless-stopped
+    restart: always
     volumes:
       - .:/usr/app
