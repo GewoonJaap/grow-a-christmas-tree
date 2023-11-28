@@ -67,7 +67,10 @@ async function buildLeaderboardMessage(
       ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
       : (ctx.state as LeaderboardButtonState);
 
-  let description = `*The tallest trees of all.*\n\n`;
+
+  const amountOfTrees = await Guild.countDocuments();
+
+  let description = `*Christmas Tree forest with ${amountOfTrees} trees*\n\n`;
 
   const start = (state.page - 1) * 10;
 
