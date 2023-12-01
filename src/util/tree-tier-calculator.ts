@@ -1,31 +1,40 @@
-export function calculateTreeTierImage(size: number): string {
-  if (size < 2) return "https://i.imgur.com/pO8nLtb.png";
-  if (size < 5) return "https://i.imgur.com/qCU0ETK.png";
-  if (size < 20) return "https://i.imgur.com/k3iDzAf.png";
-  if (size < 35) return "https://i.imgur.com/DFy9c5e.png";
-  if (size < 55) return "https://i.imgur.com/jaGpmD8.png";
-  if (size < 80) return "https://i.imgur.com/0jkawPy.png";
-  if (size < 110) return "https://i.imgur.com/NBK1biD.jpg";
-  if (size < 145) return "https://i.imgur.com/o3DYowJ.jpg";
-  if (size < 185) return "https://i.imgur.com/Y2P6t8G.jpg";
-  if (size < 230) return "https://i.imgur.com/nJn7BZY.jpg";
-  if (size < 280) return "https://i.imgur.com/8oTigep.jpg";
-  if (size < 335) return "https://i.imgur.com/j0sOYGV.jpg";
-  if (size < 395) return "https://i.imgur.com/pBAhFIX.jpg";
-  if (size < 455) return "https://i.imgur.com/cOWaOLA.jpg";
-  if (size < 520) return "https://i.imgur.com/nw8PZXM.jpg";
-  if (size < 590) return "https://i.imgur.com/hU8kk6y.jpg";
-  if (size < 665) return "https://i.imgur.com/oden2Qv.jpg";
-  if (size < 745) return "https://i.imgur.com/NP7a8HG.jpg";
-  if (size < 830) return "https://i.imgur.com/7oVEPVi.jpg";
-  if (size < 920) return "https://i.imgur.com/XmNcPJ0.jpg";
-  if (size < 1015) return "https://i.imgur.com/njsJl3K.jpg";
-  if (size < 1120) return "https://i.imgur.com/gcsLYQk.jpg";
-  if (size < 1225) return "https://i.imgur.com/aihyW7K.jpg";
-  if (size < 1340) return "https://i.imgur.com/NgBRdeX.jpg";
-  if (size < 1465) return "https://i.imgur.com/dNvOk7I.jpg";
-  if (size < 1600) return "https://i.imgur.com/2Sahas9.jpg";
-  if (size < 1745) return "https://i.imgur.com/36LMXH1.jpg";
-  if (size < 1900) return "https://i.imgur.com/Q8v0Opk.jpeg";
-  return "https://i.imgur.com/njsJl3K.jpg";
+export function calculateTreeTierImage(size: number): TreeTier {
+  if (size < 2) return { tier: 1, image: tierToImageName(1) };
+  if (size < 5) return { tier: 2, image: tierToImageName(2) };
+  if (size < 20) return { tier: 3, image: tierToImageName(3) };
+  if (size < 35) return { tier: 4, image: tierToImageName(4) };
+  if (size < 55) return { tier: 5, image: tierToImageName(5) };
+  if (size < 80) return { tier: 6, image: tierToImageName(6) };
+  if (size < 110) return { tier: 7, image: tierToImageName(7) };
+  if (size < 145) return { tier: 8, image: tierToImageName(8) };
+  if (size < 185) return { tier: 9, image: tierToImageName(9) };
+  if (size < 230) return { tier: 10, image: tierToImageName(10) };
+  if (size < 280) return { tier: 11, image: tierToImageName(11) };
+  if (size < 335) return { tier: 12, image: tierToImageName(12) };
+  if (size < 395) return { tier: 13, image: tierToImageName(13) };
+  if (size < 455) return { tier: 14, image: tierToImageName(14) };
+  if (size < 520) return { tier: 15, image: tierToImageName(15) };
+  if (size < 590) return { tier: 16, image: tierToImageName(16) };
+  if (size < 665) return { tier: 17, image: tierToImageName(17) };
+  if (size < 745) return { tier: 18, image: tierToImageName(18) };
+  if (size < 830) return { tier: 19, image: tierToImageName(19) };
+  if (size < 920) return { tier: 20, image: tierToImageName(20) };
+  if (size < 1015) return { tier: 21, image: tierToImageName(21) };
+  if (size < 1120) return { tier: 22, image: tierToImageName(22) };
+  if (size < 1225) return { tier: 23, image: tierToImageName(23) };
+  if (size < 1340) return { tier: 24, image: tierToImageName(24) };
+  if (size < 1465) return { tier: 25, image: tierToImageName(25) };
+  if (size < 1600) return { tier: 26, image: tierToImageName(26) };
+  if (size < 1745) return { tier: 27, image: tierToImageName(27) };
+  if (size < 1900) return { tier: 28, image: tierToImageName(28) };
+  return { tier: 28, image: tierToImageName(28) };
+}
+
+export interface TreeTier {
+  tier: number;
+  image: string;
+}
+
+function tierToImageName(tierNumber: number): string {
+  return `${process.env.IMAGE_BASE_URI}level-${tierNumber}.jpg`;
 }
