@@ -18,10 +18,7 @@ import { createClient } from "redis";
 import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
-
-import fastifyStatic from "@fastify/static";
-
-const VERSION = "1.1";
+const VERSION = "1.2";
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {
@@ -154,12 +151,6 @@ if (keys.some((key) => !(key in process.env))) {
   server.get("/api/health", async (request, reply) => {
     reply.code(200).send({ status: "healthy", version: `V${VERSION}` });
     return;
-  });
-
-  // /images folder as static
-  server.register(fastifyStatic, {
-    root: `${__dirname}/../images`,
-    prefix: "/images/"
   });
 
   connect(process.env.MONGO_URI ?? `mongodb://mongo/trees`)
