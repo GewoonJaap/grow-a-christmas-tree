@@ -12,7 +12,7 @@ export interface TreeTier {
 }
 
 function tierToImageName(tierNumber: number): string {
-  return `${process.env.IMAGE_BASE_URI}stage-${tierNumber}.jpg`;
+  return `${process.env.IMAGE_BASE_URI}stage-${tierNumber}.png`;
 }
 
 function createTreeTier(tierNumber: number): TreeTier {
