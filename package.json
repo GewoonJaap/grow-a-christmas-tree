@@ -7,7 +7,7 @@
   "scripts": {
     "format": "prettier --write src",
     "lint": "eslint src/**/*.ts",
-    "build": "yarn format & yarn lint && tsc -p tsconfig.json",
+    "build": "yarn lint && tsc -p tsconfig.json",
     "build:docker": "docker build -t grow-a-tree .",
     "start": "node dist/index.js",
     "dockerStart": "yarn build && yarn start",
