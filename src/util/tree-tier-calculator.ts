@@ -1,31 +1,21 @@
-export function calculateTreeTierImage(size: number): string {
-  if (size < 2) return "https://i.imgur.com/pO8nLtb.png";
-  if (size < 5) return "https://i.imgur.com/qCU0ETK.png";
-  if (size < 20) return "https://i.imgur.com/k3iDzAf.png";
-  if (size < 35) return "https://i.imgur.com/DFy9c5e.png";
-  if (size < 55) return "https://i.imgur.com/jaGpmD8.png";
-  if (size < 80) return "https://i.imgur.com/0jkawPy.png";
-  if (size < 110) return "https://i.imgur.com/NBK1biD.jpg";
-  if (size < 145) return "https://i.imgur.com/o3DYowJ.jpg";
-  if (size < 185) return "https://i.imgur.com/Y2P6t8G.jpg";
-  if (size < 230) return "https://i.imgur.com/nJn7BZY.jpg";
-  if (size < 280) return "https://i.imgur.com/8oTigep.jpg";
-  if (size < 335) return "https://i.imgur.com/j0sOYGV.jpg";
-  if (size < 395) return "https://i.imgur.com/pBAhFIX.jpg";
-  if (size < 455) return "https://i.imgur.com/cOWaOLA.jpg";
-  if (size < 520) return "https://i.imgur.com/nw8PZXM.jpg";
-  if (size < 590) return "https://i.imgur.com/hU8kk6y.jpg";
-  if (size < 665) return "https://i.imgur.com/oden2Qv.jpg";
-  if (size < 745) return "https://i.imgur.com/NP7a8HG.jpg";
-  if (size < 830) return "https://i.imgur.com/7oVEPVi.jpg";
-  if (size < 920) return "https://i.imgur.com/XmNcPJ0.jpg";
-  if (size < 1015) return "https://i.imgur.com/njsJl3K.jpg";
-  if (size < 1120) return "https://i.imgur.com/gcsLYQk.jpg";
-  if (size < 1225) return "https://i.imgur.com/aihyW7K.jpg";
-  if (size < 1340) return "https://i.imgur.com/NgBRdeX.jpg";
-  if (size < 1465) return "https://i.imgur.com/dNvOk7I.jpg";
-  if (size < 1600) return "https://i.imgur.com/2Sahas9.jpg";
-  if (size < 1745) return "https://i.imgur.com/36LMXH1.jpg";
-  if (size < 1900) return "https://i.imgur.com/Q8v0Opk.jpeg";
-  return "https://i.imgur.com/njsJl3K.jpg";
+import { TreeStages } from "./treeStages";
+
+export function calculateTreeTierImage(size: number): TreeTier {
+  const treeTier = TreeStages.find((treeStage) => treeStage.requiredTreeLength >= size + 1); // Stoopid hack to make it work. WIthout the +1 you always need 1 more water than you should.
+  if (!treeTier) return createTreeTier(TreeStages[TreeStages.length - 1].tier);
+  return createTreeTier(treeTier.tier - 1);
+}
+
+export interface TreeTier {
+  tier: number;
+  image: string;
+}
+
+function tierToImageName(tierNumber: number): string {
+  return `${process.env.IMAGE_BASE_URI}stage-${tierNumber}.png`;
+}
+
+function createTreeTier(tierNumber: number): TreeTier {
+  if (tierNumber < 0) tierNumber = 0;
+  return { tier: tierNumber, image: tierToImageName(tierNumber) };
 }

@@ -19,6 +19,8 @@ import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from 
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
 
+import fastifyStatic from "@fastify/static";
+
 const VERSION = "1.1";
 
 declare module "interactions.ts" {
@@ -154,13 +156,19 @@ if (keys.some((key) => !(key in process.env))) {
     return;
   });
 
+  // /images folder as static
+  server.register(fastifyStatic, {
+    root: `${__dirname}/../images`,
+    prefix: "/images/"
+  });
+
   connect(process.env.MONGO_URI ?? `mongodb://mongo/trees`)
     .then(async () => {
       const address = "0.0.0.0";
       const port = process.env.PORT as string;
 
-      server.listen(port, address);
-      console.log(`Listening for interactions on ${address}:${port}.`);
+      server.listen({ port: parseInt(port), host: address });
+      console.log(`Listening for interactions on http://${address}:${port}.`);
     })
     .catch((err: unknown) => {
       console.error(err);
