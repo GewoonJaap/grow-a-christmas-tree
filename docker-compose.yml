@@ -10,6 +10,15 @@ services:
     image: redis
     restart: always
 
+  bot-status:
+    image: gewoonjaap/discord-bot-status-displayer:latest
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - ACTIVITY_TYPE=PLAYING
+      - ACTIVITY_NAME=Watering the christmas trees
+
   grow-a-tree:
     build:
       context: .
