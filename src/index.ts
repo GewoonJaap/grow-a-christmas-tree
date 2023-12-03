@@ -18,6 +18,7 @@ import { createClient } from "redis";
 import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
+import { Feedback } from "./commands/Feedback";
 const VERSION = "1.2";
 
 declare module "interactions.ts" {
@@ -82,7 +83,17 @@ if (keys.some((key) => !(key in process.env))) {
   });
 
   app.commands.register(
-    [new Ping(), new Plant(), new Tree(), new Leaderboard(), new Forest(), new Profile(), new About(), new Recycle()],
+    [
+      new Ping(),
+      new Plant(),
+      new Tree(),
+      new Leaderboard(),
+      new Forest(),
+      new Profile(),
+      new About(),
+      new Recycle(),
+      new Feedback()
+    ],
     false
   );
 
