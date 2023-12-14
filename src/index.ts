@@ -19,6 +19,7 @@ import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle } from 
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
 import { Feedback } from "./commands/Feedback";
+import { startBackupTimer } from "./backup/backup";
 const VERSION = "1.2";
 
 declare module "interactions.ts" {
@@ -178,3 +179,5 @@ if (keys.some((key) => !(key in process.env))) {
 })();
 
 console.log(`Grow a christmas tree - V${VERSION}`);
+
+startBackupTimer();
