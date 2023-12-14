@@ -1,4 +1,5 @@
-![afbeelding](https://user-images.githubusercontent.com/33700526/207620719-ccedcf07-3c4f-438d-89ed-012dfd8bb38c.png)
+![Preview Image](https://github.com/GewoonJaap/grow-a-christmas-tree/assets/33700526/ca709b29-3150-407a-923c-cc7735b6b072)
+
 
 [![Build and Lint application](https://github.com/GewoonJaap/grow-a-christmas-tree/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/GewoonJaap/grow-a-christmas-tree/actions/workflows/build.yml)
 
