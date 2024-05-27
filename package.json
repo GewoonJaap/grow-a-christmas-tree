@@ -22,7 +22,7 @@
     "fastify": "^3.27.4",
     "fastify-raw-body": "^3.2.0",
     "humanize-duration": "^3.27.3",
-    "interactions.ts": "^1.0.23",
+    "interactions.ts": "^1.0.44",
     "mongoose": "^8.0.1",
     "redis": "^4.1.0"
   },
