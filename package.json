@@ -19,7 +19,7 @@
     "@types/humanize-duration": "^3.27.1",
     "axios": "^1.6.2",
     "dotenv": "^16.0.0",
-    "fastify": "^3.27.4",
+    "fastify": "^4.28.1",
     "fastify-raw-body": "^3.2.0",
     "humanize-duration": "^3.27.3",
     "interactions.ts": "^1.0.23",
