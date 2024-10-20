@@ -11,7 +11,7 @@ export async function calculateTreeTierImage(
   currentImageUri?: string
 ): Promise<TreeTier> {
   let level = getCurrentTreeTier(size, useAiGen);
-  if (useAiGen && size >= AI_GEN_AFTER_TIER.requiredTreeLength) {
+  if (process.env.AI_ENABLED && useAiGen && size >= AI_GEN_AFTER_TIER.requiredTreeLength) {
     const imageGenApi = new ImageGenApi();
 
     // Check if the image is already generated
