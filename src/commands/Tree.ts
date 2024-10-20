@@ -157,7 +157,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
       }>\n**Ready to be watered!**${
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
-          : ""
+          : "\nThis server has early access to unlimited levels!"
       }`
     );
   } else {
@@ -167,7 +167,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
       }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
-          : ""
+          : "\nThis server has early access to unlimited levels!"
       }`
     );
 
