@@ -2,6 +2,7 @@ import { TreeStageConfig, TreeStages } from "./treeStages";
 import { ImageGenApi } from "./image-gen/ImageGenApi";
 
 const AI_GEN_AFTER_TIER: TreeStageConfig = TreeStages[35];
+const AI_GEN_TIER_WATERINGS_PER_LEVEL = 30;
 
 export async function calculateTreeTierImage(
   size: number,
@@ -67,5 +68,5 @@ function createTreeTierObject(tierNumber: number): TreeTier {
 }
 
 function calculateAiGenTier(size: number): number {
-  return Math.floor((size - AI_GEN_AFTER_TIER.requiredTreeLength) / 100) + 36;
+  return Math.floor((size - AI_GEN_AFTER_TIER.requiredTreeLength) / AI_GEN_TIER_WATERINGS_PER_LEVEL) + 36;
 }
