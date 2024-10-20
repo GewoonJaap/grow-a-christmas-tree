@@ -3,16 +3,41 @@ import { ImageGenApi } from "./image-gen/ImageGenApi";
 
 const AI_GEN_AFTER_TIER: TreeStageConfig = TreeStages[35];
 
-export async function calculateTreeTierImage(size: number, useAiGen: boolean, guildId: string): Promise<TreeTier> {
+export async function calculateTreeTierImage(
+  size: number,
+  useAiGen: boolean,
+  guildId: string,
+  currentImageUri?: string
+): Promise<TreeTier> {
   const level = getCurrentTreeTier(size, useAiGen);
   if (useAiGen && size >= AI_GEN_AFTER_TIER.requiredTreeLength) {
     const imageGenApi = new ImageGenApi();
-    const imageResponse = await imageGenApi.getGeneratedImage(guildId, level);
-    if (imageResponse != null && imageResponse.success && imageResponse.data != null) {
-      return { tier: level, image: imageResponse.data.url };
+
+    // Check if the image is already generated
+    const hasGeneratedImage = await imageGenApi.getHasGeneratedImage(guildId, level);
+
+    if (hasGeneratedImage) {
+      const image = await imageGenApi.getGeneratedImage(guildId, level);
+      if (image.data) {
+        return { tier: level, image: image.data?.url };
+      }
+    } else {
+      imageGenApi.getGeneratedImage(guildId, level);
+      if (currentImageUri && (await isCurrentImageUriStillValid(currentImageUri))) {
+        return { tier: level, image: currentImageUri };
+      }
     }
   }
   return createTreeTierObject(level);
+}
+
+export async function isCurrentImageUriStillValid(imageUri: string): Promise<boolean> {
+  try {
+    const response = await fetch(imageUri, { method: "HEAD" });
+    return response.ok && response.status === 200;
+  } catch (error) {
+    return false;
+  }
 }
 
 export function getCurrentTreeTier(size: number, useAiGen: boolean): number {

@@ -10,7 +10,7 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import { calculateTreeTierImage } from "../util/tree-tier-calculator";
+import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-calculator";
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
 
@@ -127,11 +127,18 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
   const time = Math.floor(Date.now() / 1000);
-  const treeImage = await calculateTreeTierImage(ctx.game.size, false, ctx.game.id);
+
+  const treeImage = await calculateTreeTierImage(ctx.game.size, true, ctx.game.id, ctx.game.currentImageUrl);
+  ctx.game.currentImageUrl = treeImage.image;
+  await ctx.game.save();
+
   embed.setImage(treeImage.image);
 
   embed.setFooter({
-    text: `Your christmas tree has spent ${humanizeDuration(
+    text: `Your christmas tree${ctx.game.hasAiAccess ? "✨" : ""} (lvl. ${getCurrentTreeTier(
+      ctx.game.size,
+      ctx.game.hasAiAccess
+    )}) has spent ${humanizeDuration(
       ctx.game.lastWateredAt + getWateringInterval(ctx.game.size) < time
         ? getTreeAge(ctx.game.size) * 1000
         : (getTreeAge(ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
