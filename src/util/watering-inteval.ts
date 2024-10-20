@@ -1,8 +1,13 @@
 const cache = new Map();
+const maxInterval = 600; //in seconds, 10 mins
 
 export function getWateringInterval(size: number): number {
   const cached = cache.has(size);
-  const result = cached ? cache.get(size) : Math.floor(Math.pow(size * 0.05 + 5, 1.1));
+  let result = cached ? cache.get(size) : Math.floor(Math.pow(size * 0.05 + 5, 1.1));
+
+  if (result > maxInterval) {
+    result = maxInterval;
+  }
 
   if (!cached) cache.set(size, result);
 
