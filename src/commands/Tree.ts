@@ -130,7 +130,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
 
   const treeImage = await calculateTreeTierImage(
     ctx.game.size,
-    ctx.game.hasAiAccess,
+    ctx.game.hasAiAccess ?? false,
     ctx.game.id,
     ctx.game.currentImageUrl
   );
