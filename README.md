@@ -11,6 +11,10 @@ The tree cannot be watered by the same person twice, and takes longer to grow as
 
 Uses the [interactions.ts](https://github.com/ssMMiles/interactions.ts) framework.
 
+## ENV Variables
+
+- IMAGE_GEN_API: Provide a URL to the Christmas Image tree Gen API, you can host it yourself on a Cloudflare Worker: https://github.com/GewoonJaap/christmas-tree-images-gen
+
 ## API Endpoints
 
 ### `GET /api/stats`
