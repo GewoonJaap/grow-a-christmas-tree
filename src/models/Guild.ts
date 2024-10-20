@@ -9,6 +9,9 @@ interface IGuild {
   lastWateredBy: string;
   lastWateredAt: number;
 
+  currentImageUrl?: string;
+  hasAiAccess: boolean;
+
   contributors: IContributor[];
 }
 
@@ -29,6 +32,9 @@ const GuildSchema = new Schema<IGuild>({
 
   name: { type: String, required: true },
   size: { type: Number, required: true, default: 1 },
+
+  currentImageUrl: { type: String, required: false },
+  hasAiAccess: { type: Boolean, required: true, default: false },
 
   lastWateredBy: { type: String, required: false },
   lastWateredAt: { type: Number, required: false },
