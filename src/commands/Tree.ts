@@ -152,11 +152,23 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
 
   if (canBeWateredAt < Date.now() / 1000) {
     embed.setDescription(
-      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${ctx.game.lastWateredBy}>\n**Ready to be watered!**`
+      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${
+        ctx.game.lastWateredBy
+      }>\n**Ready to be watered!**${
+        (ctx.game.hasAiAccess ?? false) == false
+          ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
+          : ""
+      }`
     );
   } else {
     embed.setDescription(
-      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${ctx.game.lastWateredBy}>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*`
+      `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${
+        ctx.game.lastWateredBy
+      }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
+        (ctx.game.hasAiAccess ?? false) == false
+          ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
+          : ""
+      }`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
