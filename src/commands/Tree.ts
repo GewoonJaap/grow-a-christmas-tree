@@ -128,7 +128,12 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
   const time = Math.floor(Date.now() / 1000);
 
-  const treeImage = await calculateTreeTierImage(ctx.game.size, true, ctx.game.id, ctx.game.currentImageUrl);
+  const treeImage = await calculateTreeTierImage(
+    ctx.game.size,
+    ctx.game.hasAiAccess,
+    ctx.game.id,
+    ctx.game.currentImageUrl
+  );
   ctx.game.currentImageUrl = treeImage.image;
   await ctx.game.save();
 

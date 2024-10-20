@@ -9,7 +9,7 @@ export async function calculateTreeTierImage(
   guildId: string,
   currentImageUri?: string
 ): Promise<TreeTier> {
-  const level = getCurrentTreeTier(size, useAiGen);
+  let level = getCurrentTreeTier(size, useAiGen);
   if (useAiGen && size >= AI_GEN_AFTER_TIER.requiredTreeLength) {
     const imageGenApi = new ImageGenApi();
 
@@ -28,6 +28,7 @@ export async function calculateTreeTierImage(
       }
     }
   }
+  level = getCurrentTreeTier(size, false); //fallback to normal tree tier
   return createTreeTierObject(level);
 }
 
