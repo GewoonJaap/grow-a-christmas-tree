@@ -127,8 +127,8 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
   const time = Math.floor(Date.now() / 1000);
-
-  embed.setImage(calculateTreeTierImage(ctx.game.size).image);
+  const treeImage = await calculateTreeTierImage(ctx.game.size, false, ctx.game.id);
+  embed.setImage(treeImage.image);
 
   embed.setFooter({
     text: `Your christmas tree has spent ${humanizeDuration(
