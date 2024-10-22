@@ -13,6 +13,7 @@ import {
 import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-calculator";
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
+import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 
 const builder = new SlashCommandBuilder("tree", "Display your server's tree.");
 
@@ -116,6 +117,8 @@ export class Tree implements ISlashCommand {
 async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
+  await updateEntitlementsToGame(ctx);
+
   const message = new MessageBuilder().addComponents(
     new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("tree.grow"),
@@ -123,7 +126,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
     )
   );
 
-  const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size);
+  const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false);
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
   const time = Math.floor(Date.now() / 1000);
@@ -156,8 +159,8 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
         ctx.game.lastWateredBy
       }>\n**Ready to be watered!**${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
-          : "\nThis server has early access to unlimited levels!"
+          ? "\nCheckout our new premium features in the shop! Click the bot avatar to access the shop."
+          : "\nThis server has access to unlimited levels!"
       }`
     );
   } else {
@@ -166,8 +169,8 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
         ctx.game.lastWateredBy
       }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
-          : "\nThis server has early access to unlimited levels!"
+          ? "\nCheckout our new premium features in the shop! Click the bot avatar to access the shop."
+          : "\nThis server has access to unlimited levels!"
       }`
     );
 
