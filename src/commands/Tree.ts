@@ -13,6 +13,7 @@ import {
 import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-calculator";
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
+import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 
 const builder = new SlashCommandBuilder("tree", "Display your server's tree.");
 
@@ -107,6 +108,7 @@ export class Tree implements ISlashCommand {
       "tree.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
+
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     )
@@ -115,6 +117,8 @@ export class Tree implements ISlashCommand {
 
 async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
+
+  await updateEntitlementsToGame(ctx);
 
   const message = new MessageBuilder().addComponents(
     new ActionRowBuilder().addComponents(
