@@ -39,7 +39,12 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
     (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
   );
 
+  const hasSuperThirsty = entitlements.some(
+    (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
+  );
+
   ctx.game.hasAiAccess = hasUnlimitedLevels;
+  ctx.game.superThirsty = hasSuperThirsty;
 
   await ctx.game.save();
 }

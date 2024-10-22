@@ -108,7 +108,6 @@ export class Tree implements ISlashCommand {
       "tree.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
-
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     )
@@ -127,7 +126,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
     )
   );
 
-  const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size);
+  const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false);
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
   const time = Math.floor(Date.now() / 1000);
@@ -160,8 +159,8 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
         ctx.game.lastWateredBy
       }>\n**Ready to be watered!**${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
-          : "\nThis server has early access to unlimited levels!"
+          ? "\nCheckout our new premium features in the shop! Click the bot avatar to access the shop."
+          : "\nThis server has access to unlimited levels!"
       }`
     );
   } else {
@@ -170,8 +169,8 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
         ctx.game.lastWateredBy
       }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nWant early access to unlimited levels? Use /feedback to let us know you're interested!"
-          : "\nThis server has early access to unlimited levels!"
+          ? "\nCheckout our new premium features in the shop! Click the bot avatar to access the shop."
+          : "\nThis server has access to unlimited levels!"
       }`
     );
 
