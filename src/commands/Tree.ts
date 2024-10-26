@@ -159,7 +159,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
         ctx.game.lastWateredBy
       }>\n**Ready to be watered!**${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nCheckout our new premium features in the shop! Click the bot avatar to access the shop."
+          ? "\nExplore our new premium features in the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels!"
       }`
     );
@@ -169,7 +169,7 @@ async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext)
         ctx.game.lastWateredBy
       }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nCheckout our new premium features in the shop! Click the bot avatar to access the shop."
+          ? "\nExplore our new premium features in the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels!"
       }`
     );
