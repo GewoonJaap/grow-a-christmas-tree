@@ -40,7 +40,7 @@ const GuildSchema = new Schema<IGuild>({
   hasAiAccess: { type: Boolean, required: true, default: false },
   superThirsty: { type: Boolean, required: true, default: false },
 
-  plantedAt: { type: Number, required: true, default: Date.now() },
+  plantedAt: { type: Number, required: true, default: Date.now() / 1000 },
 
   lastWateredBy: { type: String, required: false },
   lastWateredAt: { type: Number, required: false },
