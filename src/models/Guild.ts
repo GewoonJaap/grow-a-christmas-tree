@@ -13,6 +13,8 @@ interface IGuild {
   hasAiAccess: boolean;
   superThirsty: boolean;
 
+  plantedAt: number;
+
   contributors: IContributor[];
 }
 
@@ -37,6 +39,8 @@ const GuildSchema = new Schema<IGuild>({
   currentImageUrl: { type: String, required: false },
   hasAiAccess: { type: Boolean, required: true, default: false },
   superThirsty: { type: Boolean, required: true, default: false },
+
+  plantedAt: { type: Number, required: true, default: Date.now() },
 
   lastWateredBy: { type: String, required: false },
   lastWateredAt: { type: Number, required: false },
