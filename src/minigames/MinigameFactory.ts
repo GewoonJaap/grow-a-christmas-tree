@@ -5,16 +5,22 @@ import { SantaPresentMinigame } from "./SantaPresentMinigame";
 import { Minigame } from "../util/types/minigame/MinigameType";
 import { HotCocoaMinigame } from "./HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "./GiftUnwrappingMinigame";
+import { SnowballFightMinigame } from "./SnowballFightMinigame";
 
-const minigames: Minigame[] = [new SantaPresentMinigame(), new HotCocoaMinigame(), new GiftUnwrappingMinigame()];
+const minigames: Minigame[] = [
+  new SantaPresentMinigame(),
+  new HotCocoaMinigame(),
+  new GiftUnwrappingMinigame(),
+  new SnowballFightMinigame()
+];
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  // Filter out premium minigames if the game doesn't have aiAccess
-  const availableMinigames = ctx.game.hasAiAccess
-    ? minigames
-    : minigames.filter((minigame) => !minigame.config.premiumGuildOnly);
+  const availableMinigames =
+    ctx.game.hasAiAccess || process.env.DEV_MODE === "true"
+      ? minigames
+      : minigames.filter((minigame) => !minigame.config.premiumGuildOnly);
 
   if (availableMinigames.length === 0) {
     return false;

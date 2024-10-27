@@ -15,6 +15,10 @@ import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { startRandomMinigame } from "../minigames/MinigameFactory";
+import { SantaPresentMinigame } from "../minigames/SantaPresentMinigame";
+import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
+import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
+import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -47,14 +51,7 @@ export class Tree implements ISlashCommand {
             SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
           );
 
-          ctx.timeouts.set(
-            ctx.interaction.message.id,
-            setTimeout(async () => {
-              ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-
-              await ctx.edit(await buildTreeDisplayMessage(ctx));
-            }, 3000)
-          );
+          transitionToDefaultTreeView(ctx);
 
           return;
         }
@@ -77,14 +74,7 @@ export class Tree implements ISlashCommand {
             )
           );
 
-          ctx.timeouts.set(
-            ctx.interaction.message.id,
-            setTimeout(async () => {
-              ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-
-              await ctx.edit(await buildTreeDisplayMessage(ctx));
-            }, 3000)
-          );
+          transitionToDefaultTreeView(ctx);
 
           return;
         }
@@ -105,7 +95,11 @@ export class Tree implements ISlashCommand {
 
         await ctx.game.save();
 
-        if (Math.random() < MINIGAME_CHANCE && ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Date.now() / 1000) {
+        if (
+          process.env.DEV_MODE === "true" ||
+          (Math.random() < MINIGAME_CHANCE &&
+            ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Math.floor(Date.now() / 1000))
+        ) {
           ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
           await ctx.game.save();
           const minigameStarted = await startRandomMinigame(ctx);
@@ -122,106 +116,23 @@ export class Tree implements ISlashCommand {
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     ),
-    new Button(
-      "minigame.santapresent.present",
-      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
-
-        if (!ctx.game) throw new Error("Game data missing.");
-        ctx.game.size++;
-        await ctx.game.save();
-        return ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
-    ),
-    new Button(
-      "minigame.santapresent.witch",
-      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
-
-        return ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
-    ),
-    new Button(
-      "minigame.hotcocoa.hotcocoa",
-      new ButtonBuilder().setEmoji({ name: "☕" }).setStyle(1),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
-
-        if (!ctx.game) throw new Error("Game data missing.");
-        ctx.game.size++;
-        await ctx.game.save();
-        return ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
-    ),
-    new Button(
-      "minigame.hotcocoa.spilledcocoa",
-      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
-
-        return ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
-    ),
-    new Button(
-      "minigame.giftunwrapping.gift",
-      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
-
-        if (!ctx.game) throw new Error("Game data missing.");
-
-        const randomOutcome = Math.random();
-        let message;
-
-        if (randomOutcome < 0.33) {
-          ctx.game.lastWateredAt = 0;
-          message = "You unwrapped a gift and found a magical watering can! Your tree can be watered again.";
-        } else if (randomOutcome < 0.66) {
-          ctx.game.size += 2;
-          message = "You unwrapped a gift and found a special fertilizer! Your tree grew extra tall.";
-        } else {
-          message = "You unwrapped a gift but found nothing special inside.";
-        }
-
-        const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
-
-        await ctx.game.save();
-        ctx.reply(new MessageBuilder().addEmbed(embed));
-
-        ctx.timeouts.set(
-          ctx.interaction.message.id,
-          setTimeout(async () => {
-            ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-
-            await ctx.edit(await buildTreeDisplayMessage(ctx));
-          }, 3000)
-        );
-      }
-    ),
-    new Button(
-      "minigame.giftunwrapping.emptybox",
-      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
-
-        return ctx.reply("You unwrapped an empty box. Better luck next time!");
-      }
-    )
+    ...SantaPresentMinigame.buttons,
+    ...HotCocoaMinigame.buttons,
+    ...GiftUnwrappingMinigame.buttons,
+    ...SnowballFightMinigame.buttons
   ];
+}
+
+export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 3000) {
+  if (!ctx.game) throw new Error("Game data missing.");
+  ctx.timeouts.set(
+    ctx.interaction.message.id,
+    setTimeout(async () => {
+      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+
+      await ctx.edit(await buildTreeDisplayMessage(ctx));
+    }, delay)
+  );
 }
 
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {

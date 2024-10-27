@@ -1,8 +1,8 @@
 // src/minigames/SantaPresentMinigame.ts
 
-import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder } from "interactions.ts";
+import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage } from "../commands/Tree";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
@@ -34,11 +34,52 @@ export class SantaPresentMinigame implements Minigame {
 
     await ctx.reply(message);
 
-    const timeout = setTimeout(async () => {
+    const timeoutId = setTimeout(async () => {
       ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, SANTA_MINIGAME_MAX_DURATION);
 
-    ctx.timeouts.set(ctx.interaction.message.id, timeout);
+    ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
+
+  public static buttons = [
+    new Button(
+      "minigame.santapresent.present",
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      async (ctx: ButtonContext): Promise<void> => {
+        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        if (timeout) clearTimeout(timeout);
+        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+
+        if (!ctx.game) throw new Error("Game data missing.");
+        ctx.game.size++;
+        await ctx.game.save();
+
+        const embed = new EmbedBuilder()
+          .setTitle(ctx.game.name)
+          .setDescription("Enjoy your present! There was some magic inside which made your tree grow!");
+
+        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+        transitionToDefaultTreeView(ctx);
+      }
+    ),
+    new Button(
+      "minigame.santapresent.witch",
+      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
+      async (ctx: ButtonContext): Promise<void> => {
+        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        if (timeout) clearTimeout(timeout);
+        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+        if (!ctx.game) throw new Error("Game data missing.");
+        const embed = new EmbedBuilder()
+          .setTitle(ctx.game.name)
+          .setDescription("Whoops! The witch stole your present!");
+
+        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+        transitionToDefaultTreeView(ctx);
+      }
+    )
+  ];
 }

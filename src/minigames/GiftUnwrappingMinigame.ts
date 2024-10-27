@@ -1,6 +1,8 @@
-import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder } from "interactions.ts";
+// src/minigames/GiftUnwrappingMinigame.ts
+
+import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage } from "../commands/Tree";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 
 const GIFT_UNWRAPPING_MINIGAME_MAX_DURATION = 10 * 1000;
@@ -11,9 +13,8 @@ export class GiftUnwrappingMinigame implements Minigame {
   };
 
   private giftImages = [
-    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-1.jpg",
-    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-2.jpg",
-    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-3.jpg"
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-unwrapping-1.png",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-unwrapping-2.png"
   ];
 
   async start(ctx: ButtonContext): Promise<void> {
@@ -37,10 +38,61 @@ export class GiftUnwrappingMinigame implements Minigame {
     await ctx.reply(message);
 
     const timeoutId = setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+      ctx.timeouts.delete(ctx.interaction.message.id);
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
 
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
+
+  public static buttons = [
+    new Button(
+      "minigame.giftunwrapping.gift",
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      async (ctx: ButtonContext): Promise<void> => {
+        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        if (timeout) clearTimeout(timeout);
+        ctx.timeouts.delete(ctx.interaction.message.id);
+
+        if (!ctx.game) throw new Error("Game data missing.");
+
+        const randomOutcome = Math.random();
+        let message;
+
+        if (randomOutcome < 0.33) {
+          ctx.game.lastWateredAt = 0;
+          message = "You unwrapped a gift and found a magical watering can! Your tree can be watered again.";
+        } else if (randomOutcome < 0.66) {
+          ctx.game.size += 2;
+          message = "You unwrapped a gift and found a special fertilizer! Your tree grew extra tall.";
+        } else {
+          message = "You unwrapped a gift but found nothing special inside.";
+        }
+
+        await ctx.game.save();
+
+        const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
+        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+        transitionToDefaultTreeView(ctx);
+      }
+    ),
+    new Button(
+      "minigame.giftunwrapping.emptybox",
+      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(4),
+      async (ctx: ButtonContext): Promise<void> => {
+        if (!ctx.game) throw new Error("Game data missing.");
+        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        if (timeout) clearTimeout(timeout);
+        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+
+        const embed = new EmbedBuilder()
+          .setTitle(ctx.game.name)
+          .setDescription("You unwrapped an empty box. Better luck next time!");
+        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+        transitionToDefaultTreeView(ctx);
+      }
+    )
+  ];
 }
