@@ -9,7 +9,7 @@ export function getWateringInterval(size: number, superThirsty = false): number 
     result = maxInterval;
   }
 
-  if (superThirsty) result /= 2;
+  if (superThirsty) Math.floor((result /= 2));
 
   if (!cached) cache.set(size, result);
 
