@@ -3,8 +3,10 @@
 import { ButtonContext } from "interactions.ts";
 import { SantaPresentMinigame } from "./SantaPresentMinigame";
 import { Minigame } from "../util/types/minigame/MinigameType";
+import { HotCocoaMinigame } from "./HotCocoaMinigame";
+import { GiftUnwrappingMinigame } from "./GiftUnwrappingMinigame";
 
-const minigames: Minigame[] = [new SantaPresentMinigame()];
+const minigames: Minigame[] = [new SantaPresentMinigame(), new HotCocoaMinigame(), new GiftUnwrappingMinigame()];
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {
   if (!ctx.game) throw new Error("Game data missing.");

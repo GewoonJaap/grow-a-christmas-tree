@@ -22,8 +22,8 @@ export class SantaPresentMinigame implements Minigame {
       .setFooter({ text: "Hurry! Before you know santa will be gone!" });
 
     const buttons = [
-      await ctx.manager.components.createInstance("minigame.present"),
-      await ctx.manager.components.createInstance("minigame.witch")
+      await ctx.manager.components.createInstance("minigame.santapresent.present"),
+      await ctx.manager.components.createInstance("minigame.santapresent.witch")
     ];
 
     shuffleArray(buttons);
