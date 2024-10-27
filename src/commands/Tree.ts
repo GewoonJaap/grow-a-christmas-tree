@@ -14,6 +14,10 @@ import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-ca
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
+import { startRandomMinigame } from "../minigames/MinigameFactory";
+
+const MINIGAME_CHANCE = 0.4;
+const MINIGAME_DELAY_SECONDS = 5 * 60;
 
 const builder = new SlashCommandBuilder("tree", "Display your server's tree.");
 
@@ -35,7 +39,7 @@ export class Tree implements ISlashCommand {
       async (ctx: ButtonContext): Promise<void> => {
         if (!ctx.game) throw new Error("Game data missing.");
 
-        if (ctx.game.lastWateredBy === ctx.user.id) {
+        if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
           const timeout = ctx.timeouts.get(ctx.interaction.message.id);
           if (timeout) clearTimeout(timeout);
 
@@ -57,7 +61,7 @@ export class Tree implements ISlashCommand {
 
         const wateringInterval = getWateringInterval(ctx.game.size),
           time = Math.floor(Date.now() / 1000);
-        if (ctx.game.lastWateredAt + wateringInterval > time) {
+        if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
           const timeout = ctx.timeouts.get(ctx.interaction.message.id);
           if (timeout) clearTimeout(timeout);
 
@@ -101,6 +105,13 @@ export class Tree implements ISlashCommand {
 
         await ctx.game.save();
 
+        if (Math.random() < MINIGAME_CHANCE && ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Date.now() / 1000) {
+          ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
+          await ctx.game.save();
+          const minigameStarted = await startRandomMinigame(ctx);
+          if (minigameStarted) return;
+        }
+
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     ),
@@ -110,11 +121,36 @@ export class Tree implements ISlashCommand {
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
+    ),
+    new Button(
+      "minigame.present",
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      async (ctx: ButtonContext): Promise<void> => {
+        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        if (timeout) clearTimeout(timeout);
+        ctx.timeouts.delete(ctx.interaction.message.id);
+
+        if (!ctx.game) throw new Error("Game data missing.");
+        ctx.game.size++;
+        await ctx.game.save();
+        return ctx.reply(await buildTreeDisplayMessage(ctx));
+      }
+    ),
+    new Button(
+      "minigame.witch",
+      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
+      async (ctx: ButtonContext): Promise<void> => {
+        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+        if (timeout) clearTimeout(timeout);
+        ctx.timeouts.delete(ctx.interaction.message.id);
+
+        return ctx.reply(await buildTreeDisplayMessage(ctx));
+      }
     )
   ];
 }
 
-async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
   await updateEntitlementsToGame(ctx);
