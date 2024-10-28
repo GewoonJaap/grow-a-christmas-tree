@@ -29,7 +29,7 @@ export class Feedback implements ISlashCommand {
 
     return ctx.reply(
       new MessageBuilder().addEmbed(
-        new EmbedBuilder().setTitle(`Thanks for submitting your feedback! We'll look into it. If you have a question, please join our support server [here](https://discord.gg/KEJwtK5Z8k).`)
+        new EmbedBuilder().setTitle(`Thanks for submitting your feedback! We'll look into it. If you have a question, please join our support server https://discord.gg/KEJwtK5Z8k`)
       )
     );
   };
