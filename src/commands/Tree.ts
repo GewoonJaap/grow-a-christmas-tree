@@ -19,6 +19,7 @@ import { SantaPresentMinigame } from "../minigames/SantaPresentMinigame";
 import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
+import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -119,7 +120,8 @@ export class Tree implements ISlashCommand {
     ...SantaPresentMinigame.buttons,
     ...HotCocoaMinigame.buttons,
     ...GiftUnwrappingMinigame.buttons,
-    ...SnowballFightMinigame.buttons
+    ...SnowballFightMinigame.buttons,
+    ...GrinchHeistMinigame.buttons
   ];
 }
 
