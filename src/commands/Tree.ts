@@ -125,7 +125,7 @@ export class Tree implements ISlashCommand {
   ];
 }
 
-export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 6000) {
+export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
   if (!ctx.game) throw new Error("Game data missing.");
   ctx.timeouts.set(
     ctx.interaction.message.id,
