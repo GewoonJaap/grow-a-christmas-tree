@@ -20,6 +20,7 @@ import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
 import { TreeEventFactory } from "../tree-events/TreeEventFactory";
+import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -122,11 +123,12 @@ export class Tree implements ISlashCommand {
     ...SantaPresentMinigame.buttons,
     ...HotCocoaMinigame.buttons,
     ...GiftUnwrappingMinigame.buttons,
-    ...SnowballFightMinigame.buttons
+    ...SnowballFightMinigame.buttons,
+    ...GrinchHeistMinigame.buttons
   ];
 }
 
-export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 3000) {
+export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 6000) {
   if (!ctx.game) throw new Error("Game data missing.");
   ctx.timeouts.set(
     ctx.interaction.message.id,
