@@ -5,13 +5,19 @@ import { HotCocoaMinigame } from "./HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "./GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "./SnowballFightMinigame";
 import { GrinchHeistMinigame } from "./GrinchHeistMinigame";
+import { HolidayCookieCountdownMinigame } from "./HolidayCookieCountdownMinigame";
+import { TinselTwisterMinigame } from "./TinselTwisterMinigame";
+import { CarolingChoirMinigame } from "./CarolingChoirMinigame";
 
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
   new HotCocoaMinigame(),
   new GiftUnwrappingMinigame(),
   new SnowballFightMinigame(),
-  new GrinchHeistMinigame()
+  new GrinchHeistMinigame(),
+  new HolidayCookieCountdownMinigame(),
+  new TinselTwisterMinigame(),
+  new CarolingChoirMinigame()
 ];
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {
