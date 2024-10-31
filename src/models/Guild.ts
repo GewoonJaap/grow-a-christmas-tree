@@ -18,6 +18,9 @@ interface IGuild {
   plantedAt: number;
 
   contributors: IContributor[];
+
+  notificationRoleId?: string;
+  notificationChannelId?: string;
 }
 
 interface IContributor {
@@ -49,7 +52,10 @@ const GuildSchema = new Schema<IGuild>({
   lastWateredBy: { type: String, required: false },
   lastWateredAt: { type: Number, required: false },
 
-  contributors: { type: [ContributorSchema], required: true, default: [] }
+  contributors: { type: [ContributorSchema], required: true, default: [] },
+
+  notificationRoleId: { type: String, required: false },
+  notificationChannelId: { type: String, required: false }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);

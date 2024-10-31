@@ -20,6 +20,7 @@ import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
 import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
+import { Guild } from "../models/Guild";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -105,6 +106,20 @@ export class Tree implements ISlashCommand {
           await ctx.game.save();
           const minigameStarted = await startRandomMinigame(ctx);
           if (minigameStarted) return;
+        }
+
+        // Send notification when the tree is ready to water
+        const guild = await Guild.findOne({ id: ctx.interaction.guild_id });
+        if (guild && guild.notificationRoleId && guild.notificationChannelId) {
+          const notificationMessage = new MessageBuilder().addEmbed(
+            new EmbedBuilder().setDescription(`<@&${guild.notificationRoleId}> The tree is ready to be watered! 🌲💧`)
+          );
+
+          const notificationChannel = await ctx.client.channels.fetch(guild.notificationChannelId);
+          if (notificationChannel && notificationChannel.isText()) {
+            const sentMessage = await notificationChannel.send(notificationMessage);
+            setTimeout(() => sentMessage.delete(), 60000); // Delete the notification message after 60 seconds
+          }
         }
 
         return ctx.reply(await buildTreeDisplayMessage(ctx));
