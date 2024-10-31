@@ -1,6 +1,6 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
+import { transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
@@ -21,7 +21,9 @@ export class GrinchHeistMinigame implements Minigame {
       .setTitle("Grinch Heist!")
       .setDescription("Click the tree to save it from the Grinch. Avoid the Grinch!")
       .setImage(this.grinchImages[Math.floor(Math.random() * this.grinchImages.length)])
-      .setFooter({ text: "Hurry! Save your tree before it's too late! Enjoy unlimited levels, fun minigames and more via the shop!" });
+      .setFooter({
+        text: "You have just discovered a premium feature! Subscribe in the [store](https://discord.com/application-directory/1050722873569968128/store) to enjoy more fun minigames!"
+      });
 
     const buttons = [
       await ctx.manager.components.createInstance("minigame.grinchheist.tree"),
@@ -39,7 +41,7 @@ export class GrinchHeistMinigame implements Minigame {
     await ctx.reply(message);
 
     const timeoutId = setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction.message.id);
+      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
       await GrinchHeistMinigame.handleGrinchButton(ctx);
     }, GRINCH_HEIST_MINIGAME_MAX_DURATION);
 
@@ -49,7 +51,7 @@ export class GrinchHeistMinigame implements Minigame {
   private static async handleGrinchButton(ctx: ButtonContext): Promise<void> {
     const timeout = ctx.timeouts.get(ctx.interaction.message.id);
     if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction.message.id);
+    ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
     if (!ctx.game) throw new Error("Game data missing.");
     const loss = Math.min(5, Math.floor(ctx.game.size * 0.1));
@@ -72,7 +74,7 @@ export class GrinchHeistMinigame implements Minigame {
       async (ctx: ButtonContext): Promise<void> => {
         const timeout = ctx.timeouts.get(ctx.interaction.message.id);
         if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction.message.id);
+        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
         if (!ctx.game) throw new Error("Game data missing.");
         ctx.game.size++;
