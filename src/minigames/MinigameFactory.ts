@@ -1,17 +1,17 @@
-// src/minigames/MinigameFactory.ts
-
 import { ButtonContext } from "interactions.ts";
 import { SantaPresentMinigame } from "./SantaPresentMinigame";
 import { Minigame } from "../util/types/minigame/MinigameType";
 import { HotCocoaMinigame } from "./HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "./GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "./SnowballFightMinigame";
+import { GrinchHeistMinigame } from "./GrinchHeistMinigame";
 
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
   new HotCocoaMinigame(),
   new GiftUnwrappingMinigame(),
-  new SnowballFightMinigame()
+  new SnowballFightMinigame(),
+  new GrinchHeistMinigame()
 ];
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {
