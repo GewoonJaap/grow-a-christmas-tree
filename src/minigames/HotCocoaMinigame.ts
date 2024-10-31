@@ -1,5 +1,3 @@
-// src/minigames/HotCocoaMinigame.ts
-
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
@@ -27,7 +25,9 @@ export class HotCocoaMinigame implements Minigame {
 
     const buttons = [
       await ctx.manager.components.createInstance("minigame.hotcocoa.hotcocoa"),
-      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa")
+      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-1"),
+      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-2"),
+      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-3")
     ];
 
     shuffleArray(buttons);
@@ -46,6 +46,21 @@ export class HotCocoaMinigame implements Minigame {
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
+  private static async handleSpilledCocoaButton(ctx: ButtonContext): Promise<void> {
+    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+    if (timeout) clearTimeout(timeout);
+    ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+
+    if (!ctx.game) throw new Error("Game data missing.");
+    const embed = new EmbedBuilder()
+      .setTitle(ctx.game.name)
+      .setDescription("You spilled the cocoa! Better luck next time!");
+
+    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    transitionToDefaultTreeView(ctx);
+  }
+
   public static buttons = [
     new Button(
       "minigame.hotcocoa.hotcocoa",
@@ -61,6 +76,7 @@ export class HotCocoaMinigame implements Minigame {
 
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
+          .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
           .setDescription("This hot cocoa is delicious! Your tree has grown!");
 
         ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
@@ -69,21 +85,19 @@ export class HotCocoaMinigame implements Minigame {
       }
     ),
     new Button(
-      "minigame.hotcocoa.spilledcocoa",
+      "minigame.hotcocoa.spilledcocoa-1",
       new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-        if (!ctx.game) throw new Error("Game data missing.");
-        const embed = new EmbedBuilder()
-          .setTitle(ctx.game.name)
-          .setDescription("You spilled the cocoa! Better luck next time!");
-
-        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
-        transitionToDefaultTreeView(ctx);
-      }
+      HotCocoaMinigame.handleSpilledCocoaButton
+    ),
+    new Button(
+      "minigame.hotcocoa.spilledcocoa-2",
+      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
+      HotCocoaMinigame.handleSpilledCocoaButton
+    ),
+    new Button(
+      "minigame.hotcocoa.spilledcocoa-3",
+      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
+      HotCocoaMinigame.handleSpilledCocoaButton
     )
   ];
 }

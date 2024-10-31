@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "./MinigameFactory";
 
 const SNOWBALL_FIGHT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -17,7 +18,9 @@ export class SnowballFightMinigame implements Minigame {
   async start(ctx: ButtonContext): Promise<void> {
     const embed = new EmbedBuilder()
       .setTitle("Snowball Fight!")
-      .setDescription("Click the ❄️ to throw a snowball at the target. Avoid missing the target!")
+      .setDescription(
+        `Click the ❄️ to throw a snowball at the target. Avoid missing the target!${getPremiumUpsellMessage(ctx)}`
+      )
       .setImage(this.snowballImages[Math.floor(Math.random() * this.snowballImages.length)])
       .setFooter({ text: "Hurry! Throw as many snowballs as you can!" });
 

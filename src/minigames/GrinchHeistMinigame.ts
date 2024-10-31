@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "./MinigameFactory";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -19,10 +20,10 @@ export class GrinchHeistMinigame implements Minigame {
   async start(ctx: ButtonContext): Promise<void> {
     const embed = new EmbedBuilder()
       .setTitle("Grinch Heist!")
-      .setDescription("Click the tree to save it from the Grinch. Avoid the Grinch!")
+      .setDescription(`Click the tree to save it from the Grinch. Avoid the Grinch!${getPremiumUpsellMessage(ctx)}`)
       .setImage(this.grinchImages[Math.floor(Math.random() * this.grinchImages.length)])
       .setFooter({
-        text: "You have just discovered a premium feature! Subscribe in the [store](https://discord.com/application-directory/1050722873569968128/store) to enjoy more fun minigames!"
+        text: "Hurry! The Grinch is coming! You have 10 seconds to save your tree!"
       });
 
     const buttons = [
@@ -42,27 +43,34 @@ export class GrinchHeistMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-      await GrinchHeistMinigame.handleGrinchButton(ctx);
+      await GrinchHeistMinigame.handleGrinchButton(ctx, true);
     }, GRINCH_HEIST_MINIGAME_MAX_DURATION);
 
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
-  private static async handleGrinchButton(ctx: ButtonContext): Promise<void> {
+  private static async handleGrinchButton(ctx: ButtonContext, isTimeout = false): Promise<void> {
     const timeout = ctx.timeouts.get(ctx.interaction.message.id);
     if (timeout) clearTimeout(timeout);
     ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
     if (!ctx.game) throw new Error("Game data missing.");
-    const loss = Math.min(5, Math.floor(ctx.game.size * 0.1));
-    ctx.game.size = Math.max(0, ctx.game.size - loss);
+    const randomLoss = Math.floor(Math.random() * Math.min(5, Math.floor(ctx.game.size * 0.1))) + 1;
+    ctx.game.size = Math.max(0, ctx.game.size - randomLoss);
     await ctx.game.save();
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`The Grinch stole part of your tree! You lost ${loss}ft.`);
+      .setDescription(`The Grinch stole part of your tree! You lost ${randomLoss}ft.`)
+      .setImage(
+        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-stole-tree-1.jpg"
+      );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    if (isTimeout) {
+      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+    } else {
+      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    }
 
     transitionToDefaultTreeView(ctx);
   }
@@ -82,9 +90,12 @@ export class GrinchHeistMinigame implements Minigame {
 
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
-          .setDescription("You saved the tree! Your tree grew taller!");
+          .setDescription("You saved the tree! Your tree grew taller!")
+          .setImage(
+            "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-tree-saved-1.jpg"
+          );
 
-        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+        await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
         transitionToDefaultTreeView(ctx);
       }
@@ -96,12 +107,12 @@ export class GrinchHeistMinigame implements Minigame {
     ),
     new Button(
       "minigame.grinchheist.grinch-2",
-      new ButtonBuilder().setEmoji({ name: "😈" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🎃" }).setStyle(4),
       GrinchHeistMinigame.handleGrinchButton
     ),
     new Button(
       "minigame.grinchheist.grinch-3",
-      new ButtonBuilder().setEmoji({ name: "😈" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "👽" }).setStyle(4),
       GrinchHeistMinigame.handleGrinchButton
     )
   ];
