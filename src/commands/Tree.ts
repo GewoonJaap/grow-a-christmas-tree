@@ -143,6 +143,13 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
   );
 }
 
+function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
+  if (ctx.game?.superThirsty) {
+    return "\n💨This tree is growing faster thanks to the super thirsty upgrade!";
+  }
+  return "";
+}
+
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
@@ -190,7 +197,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }`
+      }${getSuperThirstyText(ctx)}`
     );
   } else {
     embed.setDescription(
@@ -200,7 +207,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }`
+      }${getSuperThirstyText(ctx)}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
