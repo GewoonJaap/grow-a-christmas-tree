@@ -11,10 +11,10 @@ import {
 import { Guild } from "../models/Guild";
 import { createWebhook } from "../util/discord/DiscordWebhookHelper";
 
-const builder = new SlashCommandBuilder("notificationSettings", "Configure the role and channel for notifications.")
+const builder = new SlashCommandBuilder("notifications", "Configure the role and channel for notifications.")
+  .addBooleanOption(new SlashCommandBooleanOption("enabled", "Turn notification on or off").setRequired(true))
   .addRoleOption(new SlashCommandRoleOption("role", "Role to ping for notifications").setRequired(false))
-  .addChannelOption(new SlashCommandChannelOption("channel", "Channel to send notifications").setRequired(false))
-  .addBooleanOption(new SlashCommandBooleanOption("enabled", "Turn notification on or off").setRequired(true));
+  .addChannelOption(new SlashCommandChannelOption("channel", "Channel to send notifications").setRequired(false));
 
 builder.setDMEnabled(false);
 
@@ -22,15 +22,18 @@ export class NotificationSettings implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM)
-      return ctx.reply(
-        new MessageBuilder().setContent("This command can only be used in a server.").setEphemeral(true)
-      );
-    if (!ctx.game)
-      return ctx.reply(
-        new MessageBuilder().setContent("Use /plant to plant a tree for your server first.").setEphemeral(true)
-      );
-
+    if (ctx.isDM) {
+      const embed = new EmbedBuilder()
+        .setTitle("Woah there!")
+        .setDescription("This command can only be used in a server.");
+      return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+    }
+    if (!ctx.game) {
+      const embed = new EmbedBuilder()
+        .setTitle("Woah there!")
+        .setDescription("Use /plant to plant a tree for your server first.");
+      return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+    }
     if (!ctx.game.hasAiAccess) {
       const embed = new EmbedBuilder()
         .setDescription(
@@ -68,26 +71,27 @@ export class NotificationSettings implements ISlashCommand {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/stage-5.png"
       );
 
+      console.log(webhook);
+
       updateData.notificationRoleId = role;
       updateData.webhookId = webhook.id;
       updateData.webhookToken = webhook.token;
 
       await Guild.updateOne({ id: ctx.interaction.guild_id }, { $set: updateData });
 
-      return ctx.reply(
-        new MessageBuilder()
-          .setContent(`Notification settings updated. Role: ${role}, Channel: ${channel}, Enabled: ${enabled}`)
-          .setEphemeral(true)
-      );
+      const embed = new EmbedBuilder().setTitle(`Notification Settings ${enabled ? "Enabled" : "Disabled"}`);
+
+      if (enabled) {
+        embed.setDescription(`Role: <@&${role}>\nChannel: <#${channel}>`);
+      }
+      return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     } catch (err) {
-      console.error(err);
-      return ctx.reply(
-        new MessageBuilder()
-          .setContent(
-            "An error occurred while updating the notification settings. Does the bot have the Manage Webhooks permission?"
-          )
-          .setEphemeral(true)
-      );
+      const embed = new EmbedBuilder()
+        .setTitle("Error")
+        .setDescription(
+          "An error occurred while updating the notification settings. Does the bot have `Manage Webhook` permissions? Check our guide on how to set up notifications [here](https://christmas-tree.app/how-to-setup-notifications/?utm_source=setup-notif-bot)."
+        );
+      return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
   };
 

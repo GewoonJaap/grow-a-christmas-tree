@@ -29,13 +29,14 @@ export async function sendWebhookMessage(
   webhookToken: string,
   content: string
 ): Promise<WebhookMessageResponse> {
-  const response = await fetch(`https://discord.com/api/v10/webhooks/${webhookId}/${webhookToken}?wait=true`, {
+  const response = await fetch(`https://discord.com/api/webhooks/${webhookId}/${webhookToken}?wait=true`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
     },
     body: JSON.stringify({
-      content: content
+      content: content,
+      avatar_url: "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/stage-5.png"
     })
   });
 

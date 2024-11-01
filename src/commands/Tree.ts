@@ -217,20 +217,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         ctx.interaction.message.id,
         setTimeout(async () => {
           ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-          if (
-            ctx.game &&
-            ctx.game.hasAiAccess &&
-            ctx.game.notificationRoleId &&
-            ctx.game.webhookId &&
-            ctx.game.webhookToken
-          ) {
-            await sendAndDeleteWebhookMessage(
-              ctx.game.webhookId,
-              ctx.game.webhookToken,
-              ctx.game.notificationRoleId,
-              "The tree is ready to be watered! 🌲💧"
-            );
-          }
+          sendWebhookOnWateringReady(ctx);
           await ctx.edit(await buildTreeDisplayMessage(ctx));
         }, canBeWateredAt * 1000 - Date.now())
       );
@@ -240,4 +227,21 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
   message.addEmbed(embed);
 
   return message;
+}
+
+async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext) {
+  if (
+    ctx.game &&
+    (ctx.game.hasAiAccess || process.env.DEV_MODE) &&
+    ctx.game.notificationRoleId &&
+    ctx.game.webhookId &&
+    ctx.game.webhookToken
+  ) {
+    await sendAndDeleteWebhookMessage(
+      ctx.game.webhookId,
+      ctx.game.webhookToken,
+      ctx.game.notificationRoleId,
+      "The tree is ready to be watered! 🌲💧"
+    );
+  }
 }

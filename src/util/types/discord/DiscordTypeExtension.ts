@@ -42,7 +42,7 @@ export interface WebhookMessageResponse {
   timestamp: string;
   edited_timestamp: string;
   flags: number;
-  components: any[];
+  components: unknown[];
   id: string;
   channel_id: string;
   author: Author;
