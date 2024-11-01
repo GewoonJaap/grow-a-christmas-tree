@@ -217,7 +217,13 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         ctx.interaction.message.id,
         setTimeout(async () => {
           ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-          if (ctx.game && ctx.game.notificationRoleId && ctx.game.webhookId && ctx.game.webhookToken) {
+          if (
+            ctx.game &&
+            ctx.game.hasAiAccess &&
+            ctx.game.notificationRoleId &&
+            ctx.game.webhookId &&
+            ctx.game.webhookToken
+          ) {
             await sendAndDeleteWebhookMessage(
               ctx.game.webhookId,
               ctx.game.webhookToken,

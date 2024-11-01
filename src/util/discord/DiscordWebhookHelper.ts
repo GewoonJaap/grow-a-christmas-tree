@@ -1,6 +1,10 @@
 import { WebhookCreatedResponse, WebhookMessageResponse } from "../types/discord/DiscordTypeExtension";
 
-export async function createWebhook(channelId: string, name: string, avatarUrl: string): Promise<WebhookCreatedResponse> {
+export async function createWebhook(
+  channelId: string,
+  name: string,
+  avatarUrl: string
+): Promise<WebhookCreatedResponse> {
   const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/webhooks`, {
     method: "POST",
     headers: {
