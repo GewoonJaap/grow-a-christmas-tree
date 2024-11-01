@@ -22,6 +22,7 @@ export function entitlementSkuResolver(skuId: string): EntitlementType {
 }
 
 export function hasEntitlementExpired(entitlement: Entitlement): boolean {
+  console.log(entitlement);
   if (entitlement.consumed) {
     return true;
   }
@@ -44,7 +45,9 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   );
 
   ctx.game.hasAiAccess = hasUnlimitedLevels;
-  ctx.game.superThirsty = hasSuperThirsty;
+  if (ctx.game.superThirsty === undefined || !ctx.game.superThirsty) {
+    ctx.game.superThirsty = hasSuperThirsty;
+  }
 
   await ctx.game.save();
 }
