@@ -50,23 +50,34 @@ export class NotificationSettings implements ISlashCommand {
 
     const updateData: { notificationRoleId?: string; webhookId?: string; webhookToken?: string } = {};
 
-    const webhook = await createWebhook(
-      ctx.interaction.channel_id,
-      "Tree Notifications",
-      "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/stage-5.png"
-    );
+    try {
+      const webhook = await createWebhook(
+        ctx.interaction.channel_id,
+        "Tree Notifications",
+        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/stage-5.png"
+      );
 
-    updateData.notificationRoleId = role;
-    updateData.webhookId = webhook.id;
-    updateData.webhookToken = webhook.token;
+      updateData.notificationRoleId = role;
+      updateData.webhookId = webhook.id;
+      updateData.webhookToken = webhook.token;
 
-    await Guild.updateOne({ id: ctx.interaction.guild_id }, { $set: updateData });
+      await Guild.updateOne({ id: ctx.interaction.guild_id }, { $set: updateData });
 
-    return ctx.reply(
-      new MessageBuilder()
-        .setContent(`Notification settings updated. Role: ${role}, Channel: ${channel}, Enabled: ${enabled}`)
-        .setEphemeral(true)
-    );
+      return ctx.reply(
+        new MessageBuilder()
+          .setContent(`Notification settings updated. Role: ${role}, Channel: ${channel}, Enabled: ${enabled}`)
+          .setEphemeral(true)
+      );
+    } catch (err) {
+      console.error(err);
+      return ctx.reply(
+        new MessageBuilder()
+          .setContent(
+            "An error occurred while updating the notification settings. Does the bot have the Manage Webhooks permission?"
+          )
+          .setEphemeral(true)
+      );
+    }
   };
 
   public components = [];
