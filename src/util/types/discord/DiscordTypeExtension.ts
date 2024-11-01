@@ -17,7 +17,7 @@ export enum EntitlementType {
   UNKNOWN
 }
 
-export interface Webhook {
+export interface WebhookCreatedResponse {
   id: string;
   type: number;
   guild_id?: string;
