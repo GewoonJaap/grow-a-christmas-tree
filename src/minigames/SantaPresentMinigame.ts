@@ -56,7 +56,7 @@ export class SantaPresentMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("Enjoy your present! There was some magic inside which made your tree grow!")
+      .setDescription("Enjoy your present! There was some magic inside which made your tree grow 1ft!")
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );
@@ -92,12 +92,12 @@ export class SantaPresentMinigame implements Minigame {
     ),
     new Button(
       "minigame.santapresent.witch-2",
-      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(4),
       SantaPresentMinigame.handleWitchButton
     ),
     new Button(
       "minigame.santapresent.witch-3",
-      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(4),
       SantaPresentMinigame.handleWitchButton
     )
   ];
