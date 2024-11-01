@@ -3,7 +3,7 @@ import axios from "axios";
 export async function postFeedback(feedback: FeedbackPost) {
   try {
     const content: string[] = splitContentInMax2000Chars(
-      `**User**: ${feedback.sendingUser}\n**Server**: ${feedback.sendingServer}\n**Content**: ${feedback.content}`
+      `**User**: ${feedback.sendingUser} (${feedback.sendingUserId})\n**Server**: ${feedback.sendingServer}\n**Content**: ${feedback.content}`
     );
     content.forEach(async (contentPart, index) => {
       setTimeout(async () => {
@@ -24,6 +24,7 @@ export interface FeedbackPost {
   content: string;
   sendingServer: string;
   sendingUser: string;
+  sendingUserId: string;
 }
 
 function splitContentInMax2000Chars(content: string): string[] {

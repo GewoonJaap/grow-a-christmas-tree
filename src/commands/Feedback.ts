@@ -22,7 +22,8 @@ export class Feedback implements ISlashCommand {
     const feedback: FeedbackPost = {
       content: ctx.options.get("content")?.value as string,
       sendingServer: ctx.interaction.guild_id ?? "DM",
-      sendingUser: ctx.user.username
+      sendingUser: ctx.user.username,
+      sendingUserId: ctx.user.id
     };
 
     postFeedback(feedback);
