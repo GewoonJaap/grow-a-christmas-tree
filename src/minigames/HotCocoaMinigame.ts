@@ -77,7 +77,7 @@ export class HotCocoaMinigame implements Minigame {
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
-          .setDescription("This hot cocoa is delicious! Your tree has grown!");
+          .setDescription("This hot cocoa is delicious! Your tree has grown 1ft!");
 
         ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
@@ -91,12 +91,12 @@ export class HotCocoaMinigame implements Minigame {
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-2",
-      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🍲" }).setStyle(4),
       HotCocoaMinigame.handleSpilledCocoaButton
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-3",
-      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(4),
       HotCocoaMinigame.handleSpilledCocoaButton
     )
   ];

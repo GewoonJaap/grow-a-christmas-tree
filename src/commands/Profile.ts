@@ -26,6 +26,7 @@ export class Profile implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    if (ctx.isDM || !ctx.game) return ctx.reply("This command can only be used in a server.");
     return ctx.reply(await buildProfileMessage(ctx));
   };
 

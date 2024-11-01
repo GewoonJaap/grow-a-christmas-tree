@@ -20,6 +20,7 @@ export class Plant implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    if (ctx.isDM) return ctx.reply("This command can only be used in a server.");
     if (ctx.game !== null)
       return ctx.reply(`A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`);
     if (ctx.interaction.guild_id === undefined) return ctx.reply(SimpleError("Guild ID missing."));

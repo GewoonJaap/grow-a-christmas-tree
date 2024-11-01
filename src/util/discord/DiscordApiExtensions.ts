@@ -15,7 +15,7 @@ export function entitlementSkuResolver(skuId: string): EntitlementType {
   if (skuId === "1298016263687110697") {
     return EntitlementType.UNLIMITED_LEVELS;
   }
-  if (skuId === "1298016263687110698") {
+  if (skuId === "1298016263687110698" || skuId === "1298017583941029949") {
     return EntitlementType.SUPER_THIRSTY;
   }
   return EntitlementType.UNKNOWN;
@@ -44,7 +44,9 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   );
 
   ctx.game.hasAiAccess = hasUnlimitedLevels;
-  ctx.game.superThirsty = hasSuperThirsty;
+  if (ctx.game.superThirsty === undefined || !ctx.game.superThirsty) {
+    ctx.game.superThirsty = hasSuperThirsty;
+  }
 
   await ctx.game.save();
 }

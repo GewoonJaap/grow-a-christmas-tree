@@ -22,6 +22,10 @@ import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
 import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
 import { Guild } from "../models/Guild";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
+import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
+import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
+import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
+
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -34,7 +38,8 @@ export class Tree implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.game === null) return ctx.reply("Use /plant to plant a tree for your server first.");
+    if (ctx.isDM) return ctx.reply("This command can only be used in a server.");
+    if (ctx.game === null || !ctx.game) return ctx.reply("Use /plant to plant a tree for your server first.");
 
     return ctx.reply(await buildTreeDisplayMessage(ctx));
   };
@@ -123,7 +128,10 @@ export class Tree implements ISlashCommand {
     ...HotCocoaMinigame.buttons,
     ...GiftUnwrappingMinigame.buttons,
     ...SnowballFightMinigame.buttons,
-    ...GrinchHeistMinigame.buttons
+    ...GrinchHeistMinigame.buttons,
+    ...HolidayCookieCountdownMinigame.buttons,
+    ...TinselTwisterMinigame.buttons,
+    ...CarolingChoirMinigame.buttons
   ];
 }
 
@@ -137,6 +145,13 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, delay)
   );
+}
+
+function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
+  if (ctx.game?.superThirsty) {
+    return "\n💨This tree is growing faster thanks to the super thirsty upgrade!";
+  }
+  return "";
 }
 
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
@@ -186,7 +201,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }`
+      }${getSuperThirstyText(ctx)}`
     );
   } else {
     embed.setDescription(
@@ -196,7 +211,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }`
+      }${getSuperThirstyText(ctx)}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {

@@ -61,7 +61,7 @@ export class GiftUnwrappingMinigame implements Minigame {
       message = "You unwrapped a gift and found a magical watering can! Your tree can be watered again.";
     } else if (randomOutcome < 0.66) {
       ctx.game.size += 2;
-      message = "You unwrapped a gift and found a special fertilizer! Your tree grew extra tall.";
+      message = "You unwrapped a gift and found a special fertilizer! Your tree grew 2ft tall.";
     } else {
       message = "You unwrapped a gift but found nothing special inside.";
     }
@@ -107,12 +107,12 @@ export class GiftUnwrappingMinigame implements Minigame {
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-2",
-      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧃" }).setStyle(4),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-3",
-      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧰" }).setStyle(4),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     )
   ];
