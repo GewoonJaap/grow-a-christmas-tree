@@ -126,6 +126,13 @@ export class CarolingChoirMinigame implements Minigame {
       "minigame.carolingchoir.wrongnote-3",
       new ButtonBuilder().setEmoji({ name: "😼" }).setStyle(4),
       CarolingChoirMinigame.handleWrongNoteButton
+    ),
+    new Button(
+      "minigame.carolingchoir.store",
+      new ButtonBuilder().setEmoji({ name: "🛒" }).setStyle(6).setSkuId("premium_sku_id"),
+      async (ctx: ButtonContext): Promise<void> => {
+        // Handle store button click
+      }
     )
   ];
 }

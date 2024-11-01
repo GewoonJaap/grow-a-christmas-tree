@@ -129,7 +129,14 @@ export class Tree implements ISlashCommand {
     ...GrinchHeistMinigame.buttons,
     ...HolidayCookieCountdownMinigame.buttons,
     ...TinselTwisterMinigame.buttons,
-    ...CarolingChoirMinigame.buttons
+    ...CarolingChoirMinigame.buttons,
+    new Button(
+      "tree.store",
+      new ButtonBuilder().setEmoji({ name: "🛒" }).setStyle(6).setSkuId("premium_sku_id"),
+      async (ctx: ButtonContext): Promise<void> => {
+        // Handle store button click
+      }
+    )
   ];
 }
 
@@ -160,7 +167,8 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
   const message = new MessageBuilder().addComponents(
     new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("tree.grow"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("tree.refresh"),
+      await ctx.manager.components.createInstance("tree.store")
     )
   );
 
