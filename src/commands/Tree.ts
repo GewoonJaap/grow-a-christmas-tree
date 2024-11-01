@@ -35,7 +35,7 @@ export class Tree implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.game === null) return ctx.reply("Use /plant to plant a tree for your server first.");
+    if (ctx.game === null || !ctx.game) return ctx.reply("Use /plant to plant a tree for your server first.");
 
     return ctx.reply(await buildTreeDisplayMessage(ctx));
   };
