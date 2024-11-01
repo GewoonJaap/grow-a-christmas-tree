@@ -5,7 +5,6 @@ export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withou
   const interaction = ctx.interaction;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entitlements: Entitlement[] = (interaction as any).entitlements;
-  console.log(entitlements);
   if (withoutExpired) {
     return entitlements.filter((entitlement) => !hasEntitlementExpired(entitlement));
   }
