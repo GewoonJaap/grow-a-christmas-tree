@@ -20,6 +20,7 @@ import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
 import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
+import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
@@ -216,7 +217,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         ctx.interaction.message.id,
         setTimeout(async () => {
           ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-
+          sendWebhookOnWateringReady(ctx);
           await ctx.edit(await buildTreeDisplayMessage(ctx));
         }, canBeWateredAt * 1000 - Date.now())
       );
@@ -226,4 +227,21 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
   message.addEmbed(embed);
 
   return message;
+}
+
+async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext) {
+  if (
+    ctx.game &&
+    (ctx.game.hasAiAccess || process.env.DEV_MODE) &&
+    ctx.game.notificationRoleId &&
+    ctx.game.webhookId &&
+    ctx.game.webhookToken
+  ) {
+    await sendAndDeleteWebhookMessage(
+      ctx.game.webhookId,
+      ctx.game.webhookToken,
+      ctx.game.notificationRoleId,
+      "The tree is ready to be watered! 🌲💧"
+    );
+  }
 }

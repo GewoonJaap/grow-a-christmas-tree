@@ -18,6 +18,10 @@ interface IGuild {
   plantedAt: number;
 
   contributors: IContributor[];
+
+  notificationRoleId?: string;
+  webhookId?: string;
+  webhookToken?: string;
 }
 
 interface IContributor {
@@ -49,7 +53,11 @@ const GuildSchema = new Schema<IGuild>({
   lastWateredBy: { type: String, required: false },
   lastWateredAt: { type: Number, required: false },
 
-  contributors: { type: [ContributorSchema], required: true, default: [] }
+  contributors: { type: [ContributorSchema], required: true, default: [] },
+
+  notificationRoleId: { type: String, required: false },
+  webhookId: { type: String, required: false },
+  webhookToken: { type: String, required: false }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);
