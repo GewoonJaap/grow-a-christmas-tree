@@ -20,7 +20,8 @@ interface IGuild {
   contributors: IContributor[];
 
   notificationRoleId?: string;
-  notificationChannelId?: string;
+  webhookId?: string;
+  webhookToken?: string;
 }
 
 interface IContributor {
@@ -55,7 +56,8 @@ const GuildSchema = new Schema<IGuild>({
   contributors: { type: [ContributorSchema], required: true, default: [] },
 
   notificationRoleId: { type: String, required: false },
-  notificationChannelId: { type: String, required: false }
+  webhookId: { type: String, required: false },
+  webhookToken: { type: String, required: false }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);

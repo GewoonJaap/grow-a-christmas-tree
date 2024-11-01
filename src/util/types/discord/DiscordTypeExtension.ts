@@ -16,3 +16,18 @@ export enum EntitlementType {
   SUPER_THIRSTY,
   UNKNOWN
 }
+
+export interface Webhook {
+  id: string;
+  type: number;
+  guild_id?: string;
+  channel_id: string;
+  user?: object;
+  name?: string;
+  avatar?: string;
+  token?: string;
+  application_id?: string;
+  source_guild?: object;
+  source_channel?: object;
+  url?: string;
+}
