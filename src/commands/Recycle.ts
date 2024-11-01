@@ -13,6 +13,7 @@ export class Recycle implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    if (ctx.isDM) return ctx.reply("This command can only be used in a server.");
     if (ctx.game === null) return ctx.reply(`You don't have a christmas tree planted in this server.`);
 
     //only with manage server perms
