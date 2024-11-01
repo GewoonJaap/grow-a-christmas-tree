@@ -37,7 +37,7 @@ export class NotificationSettings implements ISlashCommand {
     if (!ctx.game.hasAiAccess) {
       const embed = new EmbedBuilder()
         .setDescription(
-          "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the Festive Forest subscription to gain access."
+          "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the [Festive Forest subscription](https://discord.com/application-directory/1050722873569968128/store/1298016263687110697) to gain access."
         )
         .setTitle("Woah there!")
         .setFooter({ text: "Enjoying the bot? Consider supporting us by buying a subscription!" });
