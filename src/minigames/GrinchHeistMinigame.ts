@@ -90,7 +90,7 @@ export class GrinchHeistMinigame implements Minigame {
 
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
-          .setDescription("You saved the tree! Your tree grew taller!")
+          .setDescription("You saved the tree! Your tree grew 1ft taller!")
           .setImage(
             "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-tree-saved-1.jpg"
           );

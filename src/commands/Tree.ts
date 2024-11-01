@@ -20,6 +20,9 @@ import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
 import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
+import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
+import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
+import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -121,7 +124,10 @@ export class Tree implements ISlashCommand {
     ...HotCocoaMinigame.buttons,
     ...GiftUnwrappingMinigame.buttons,
     ...SnowballFightMinigame.buttons,
-    ...GrinchHeistMinigame.buttons
+    ...GrinchHeistMinigame.buttons,
+    ...HolidayCookieCountdownMinigame.buttons,
+    ...TinselTwisterMinigame.buttons,
+    ...CarolingChoirMinigame.buttons
   ];
 }
 
