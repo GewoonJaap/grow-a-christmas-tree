@@ -31,3 +31,42 @@ export interface Webhook {
   source_channel?: object;
   url?: string;
 }
+
+export interface WebhookMessageResponse {
+  type: number;
+  content: string;
+  mentions: string[];
+  mention_roles: string[];
+  attachments: string[];
+  embeds: Embed[];
+  timestamp: string;
+  edited_timestamp: string;
+  flags: number;
+  components: any[];
+  id: string;
+  channel_id: string;
+  author: Author;
+  pinned: boolean;
+  mention_everyone: boolean;
+  tts: boolean;
+  webhook_id: string;
+}
+
+export interface Embed {
+  type: string;
+  description: string;
+  color: number;
+  content_scan_version: number;
+}
+
+export interface Author {
+  id: string;
+  username: string;
+  avatar: string;
+  discriminator: string;
+  public_flags: number;
+  flags: number;
+  bot: boolean;
+  global_name: string;
+  clan: string;
+}

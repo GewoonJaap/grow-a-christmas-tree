@@ -5,8 +5,7 @@ import {
   SlashCommandBuilder,
   SlashCommandChannelOption,
   SlashCommandContext,
-  SlashCommandRoleOption,
-  SlashCommandStringOption
+  SlashCommandRoleOption
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
 import { createWebhook } from "../util/discord/DiscordWebhookHelper";

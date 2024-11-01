@@ -1,4 +1,4 @@
-import { Webhook } from "../types/discord/DiscordTypeExtension";
+import { Webhook, WebhookMessageResponse } from "../types/discord/DiscordTypeExtension";
 
 export async function createWebhook(channelId: string, name: string, avatarUrl: string): Promise<Webhook> {
   const response = await fetch(`https://discord.com/api/v10/channels/${channelId}/webhooks`, {
@@ -20,7 +20,11 @@ export async function createWebhook(channelId: string, name: string, avatarUrl: 
   return await response.json();
 }
 
-export async function sendWebhookMessage(webhookId: string, webhookToken: string, content: string): Promise<void> {
+export async function sendWebhookMessage(
+  webhookId: string,
+  webhookToken: string,
+  content: string
+): Promise<WebhookMessageResponse> {
   const response = await fetch(`https://discord.com/api/v10/webhooks/${webhookId}/${webhookToken}?wait=true`, {
     method: "POST",
     headers: {
@@ -34,6 +38,8 @@ export async function sendWebhookMessage(webhookId: string, webhookToken: string
   if (!response.ok) {
     throw new Error(`Error sending webhook message: ${response.statusText}`);
   }
+
+  return await response.json();
 }
 
 export async function deleteWebhookMessage(webhookId: string, webhookToken: string, messageId: string): Promise<void> {
