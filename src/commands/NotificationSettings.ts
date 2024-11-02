@@ -1,5 +1,4 @@
 import {
-  ActionRowBuilder,
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
@@ -43,7 +42,7 @@ export class NotificationSettings implements ISlashCommand {
         )
         .setTitle("Woah there!")
         .setFooter({ text: "Enjoying the bot? Consider supporting us by buying a subscription!" });
-      return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actionBuilder));
+      return ctx.reply(new MessageBuilder().addEmbed(embed));
     }
     const role = ctx.options.get("role")?.value as string | undefined;
     const channel = ctx.options.get("channel")?.value as string | undefined;
