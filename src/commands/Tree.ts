@@ -24,7 +24,6 @@ import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
-import { PremiumButtonStyleTypes } from "../util/types/discord/DiscordTypeExtension";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -135,7 +134,8 @@ export class Tree implements ISlashCommand {
       "tree.store",
       new PremiumButtonBuilder()
         .setEmoji({ name: "🛒" })
-        .setStyle(PremiumButtonStyleTypes.PREMIUM as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .setStyle(6 as any)
         .setSkuId("1298016263687110697")
     )
   ];
@@ -165,13 +165,14 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
 
   await updateEntitlementsToGame(ctx);
 
-  const message = new MessageBuilder().addComponents(
-    new ActionRowBuilder().addComponents(
-      await ctx.manager.components.createInstance("tree.grow"),
-      await ctx.manager.components.createInstance("tree.refresh"),
-      await ctx.manager.components.createInstance("tree.store")
-    )
+  const actionBuilder = new ActionRowBuilder().addComponents(
+    await ctx.manager.components.createInstance("tree.grow"),
+    await ctx.manager.components.createInstance("tree.refresh")
   );
+  if (!process.env.DEV_MODE) {
+    actionBuilder.addComponents(await ctx.manager.components.createInstance("tree.store"));
+  }
+  const message = new MessageBuilder().addComponents(actionBuilder);
 
   const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false);
 

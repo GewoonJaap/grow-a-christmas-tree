@@ -1,5 +1,5 @@
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
-import { Entitlement, EntitlementType, PremiumButtonStyleTypes } from "../types/discord/DiscordTypeExtension";
+import { Entitlement, EntitlementType } from "../types/discord/DiscordTypeExtension";
 import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
 import { ButtonStyle } from "discord-api-types/v10";
 
@@ -62,11 +62,13 @@ export class PremiumButtonBuilder extends OriginalButtonBuilder {
   }
 
   public setStyle(style: ButtonStyle): this {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.setStyle(style as any);
   }
 
   public toJSON() {
     const json = super.toJSON();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (this.sku_id) (json as unknown as any).sku_id = this.sku_id;
     return json;
   }
