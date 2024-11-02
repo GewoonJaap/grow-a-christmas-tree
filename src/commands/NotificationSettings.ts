@@ -37,12 +37,6 @@ export class NotificationSettings implements ISlashCommand {
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
     if (!ctx.game.hasAiAccess) {
-      const actionBuilder = new ActionRowBuilder();
-      if (!process.env.DEV_MODE) {
-        actionBuilder.addComponents(
-          await ctx.manager.components.createInstance(PremiumButtons.FestiveForestButtonName)
-        );
-      }
       const embed = new EmbedBuilder()
         .setDescription(
           "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the [Festive Forest subscription](https://discord.com/application-directory/1050722873569968128/store/1298016263687110697) to gain access."
