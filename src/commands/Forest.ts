@@ -18,6 +18,7 @@ type LeaderboardButtonState = {
 };
 
 const MEDAL_EMOJIS = ["🥇", "🥈", "🥉"];
+const PREMIUM_EMOJI = "🌟";
 
 export class Forest implements ISlashCommand {
   public builder = new SlashCommandBuilder("forest", "See the tallest trees in the whole forest.").addIntegerOption(
@@ -82,10 +83,14 @@ async function buildLeaderboardMessage(
     const pos = i + start;
 
     const tree = trees[i];
+    const isOwnTree = ctx.game?.id === tree.id;
+    const treeName = "```" + `${tree.name}` + "```";
+    const premiumText = `${tree.hasAiAccess ? " | " + PREMIUM_EMOJI : ""}`;
+    const treeSize = `${tree.size}ft`;
 
-    description += `${pos < 3 ? `${MEDAL_EMOJIS[i]}` : `\`\`${pos + 1}${pos < 9 ? " " : ""}\`\``} - \`\`${
-      tree.name
-    }\`\` - ${tree.size}ft\n`;
+    description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
+      isOwnTree ? `**${treeName}**` : treeName
+    } - ${treeSize}${premiumText}\n`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(
@@ -101,6 +106,10 @@ async function buildLeaderboardMessage(
   }
 
   return new MessageBuilder()
-    .addEmbed(new EmbedBuilder().setTitle("Forest").setDescription(description))
+    .addEmbed(
+      new EmbedBuilder().setTitle("Forest").setDescription(description).setFooter({
+        text: "🌟 = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar."
+      })
+    )
     .addComponents(actionRow);
 }
