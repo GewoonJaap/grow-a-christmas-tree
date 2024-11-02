@@ -1,4 +1,5 @@
 import {
+  ActionRowBuilder,
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
@@ -10,6 +11,7 @@ import {
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
 import { createWebhook } from "../util/discord/DiscordWebhookHelper";
+import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
 const builder = new SlashCommandBuilder("notifications", "Configure the role and channel for notifications.")
   .addBooleanOption(new SlashCommandBooleanOption("enabled", "Turn notification on or off").setRequired(true))
@@ -35,13 +37,19 @@ export class NotificationSettings implements ISlashCommand {
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
     if (!ctx.game.hasAiAccess) {
+      const actionBuilder = new ActionRowBuilder();
+      if (!process.env.DEV_MODE) {
+        actionBuilder.addComponents(
+          await ctx.manager.components.createInstance(PremiumButtons.FestiveForestButtonName)
+        );
+      }
       const embed = new EmbedBuilder()
         .setDescription(
           "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the [Festive Forest subscription](https://discord.com/application-directory/1050722873569968128/store/1298016263687110697) to gain access."
         )
         .setTitle("Woah there!")
         .setFooter({ text: "Enjoying the bot? Consider supporting us by buying a subscription!" });
-      return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+      return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actionBuilder));
     }
     const role = ctx.options.get("role")?.value as string | undefined;
     const channel = ctx.options.get("channel")?.value as string | undefined;
@@ -95,5 +103,5 @@ export class NotificationSettings implements ISlashCommand {
     }
   };
 
-  public components = [];
+  public components = [PremiumButtons.FestiveForestButton];
 }
