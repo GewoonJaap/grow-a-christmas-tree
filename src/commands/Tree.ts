@@ -13,7 +13,7 @@ import {
 import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-calculator";
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
-import { PremiumButtonBuilder, updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
+import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { startRandomMinigame } from "../minigames/MinigameFactory";
 import { SantaPresentMinigame } from "../minigames/SantaPresentMinigame";
 import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
@@ -24,6 +24,7 @@ import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
+import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -130,14 +131,7 @@ export class Tree implements ISlashCommand {
     ...HolidayCookieCountdownMinigame.buttons,
     ...TinselTwisterMinigame.buttons,
     ...CarolingChoirMinigame.buttons,
-    new Button(
-      "tree.store",
-      new PremiumButtonBuilder()
-        .setEmoji({ name: "🛒" })
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        .setStyle(6 as any)
-        .setSkuId("1298016263687110697")
-    )
+    PremiumButtons.FestiveForestButton
   ];
 }
 
@@ -170,7 +164,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
     await ctx.manager.components.createInstance("tree.refresh")
   );
   if (!process.env.DEV_MODE) {
-    actionBuilder.addComponents(await ctx.manager.components.createInstance("tree.store"));
+    actionBuilder.addComponents(await ctx.manager.components.createInstance(PremiumButtons.FestiveForestButtonName));
   }
   const message = new MessageBuilder().addComponents(actionBuilder);
 
