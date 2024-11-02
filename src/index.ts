@@ -20,7 +20,7 @@ import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
 import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
-const VERSION = "1.3";
+const VERSION = "1.4";
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {

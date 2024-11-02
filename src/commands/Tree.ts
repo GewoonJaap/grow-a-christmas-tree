@@ -157,12 +157,11 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
 
   await updateEntitlementsToGame(ctx);
 
-  const message = new MessageBuilder().addComponents(
-    new ActionRowBuilder().addComponents(
-      await ctx.manager.components.createInstance("tree.grow"),
-      await ctx.manager.components.createInstance("tree.refresh")
-    )
+  const actionBuilder = new ActionRowBuilder().addComponents(
+    await ctx.manager.components.createInstance("tree.grow"),
+    await ctx.manager.components.createInstance("tree.refresh")
   );
+  const message = new MessageBuilder().addComponents(actionBuilder);
 
   const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false);
 
