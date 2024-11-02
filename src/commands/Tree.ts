@@ -205,7 +205,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         ctx.game.lastWateredBy
       }>\n**Ready to be watered!**${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nEnjoy unlimited levels, fun minigames and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
+          ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
       }${getSuperThirstyText(ctx)}`
     );
@@ -215,7 +215,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         ctx.game.lastWateredBy
       }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
         (ctx.game.hasAiAccess ?? false) == false
-          ? "\nEnjoy unlimited levels, fun minigames and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
+          ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
       }${getSuperThirstyText(ctx)}`
     );
