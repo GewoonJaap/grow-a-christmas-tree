@@ -84,7 +84,7 @@ async function buildLeaderboardMessage(
 
     const tree = trees[i];
     const isOwnTree = ctx.game?.id === tree.id;
-    const treeName = "```" + `${tree.name}` + "```";
+    const treeName = `${tree.name}`;
     const premiumText = `${tree.hasAiAccess ? " | " + PREMIUM_EMOJI : ""}`;
     const treeSize = `${tree.size}ft`;
 
