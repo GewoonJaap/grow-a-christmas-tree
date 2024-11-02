@@ -1,4 +1,5 @@
 import {
+  ActionRowBuilder,
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
@@ -36,13 +37,17 @@ export class NotificationSettings implements ISlashCommand {
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
     if (!ctx.game.hasAiAccess) {
+      const actionBuilder = new ActionRowBuilder();
+      if (!process.env.DEV_MODE) {
+        actionBuilder.addComponents(PremiumButtons.FestiveForestButton);
+      }
       const embed = new EmbedBuilder()
         .setDescription(
           "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the [Festive Forest subscription](https://discord.com/application-directory/1050722873569968128/store/1298016263687110697) to gain access."
         )
         .setTitle("Woah there!")
         .setFooter({ text: "Enjoying the bot? Consider supporting us by buying a subscription!" });
-      return ctx.reply(new MessageBuilder().addEmbed(embed));
+      return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actionBuilder));
     }
     const role = ctx.options.get("role")?.value as string | undefined;
     const channel = ctx.options.get("channel")?.value as string | undefined;
@@ -72,8 +77,6 @@ export class NotificationSettings implements ISlashCommand {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/stage-5.png"
       );
 
-      console.log(webhook);
-
       updateData.notificationRoleId = role;
       updateData.webhookId = webhook.id;
       updateData.webhookToken = webhook.token;
@@ -96,5 +99,5 @@ export class NotificationSettings implements ISlashCommand {
     }
   };
 
-  public components = [PremiumButtons.FestiveForestButton];
+  public components = [];
 }

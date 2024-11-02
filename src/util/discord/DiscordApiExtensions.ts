@@ -3,6 +3,10 @@ import { Entitlement, EntitlementType } from "../types/discord/DiscordTypeExtens
 import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
 import { ButtonStyle } from "discord-api-types/v10";
 
+export const FESTIVE_ENTITLEMENT_SKU_ID = "1298016263687110697";
+export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
+export const SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID = "1298016263687110698";
+
 export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
   const interaction = ctx.interaction;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -14,10 +18,10 @@ export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withou
 }
 
 export function entitlementSkuResolver(skuId: string): EntitlementType {
-  if (skuId === "1298016263687110697") {
+  if (skuId === FESTIVE_ENTITLEMENT_SKU_ID) {
     return EntitlementType.UNLIMITED_LEVELS;
   }
-  if (skuId === "1298016263687110698" || skuId === "1298017583941029949") {
+  if (skuId === SUPER_THIRSTY_ENTITLEMENT_SKU_ID || skuId === SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID) {
     return EntitlementType.SUPER_THIRSTY;
   }
   return EntitlementType.UNKNOWN;
@@ -56,20 +60,35 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
   private sku_id?: string;
 
+  /**
+   * Set the sku_id for the premium button.
+   * @param {string} sku_id - The sku_id to set.
+   * @returns {this}
+   */
   public setSkuId(sku_id: string): this {
     this.sku_id = sku_id;
     return this;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   public setStyle(style: ButtonStyle): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return super.setStyle(style as any);
+    return super.setStyle(6 as any);
   }
 
   public toJSON() {
     const json = super.toJSON();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (this.sku_id) (json as unknown as any).sku_id = this.sku_id;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    json.style = 6;
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    delete json.custom_id;
+    delete json.label;
+    delete json.emoji;
+
     return json;
   }
 }
