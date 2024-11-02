@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { CoinManager } from "../util/CoinManager";
 
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -54,9 +55,13 @@ export class SantaPresentMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    // Award coins for successfully completing the minigame
+    const coinsEarned = Math.floor(Math.random() * 11) + 10; // Random value between 10 and 20
+    await CoinManager.addCoins(ctx.user.id, coinsEarned);
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("Enjoy your present! There was some magic inside which made your tree grow 1ft!")
+      .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft! You earned ${coinsEarned} coins.`)
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );
@@ -72,7 +77,14 @@ export class SantaPresentMinigame implements Minigame {
     ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
     if (!ctx.game) throw new Error("Game data missing.");
-    const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription("Whoops! The witch stole your present!");
+
+    // Deduct coins for hitting a witch
+    const coinsDeducted = Math.floor(Math.random() * 6) + 5; // Random value between 5 and 10
+    await CoinManager.removeCoins(ctx.user.id, coinsDeducted);
+
+    const embed = new EmbedBuilder()
+      .setTitle(ctx.game.name)
+      .setDescription(`Whoops! The witch stole your present! You lost ${coinsDeducted} coins.`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 

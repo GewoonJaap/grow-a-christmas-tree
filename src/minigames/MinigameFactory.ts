@@ -8,6 +8,7 @@ import { GrinchHeistMinigame } from "./GrinchHeistMinigame";
 import { HolidayCookieCountdownMinigame } from "./HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "./TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "./CarolingChoirMinigame";
+import { CoinManager } from "../util/CoinManager";
 
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
@@ -45,4 +46,35 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
     return `${textSuffix}You have just discovered a premium feature! Subscribe in the [store](https://discord.com/application-directory/1050722873569968128/store) to enjoy more fun minigames!`;
   }
   return "";
+}
+
+export async function handleMinigameCoins(
+  ctx: ButtonContext,
+  success: boolean,
+  difficulty: number,
+  maxDuration: number
+): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  const baseCoins = success ? 10 : -5;
+  const difficultyBonus = difficulty * (success ? 5 : -2);
+  const timeBonus = success ? Math.max(0, Math.floor((maxDuration - ctx.interaction.createdTimestamp / 1000) / 2)) : 0;
+  const premiumBonus = ctx.game.hasAiAccess ? 5 : 0;
+
+  const totalCoins = baseCoins + difficultyBonus + timeBonus + premiumBonus;
+
+  if (totalCoins > 0) {
+    await CoinManager.addCoins(ctx.user.id, totalCoins);
+  } else {
+    await CoinManager.removeCoins(ctx.user.id, Math.abs(totalCoins));
+  }
+}
+
+export async function minigameFinished(
+  ctx: ButtonContext,
+  success: boolean,
+  difficulty: number,
+  maxDuration: number
+): Promise<void> {
+  await handleMinigameCoins(ctx, success, difficulty, maxDuration);
 }
