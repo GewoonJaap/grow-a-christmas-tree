@@ -13,7 +13,7 @@ import {
 import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-calculator";
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
-import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
+import { PremiumButtonBuilder, updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { startRandomMinigame } from "../minigames/MinigameFactory";
 import { SantaPresentMinigame } from "../minigames/SantaPresentMinigame";
 import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
@@ -24,6 +24,7 @@ import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
+import { PremiumButtonStyleTypes } from "../util/types/discord/DiscordTypeExtension";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -132,10 +133,10 @@ export class Tree implements ISlashCommand {
     ...CarolingChoirMinigame.buttons,
     new Button(
       "tree.store",
-      new ButtonBuilder().setEmoji({ name: "🛒" }).setStyle(6).setSkuId("premium_sku_id"),
-      async (ctx: ButtonContext): Promise<void> => {
-        // Handle store button click
-      }
+      new PremiumButtonBuilder()
+        .setEmoji({ name: "🛒" })
+        .setStyle(PremiumButtonStyleTypes.PREMIUM as any)
+        .setSkuId("1298016263687110697")
     )
   ];
 }

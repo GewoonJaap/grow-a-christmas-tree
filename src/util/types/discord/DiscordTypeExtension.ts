@@ -71,7 +71,7 @@ export interface Author {
   clan: string;
 }
 
-export enum ButtonStyleTypes {
+export enum PremiumButtonStyleTypes {
   PRIMARY = 1,
   SECONDARY = 2,
   SUCCESS = 3,

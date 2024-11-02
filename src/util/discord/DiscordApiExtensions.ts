@@ -1,6 +1,7 @@
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
-import { Entitlement, EntitlementType } from "../types/discord/DiscordTypeExtension";
-import { ButtonBuilder as OriginalButtonBuilder, ButtonStyleTypes } from "interactions.ts";
+import { Entitlement, EntitlementType, PremiumButtonStyleTypes } from "../types/discord/DiscordTypeExtension";
+import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
+import { ButtonStyle } from "discord-api-types/v10";
 
 export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
   const interaction = ctx.interaction;
@@ -52,7 +53,7 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   await ctx.game.save();
 }
 
-export class ButtonBuilder extends OriginalButtonBuilder {
+export class PremiumButtonBuilder extends OriginalButtonBuilder {
   private sku_id?: string;
 
   public setSkuId(sku_id: string): this {
@@ -60,11 +61,13 @@ export class ButtonBuilder extends OriginalButtonBuilder {
     return this;
   }
 
+  public setStyle(style: ButtonStyle): this {
+    return super.setStyle(style as any);
+  }
+
   public toJSON() {
     const json = super.toJSON();
-    if (this.style === ButtonStyleTypes.PREMIUM && this.sku_id) {
-      json.sku_id = this.sku_id;
-    }
+    if (this.sku_id) (json as unknown as any).sku_id = this.sku_id;
     return json;
   }
 }
