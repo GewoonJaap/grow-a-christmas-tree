@@ -8,6 +8,12 @@ import { GrinchHeistMinigame } from "./GrinchHeistMinigame";
 import { HolidayCookieCountdownMinigame } from "./HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "./TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "./CarolingChoirMinigame";
+import { FireworksShowMinigame } from "./FireworksShowMinigame";
+import { HeartCollectionMinigame } from "./HeartCollectionMinigame";
+import { PumpkinHuntMinigame } from "./PumpkinHuntMinigame";
+import { ThanksgivingFeastMinigame } from "./ThanksgivingFeastMinigame";
+import { StPatricksDayTreasureHuntMinigame } from "./StPatricksDayTreasureHuntMinigame";
+import { EarthDayCleanupMinigame } from "./EarthDayCleanupMinigame";
 
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
@@ -17,16 +23,55 @@ const minigames: Minigame[] = [
   new GrinchHeistMinigame(),
   new HolidayCookieCountdownMinigame(),
   new TinselTwisterMinigame(),
-  new CarolingChoirMinigame()
+  new CarolingChoirMinigame(),
+  new FireworksShowMinigame(),
+  new HeartCollectionMinigame(),
+  new PumpkinHuntMinigame(),
+  new ThanksgivingFeastMinigame(),
+  new StPatricksDayTreasureHuntMinigame(),
+  new EarthDayCleanupMinigame()
 ];
+
+function calculateEasterDate(year: number): Date {
+  const f = Math.floor,
+    G = year % 19,
+    C = f(year / 100),
+    H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30,
+    I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11)),
+    J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7,
+    L = I - J,
+    month = 3 + f((L + 40) / 44),
+    day = L + 28 - 31 * f(month / 4);
+  return new Date(year, month - 1, day);
+}
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {
   if (!ctx.game) throw new Error("Game data missing.");
 
+  const specialDays = [
+    { name: "New Year's Eve", dateRange: [new Date(new Date().getFullYear(), 11, 31)], minigame: new FireworksShowMinigame() },
+    { name: "Valentine's Day", dateRange: [new Date(new Date().getFullYear(), 1, 14)], minigame: new HeartCollectionMinigame() },
+    { name: "Halloween", dateRange: [new Date(new Date().getFullYear(), 9, 24), new Date(new Date().getFullYear(), 9, 31)], minigame: new PumpkinHuntMinigame() },
+    { name: "Independence Day", dateRange: [new Date(new Date().getFullYear(), 6, 4)], minigame: new FireworksShowMinigame() },
+    { name: "Christmas", dateRange: [new Date(new Date().getFullYear(), 11, 25)], minigame: new SantaPresentMinigame() },
+    { name: "Easter", dateRange: [calculateEasterDate(new Date().getFullYear())], minigame: new HotCocoaMinigame() },
+    { name: "Thanksgiving", dateRange: [new Date(new Date().getFullYear(), 10, 22), new Date(new Date().getFullYear(), 10, 28)], minigame: new ThanksgivingFeastMinigame() },
+    { name: "St. Patrick's Day", dateRange: [new Date(new Date().getFullYear(), 2, 17)], minigame: new StPatricksDayTreasureHuntMinigame() },
+    { name: "April Fool's Day", dateRange: [new Date(new Date().getFullYear(), 3, 1)], minigame: new GiftUnwrappingMinigame() },
+    { name: "Earth Day", dateRange: [new Date(new Date().getFullYear(), 3, 22)], minigame: new EarthDayCleanupMinigame() }
+  ];
+
+  const currentDate = new Date();
+  const specialDayMinigames = specialDays.filter(specialDay => {
+    return specialDay.dateRange.some(date => {
+      return date.getDate() === currentDate.getDate() && date.getMonth() === currentDate.getMonth();
+    });
+  }).map(specialDay => specialDay.minigame);
+
   const availableMinigames =
     ctx.game.hasAiAccess || process.env.DEV_MODE === "true"
-      ? minigames
-      : minigames.filter((minigame) => !minigame.config.premiumGuildOnly);
+      ? [...minigames, ...specialDayMinigames]
+      : [...minigames.filter((minigame) => !minigame.config.premiumGuildOnly), ...specialDayMinigames];
 
   if (availableMinigames.length === 0) {
     return false;
