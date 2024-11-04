@@ -62,7 +62,7 @@ export class Tree implements ISlashCommand {
           return;
         }
 
-        const wateringInterval = getWateringInterval(ctx.game.size),
+        const wateringInterval = getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false),
           time = Math.floor(Date.now() / 1000);
         if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
           const timeout = ctx.timeouts.get(ctx.interaction.message.id);
@@ -184,7 +184,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
       ctx.game.size,
       ctx.game.hasAiAccess
     )}) has spent ${humanizeDuration(
-      ctx.game.lastWateredAt + getWateringInterval(ctx.game.size) < time
+      ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false) < time
         ? getTreeAge(ctx.game.size) * 1000
         : (getTreeAge(ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
     )} growing. Nice!`
