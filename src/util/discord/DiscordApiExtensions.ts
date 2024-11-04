@@ -54,7 +54,9 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
 
   const userId = ctx.user.id;
   const skuIds = [FESTIVE_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID];
-  const entitlements = await fetchEntitlementsFromApi(userId, skuIds);
+  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, skuIds);
+  const entitlementsFromInteraction = getEntitlements(ctx, true);
+  const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
   const hasUnlimitedLevels = entitlements.some(
     (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
