@@ -39,7 +39,7 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
 
 export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
   if (ctx.game == null) return;
-  const entitlements = getEntitlements(ctx, true);
+  const entitlements = await fetchEntitlements(ctx.interaction.user.id, [FESTIVE_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID], true);
 
   const hasUnlimitedLevels = entitlements.some(
     (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
@@ -90,5 +90,49 @@ export class PremiumButtonBuilder extends OriginalButtonBuilder {
     delete json.emoji;
 
     return json;
+  }
+}
+
+export async function fetchEntitlements(user_id: string, sku_ids?: string[], withoutExpired = false): Promise<Entitlement[]> {
+  const url = new URL(`https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements`);
+  url.searchParams.append("user_id", user_id);
+  if (sku_ids) {
+    url.searchParams.append("sku_ids", sku_ids.join(","));
+  }
+
+  const response = await fetch(url.toString(), {
+    method: "GET",
+    headers: {
+      Authorization: `Bot ${process.env.TOKEN}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error fetching entitlements: ${response.statusText}`);
+  }
+
+  const entitlements: Entitlement[] = await response.json();
+
+  if (withoutExpired) {
+    return entitlements.filter((entitlement) => !hasEntitlementExpired(entitlement));
+  }
+
+  return entitlements;
+}
+
+export async function consumeEntitlement(entitlement_id: string): Promise<void> {
+  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlement_id}/consume`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Authorization: `Bot ${process.env.TOKEN}`,
+      "Content-Type": "application/json"
+    }
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error consuming entitlement: ${response.statusText}`);
   }
 }
