@@ -17,7 +17,7 @@ import {
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
-const builder = new SlashCommandBuilder("redeemcoins", "Redeem all your coin purchases for from the shop");
+const builder = new SlashCommandBuilder("redeemcoins", "Redeem all your coin purchases from the shop");
 
 builder.setDMEnabled(false);
 
@@ -42,7 +42,7 @@ export class RedeemCoinsCommand implements ISlashCommand {
       const embed = new EmbedBuilder()
         .setTitle("Coins Redeemed")
         .setDescription("You have no coins to redeem.")
-        .setFooter({ text: `You can coins from the store by clicking on the bot avatar.` });
+        .setFooter({ text: `You can purschage coins from the store by clicking on the bot avatar.` });
       return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actions));
     }
 
