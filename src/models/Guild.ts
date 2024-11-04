@@ -39,6 +39,13 @@ const ContributorSchema = new Schema<IContributor>({
   wallet: { type: WalletSchema, required: true, default: { coins: 0 } }
 });
 
+ContributorSchema.pre("save", function (next) {
+  if (!this.wallet) {
+    this.wallet = { coins: 0 };
+  }
+  next();
+});
+
 const GuildSchema = new Schema<IGuild>({
   id: { type: String, required: true, unique: true },
 

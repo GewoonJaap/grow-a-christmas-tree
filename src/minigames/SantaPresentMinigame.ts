@@ -61,7 +61,9 @@ export class SantaPresentMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft! You earned ${coinsEarned} coins.`)
+      .setDescription(
+        `Enjoy your present! There was some magic inside which made your tree grow 1ft! You earned ${coinsEarned} coins.`
+      )
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );

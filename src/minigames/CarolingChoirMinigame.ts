@@ -80,7 +80,7 @@ export class CarolingChoirMinigame implements Minigame {
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
-    await minigameFinished(ctx, true, this.maxStages, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx as ButtonContext, true, this.maxStages, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
   }
 
   private static async handleNoteButton(ctx: ButtonContext<CarolingChoirButtonState>): Promise<void> {
@@ -107,7 +107,7 @@ export class CarolingChoirMinigame implements Minigame {
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
-    await minigameFinished(ctx, false, 0, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx as ButtonContext, false, 0, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
   }
 
   public static buttons = [

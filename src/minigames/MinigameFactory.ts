@@ -58,7 +58,7 @@ export async function handleMinigameCoins(
 
   const baseCoins = success ? 10 : -5;
   const difficultyBonus = difficulty * (success ? 5 : -2);
-  const timeBonus = success ? Math.max(0, Math.floor((maxDuration - ctx.interaction.createdTimestamp / 1000) / 2)) : 0;
+  const timeBonus = 0;
   const premiumBonus = ctx.game.hasAiAccess ? 5 : 0;
 
   const totalCoins = baseCoins + difficultyBonus + timeBonus + premiumBonus;

@@ -7,3 +7,4 @@ export * from "./Profile";
 export * from "./Tree";
 export * from "./Recycle";
 export * from "./NotificationSettings";
+export * from "./Wallet";
