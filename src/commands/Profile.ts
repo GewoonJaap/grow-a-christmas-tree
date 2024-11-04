@@ -10,6 +10,7 @@ import {
   SlashCommandContext,
   SlashCommandUserOption
 } from "interactions.ts";
+import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 
 type State = {
   id: string;
@@ -27,6 +28,7 @@ export class Profile implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM || !ctx.game) return ctx.reply("This command can only be used in a server.");
+    await updateEntitlementsToGame(ctx);
     return ctx.reply(await buildProfileMessage(ctx));
   };
 
