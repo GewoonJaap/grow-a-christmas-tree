@@ -8,3 +8,4 @@ export * from "./Tree";
 export * from "./Recycle";
 export * from "./NotificationSettings";
 export * from "./SendCoins";
+export * from "./RedeemCoins";

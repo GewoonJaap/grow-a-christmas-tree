@@ -25,7 +25,8 @@ import {
   Tree,
   Recycle,
   NotificationSettings,
-  SendCoinsCommand
+  SendCoinsCommand,
+  RedeemCoinsCommand
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -106,7 +107,8 @@ if (keys.some((key) => !(key in process.env))) {
       new Recycle(),
       new Feedback(),
       new NotificationSettings(),
-      new SendCoinsCommand()
+      new SendCoinsCommand(),
+      new RedeemCoinsCommand()
     ],
     false
   );
