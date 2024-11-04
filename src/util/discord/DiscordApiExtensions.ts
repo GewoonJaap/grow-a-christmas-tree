@@ -39,22 +39,11 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
   return new Date(entitlement.ends_at) < new Date();
 }
 
-export async function fetchEntitlementsFromApi(userId: string, skuIds: string[]): Promise<Entitlement[]> {
-  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}&sku_ids=${skuIds.join(",")}`;
-  const response = await axios.get(url, {
-    headers: {
-      Authorization: `Bot ${process.env.TOKEN}`
-    }
-  });
-  return response.data;
-}
-
 export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
   if (ctx.game == null) return;
 
   const userId = ctx.user.id;
-  const skuIds = [FESTIVE_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID];
-  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, skuIds);
+  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true);
   const entitlementsFromInteraction = getEntitlements(ctx, true);
   const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
@@ -74,17 +63,47 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   await ctx.game.save();
 }
 
-export async function consumeEntitlement(entitlementId: string): Promise<void> {
-  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
-  const response = await axios.post(url, {}, {
-    headers: {
-      Authorization: `Bot ${process.env.TOKEN}`
+export async function fetchEntitlementsFromApi(
+  userId: string,
+  withoutExpired = false,
+  skuIds?: string[]
+): Promise<Entitlement[]> {
+  try {
+    let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}`;
+    if (skuIds) {
+      url += `&sku_ids=${skuIds.join(",")}`;
     }
-  });
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bot ${process.env.TOKEN}`
+      }
+    });
+    const data: Entitlement[] = response.data;
+    if (withoutExpired) {
+      return data.filter((entitlement) => !hasEntitlementExpired(entitlement));
+    }
+    return data;
+  } catch (error: unknown) {
+    return [];
+  }
+}
+
+export async function consumeEntitlement(entitlementId: string): Promise<boolean> {
+  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
+  const response = await axios.post(
+    url,
+    {},
+    {
+      headers: {
+        Authorization: `Bot ${process.env.TOKEN}`
+      }
+    }
+  );
 
   if (response.status !== 204) {
-    throw new Error(`Error consuming entitlement: ${response.statusText}`);
+    return false;
   }
+  return true;
 }
 
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
