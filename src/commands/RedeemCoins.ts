@@ -1,4 +1,5 @@
 import {
+  ActionRowBuilder,
   AutocompleteContext,
   Component,
   EmbedBuilder,
@@ -14,6 +15,7 @@ import {
   skuIdToCoins
 } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
 const builder = new SlashCommandBuilder("redeemcoins", "Redeem all your coin purchases for from the shop");
 
@@ -33,11 +35,12 @@ export class RedeemCoinsCommand implements ISlashCommand {
     const entitlements = await fetchEntitlementsFromApi(userId, true, [SMALL_POUCH_OF_COINS_SKU_ID]);
 
     if (entitlements.length === 0) {
+      const actions = new ActionRowBuilder().addComponents(PremiumButtons.SmallPouchOfCoinsButton);
       const embed = new EmbedBuilder()
         .setTitle("Coins Redeemed")
         .setDescription("You have no coins to redeem.")
         .setFooter({ text: `You can coins from the store by clicking on the bot avatar.` });
-      return ctx.reply(new MessageBuilder().addEmbed(embed));
+      return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actions));
     }
 
     let totalCoins = 0;
