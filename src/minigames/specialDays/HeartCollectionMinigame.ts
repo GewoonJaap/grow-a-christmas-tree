@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
-import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
+import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "../MinigameFactory";
 
 const HEART_COLLECTION_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -11,9 +11,9 @@ export class HeartCollectionMinigame implements Minigame {
   };
 
   private heartImages = [
-    "https://example.com/heart-1.jpg",
-    "https://example.com/heart-2.jpg",
-    "https://example.com/heart-3.jpg"
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/valentine-day/valentine-day-1.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/valentine-day/valentine-day-2.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/valentine-day/valentine-day-3.jpg"
   ];
 
   async start(ctx: ButtonContext): Promise<void> {
@@ -56,7 +56,9 @@ export class HeartCollectionMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You collected hearts and your tree grew 2ft taller!")
-      .setImage("https://example.com/heart-1.jpg");
+      .setImage(
+        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/valentine-day/valentine-day-3.jpg"
+      );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 

@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
-import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
+import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "../MinigameFactory";
 
 const FIREWORKS_SHOW_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -11,9 +11,9 @@ export class FireworksShowMinigame implements Minigame {
   };
 
   private fireworksImages = [
-    "https://example.com/fireworks-1.jpg",
-    "https://example.com/fireworks-2.jpg",
-    "https://example.com/fireworks-3.jpg"
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/newyears-eve/newyears-eve-1.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/newyears-eve/newyears-eve-2.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/newyears-eve/newyears-eve-3.jpg"
   ];
 
   async start(ctx: ButtonContext): Promise<void> {
@@ -56,7 +56,9 @@ export class FireworksShowMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You launched a spectacular fireworks show! Your tree grew 2ft taller!")
-      .setImage("https://example.com/fireworks-1.jpg");
+      .setImage(
+        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/newyears-eve/newyears-eve-2.jpg"
+      );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 

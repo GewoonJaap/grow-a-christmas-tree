@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
-import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
+import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "../MinigameFactory";
 
 const STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION = 10 * 1000;
 

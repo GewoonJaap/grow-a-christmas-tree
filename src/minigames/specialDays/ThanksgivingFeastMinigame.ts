@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
-import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
+import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "../MinigameFactory";
 
 const THANKSGIVING_FEAST_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -19,7 +19,9 @@ export class ThanksgivingFeastMinigame implements Minigame {
   async start(ctx: ButtonContext): Promise<void> {
     const embed = new EmbedBuilder()
       .setTitle("Thanksgiving Feast!")
-      .setDescription(`Click the 🍗 to prepare a Thanksgiving feast and boost your tree!${getPremiumUpsellMessage(ctx)}`)
+      .setDescription(
+        `Click the 🍗 to prepare a Thanksgiving feast and boost your tree!${getPremiumUpsellMessage(ctx)}`
+      )
       .setImage(this.feastImages[Math.floor(Math.random() * this.feastImages.length)])
       .setFooter({ text: "Hurry! Prepare the feast before time runs out!" });
 

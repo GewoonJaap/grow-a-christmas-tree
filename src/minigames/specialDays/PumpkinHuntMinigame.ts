@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
-import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
+import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
+import { getPremiumUpsellMessage } from "../MinigameFactory";
 
 const PUMPKIN_HUNT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -11,9 +11,9 @@ export class PumpkinHuntMinigame implements Minigame {
   };
 
   private pumpkinImages = [
-    "https://example.com/pumpkin-1.jpg",
-    "https://example.com/pumpkin-2.jpg",
-    "https://example.com/pumpkin-3.jpg"
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-1.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-2.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-3.jpg"
   ];
 
   async start(ctx: ButtonContext): Promise<void> {
@@ -56,7 +56,7 @@ export class PumpkinHuntMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You found a hidden pumpkin and your tree grew 2ft taller!")
-      .setImage("https://example.com/pumpkin-1.jpg");
+      .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-2.jpg");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
