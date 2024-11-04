@@ -2,10 +2,12 @@ import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { Entitlement, EntitlementType } from "../types/discord/DiscordTypeExtension";
 import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
 import { ButtonStyle } from "discord-api-types/v10";
+import axios from "axios";
 
 export const FESTIVE_ENTITLEMENT_SKU_ID = "1298016263687110697";
 export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
 export const SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID = "1298016263687110698";
+export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
 
 export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
   const interaction = ctx.interaction;
@@ -39,7 +41,11 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
 
 export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
   if (ctx.game == null) return;
-  const entitlements = await fetchEntitlements(ctx.interaction.user.id, [FESTIVE_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID], true);
+
+  const userId = ctx.user.id;
+  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true);
+  const entitlementsFromInteraction = getEntitlements(ctx, true);
+  const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
   const hasUnlimitedLevels = entitlements.some(
     (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
@@ -55,6 +61,49 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   }
 
   await ctx.game.save();
+}
+
+export async function fetchEntitlementsFromApi(
+  userId: string,
+  withoutExpired = false,
+  skuIds?: string[]
+): Promise<Entitlement[]> {
+  try {
+    let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}`;
+    if (skuIds) {
+      url += `&sku_ids=${skuIds.join(",")}`;
+    }
+    const response = await axios.get(url, {
+      headers: {
+        Authorization: `Bot ${process.env.TOKEN}`
+      }
+    });
+    const data: Entitlement[] = response.data;
+    if (withoutExpired) {
+      return data.filter((entitlement) => !hasEntitlementExpired(entitlement));
+    }
+    return data;
+  } catch (error: unknown) {
+    return [];
+  }
+}
+
+export async function consumeEntitlement(entitlementId: string): Promise<boolean> {
+  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
+  const response = await axios.post(
+    url,
+    {},
+    {
+      headers: {
+        Authorization: `Bot ${process.env.TOKEN}`
+      }
+    }
+  );
+
+  if (response.status !== 204) {
+    return false;
+  }
+  return true;
 }
 
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
@@ -90,49 +139,5 @@ export class PremiumButtonBuilder extends OriginalButtonBuilder {
     delete json.emoji;
 
     return json;
-  }
-}
-
-export async function fetchEntitlements(user_id: string, sku_ids?: string[], withoutExpired = false): Promise<Entitlement[]> {
-  const url = new URL(`https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements`);
-  url.searchParams.append("user_id", user_id);
-  if (sku_ids) {
-    url.searchParams.append("sku_ids", sku_ids.join(","));
-  }
-
-  const response = await fetch(url.toString(), {
-    method: "GET",
-    headers: {
-      Authorization: `Bot ${process.env.TOKEN}`,
-      "Content-Type": "application/json"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Error fetching entitlements: ${response.statusText}`);
-  }
-
-  const entitlements: Entitlement[] = await response.json();
-
-  if (withoutExpired) {
-    return entitlements.filter((entitlement) => !hasEntitlementExpired(entitlement));
-  }
-
-  return entitlements;
-}
-
-export async function consumeEntitlement(entitlement_id: string): Promise<void> {
-  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlement_id}/consume`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bot ${process.env.TOKEN}`,
-      "Content-Type": "application/json"
-    }
-  });
-
-  if (!response.ok) {
-    throw new Error(`Error consuming entitlement: ${response.statusText}`);
   }
 }
