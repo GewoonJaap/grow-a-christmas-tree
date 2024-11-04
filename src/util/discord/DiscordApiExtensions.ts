@@ -9,12 +9,17 @@ export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
 export const SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID = "1298016263687110698";
 export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
 
-export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
+export function getEntitlements(
+  ctx: SlashCommandContext | ButtonContext,
+  withoutExpired = false
+): Entitlement[] {
   const interaction = ctx.interaction;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entitlements: Entitlement[] = (interaction as any).entitlements;
   if (withoutExpired) {
-    return entitlements.filter((entitlement) => !hasEntitlementExpired(entitlement));
+    return entitlements.filter(
+      (entitlement) => !hasEntitlementExpired(entitlement)
+    );
   }
   return entitlements;
 }
@@ -23,7 +28,10 @@ export function entitlementSkuResolver(skuId: string): EntitlementType {
   if (skuId === FESTIVE_ENTITLEMENT_SKU_ID) {
     return EntitlementType.UNLIMITED_LEVELS;
   }
-  if (skuId === SUPER_THIRSTY_ENTITLEMENT_SKU_ID || skuId === SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID) {
+  if (
+    skuId === SUPER_THIRSTY_ENTITLEMENT_SKU_ID ||
+    skuId === SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID
+  ) {
     return EntitlementType.SUPER_THIRSTY;
   }
   return EntitlementType.UNKNOWN;
@@ -39,20 +47,29 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
   return new Date(entitlement.ends_at) < new Date();
 }
 
-export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
+export async function updateEntitlementsToGame(
+  ctx: SlashCommandContext | ButtonContext
+): Promise<void> {
   if (ctx.game == null) return;
 
   const userId = ctx.user.id;
-  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true);
+  const guildId = ctx.interaction.guild_id;
+  const entitlementsFromApi = await fetchEntitlementsFromApi(
+    userId,
+    guildId,
+    true
+  );
   const entitlementsFromInteraction = getEntitlements(ctx, true);
   const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
   const hasUnlimitedLevels = entitlements.some(
-    (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
+    (entitlement) =>
+      entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
   );
 
   const hasSuperThirsty = entitlements.some(
-    (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
+    (entitlement) =>
+      entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
   );
 
   ctx.game.hasAiAccess = hasUnlimitedLevels;
@@ -65,18 +82,19 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
 
 export async function fetchEntitlementsFromApi(
   userId: string,
+  guildId: string,
   withoutExpired = false,
   skuIds?: string[]
 ): Promise<Entitlement[]> {
   try {
-    let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}`;
+    let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}&guild_id=${guildId}`;
     if (skuIds) {
       url += `&sku_ids=${skuIds.join(",")}`;
     }
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bot ${process.env.TOKEN}`
-      }
+        Authorization: `Bot ${process.env.TOKEN}`,
+      },
     });
     const data: Entitlement[] = response.data;
     if (withoutExpired) {
@@ -95,8 +113,8 @@ export async function consumeEntitlement(entitlementId: string): Promise<boolean
     {},
     {
       headers: {
-        Authorization: `Bot ${process.env.TOKEN}`
-      }
+        Authorization: `Bot ${process.env.TOKEN}`,
+      },
     }
   );
 
