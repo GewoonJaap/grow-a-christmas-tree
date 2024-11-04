@@ -15,7 +15,7 @@ import {
 } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 
-const builder = new SlashCommandBuilder("redeemcoins", "Redeem all consumable SKUs for coins.");
+const builder = new SlashCommandBuilder("redeemcoins", "Redeem all your coin purchases for from the shop");
 
 builder.setDMEnabled(false);
 
