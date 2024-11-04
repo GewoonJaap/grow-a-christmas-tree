@@ -11,6 +11,7 @@ import {
   SlashCommandContext,
   SlashCommandIntegerOption
 } from "interactions.ts";
+import { WalletHelper } from "../util/wallet/WalletHelper";
 
 const builder = new SlashCommandBuilder(
   "leaderboard",
@@ -95,10 +96,11 @@ async function buildLeaderboardMessage(
     }
 
     const contributor = contributors[i];
+    const wallet = await WalletHelper.getWallet(contributor.userId);
 
     description += `${i < 3 ? `${MEDAL_EMOJIS[i]}` : `\`\`${i + 1}${i < 9 ? " " : ""}\`\``} - 💧${
       contributor.count
-    } - 🪙${contributor.wallet.coins} <@${contributor.userId}>\n`;
+    } - 🪙 ${wallet.coins} <@${contributor.userId}>\n`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(

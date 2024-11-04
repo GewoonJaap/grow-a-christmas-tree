@@ -2,7 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { CoinManager } from "../util/CoinManager";
+import { minigameFinished } from "./MinigameFactory";
 
 const HOT_COCOA_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -54,15 +54,13 @@ export class HotCocoaMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
-    // Deduct coins for spilling the cocoa
-    const coinsDeducted = Math.floor(Math.random() * 6) + 5; // Random value between 5 and 10
-    await CoinManager.removeCoins(ctx.user.id, coinsDeducted);
-
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`You spilled the cocoa! Better luck next time! You lost ${coinsDeducted} coins.`);
+      .setDescription(`You spilled the cocoa! Better luck next time!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    await minigameFinished(ctx as ButtonContext, false, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }
@@ -80,17 +78,13 @@ export class HotCocoaMinigame implements Minigame {
         ctx.game.size++;
         await ctx.game.save();
 
-        // Award coins for successfully making hot cocoa
-        const coinsEarned = Math.floor(Math.random() * 11) + 10; // Random value between 10 and 20
-        await CoinManager.addCoins(ctx.user.id, coinsEarned);
-
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
-          .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft! You earned ${coinsEarned} coins.`);
+          .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft!`);
 
         ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+        await minigameFinished(ctx as ButtonContext, true, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
         transitionToDefaultTreeView(ctx);
       }
     ),

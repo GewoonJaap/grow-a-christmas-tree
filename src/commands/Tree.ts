@@ -96,7 +96,7 @@ export class Tree implements ISlashCommand {
           contributor.count++;
           contributor.lastWateredAt = time;
         } else {
-          ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time, wallet: { coins: 0 } });
+          ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
         }
 
         await ctx.game.save();

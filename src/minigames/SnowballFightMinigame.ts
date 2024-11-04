@@ -2,8 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
-import { CoinManager } from "../util/CoinManager";
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
 const SNOWBALL_FIGHT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -61,12 +60,6 @@ export class SnowballFightMinigame implements Minigame {
     if (randomOutcome < 0.5) {
       ctx.game.size++;
       message = "Bullseye! You hit the target with a snowball and your tree grew 1ft taller!";
-
-      // Award coins for successfully hitting the target
-      const coinsEarned = Math.floor(Math.random() * 11) + 10; // Random value between 10 and 20
-      await CoinManager.addCoins(ctx.user.id, coinsEarned);
-
-      message += ` You earned ${coinsEarned} coins.`;
     } else {
       message = "You threw a snowball but missed the target. Better luck next time!";
     }
@@ -75,6 +68,8 @@ export class SnowballFightMinigame implements Minigame {
 
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
     await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    await minigameFinished(ctx as ButtonContext, true, 1, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }
@@ -86,19 +81,17 @@ export class SnowballFightMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
-    // Deduct coins for missing the target
-    const coinsDeducted = Math.floor(Math.random() * 6) + 5; // Random value between 5 and 10
-    await CoinManager.removeCoins(ctx.user.id, coinsDeducted);
-
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`You missed the target. Better luck next time! You lost ${coinsDeducted} coins.`);
+      .setDescription(`You missed the target. Better luck next time!`);
 
     if (isTimeout) {
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
     } else {
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
     }
+
+    await minigameFinished(ctx as ButtonContext, false, 1, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }

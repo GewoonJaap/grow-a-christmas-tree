@@ -11,6 +11,7 @@ import {
   SlashCommandUserOption
 } from "interactions.ts";
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
+import { WalletHelper } from "../util/wallet/WalletHelper";
 
 type State = {
   id: string;
@@ -65,6 +66,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
   }
 
   const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
+  const wallet = await WalletHelper.getWallet(id);
 
   return new MessageBuilder()
     .addEmbed(
@@ -81,7 +83,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
                     .findIndex((contributor) => contributor.userId === id) + 1
                 } out of ${ctx.game.contributors.length}.`
               : "not yet watered the christmas tree."
-          }\n\nCurrent Coin Balance: ${contributor ? contributor.wallet.coins : 0} coins.`
+          }\n\nCurrent Coin Balance: ${wallet ? wallet.coins : 0} coins.`
         )
     )
     .addComponents(

@@ -1,5 +1,4 @@
 import { model, Schema } from "mongoose";
-import { IWallet, WalletSchema } from "./Wallet";
 
 interface IGuild {
   id: string;
@@ -29,21 +28,12 @@ interface IContributor {
   userId: string;
   count: number;
   lastWateredAt: number;
-  wallet: IWallet;
 }
 
 const ContributorSchema = new Schema<IContributor>({
   userId: { type: String, required: true },
   count: { type: Number, required: true, default: 1 },
-  lastWateredAt: { type: Number, required: true, default: 0 },
-  wallet: { type: WalletSchema, required: true, default: { coins: 0 } }
-});
-
-ContributorSchema.pre("save", function (next) {
-  if (!this.wallet) {
-    this.wallet = { coins: 0 };
-  }
-  next();
+  lastWateredAt: { type: Number, required: true, default: 0 }
 });
 
 const GuildSchema = new Schema<IGuild>({

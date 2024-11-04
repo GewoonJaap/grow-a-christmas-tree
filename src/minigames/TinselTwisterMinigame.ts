@@ -2,8 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
-import { CoinManager } from "../util/CoinManager";
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
 const TINSEL_TWISTER_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -74,16 +73,12 @@ export class TinselTwisterMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
-    // Award coins for successfully completing the minigame
-    const coinsEarned = Math.floor(Math.random() * 11) + 10; // Random value between 10 and 20
-    await CoinManager.addCoins(ctx.user.id, coinsEarned);
-
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`You completed the Tinsel Twister! Your tree has grown 1ft! You earned ${coinsEarned} coins.`);
+      .setDescription(`You completed the Tinsel Twister! Your tree has grown 1ft!`);
 
     await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+    await minigameFinished(ctx as ButtonContext, true, 1, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 
@@ -107,13 +102,9 @@ export class TinselTwisterMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
-    // Deduct coins for missing the tinsel
-    const coinsDeducted = Math.floor(Math.random() * 6) + 5; // Random value between 5 and 10
-    await CoinManager.removeCoins(ctx.user.id, coinsDeducted);
-
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`You missed the tinsel. Better luck next time! You lost ${coinsDeducted} coins.`);
+      .setDescription(`You missed the tinsel. Better luck next time!`);
 
     if (isTimeout) {
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
@@ -121,6 +112,7 @@ export class TinselTwisterMinigame implements Minigame {
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
     }
 
+    await minigameFinished(ctx as ButtonContext, false, 1, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 

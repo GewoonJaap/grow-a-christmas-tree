@@ -8,7 +8,7 @@ import { GrinchHeistMinigame } from "./GrinchHeistMinigame";
 import { HolidayCookieCountdownMinigame } from "./HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "./TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "./CarolingChoirMinigame";
-import { CoinManager } from "../util/CoinManager";
+import { WalletHelper } from "../util/wallet/WalletHelper";
 
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
@@ -56,17 +56,17 @@ export async function handleMinigameCoins(
 ): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  const baseCoins = success ? 10 : -5;
-  const difficultyBonus = difficulty * (success ? 5 : -2);
+  const baseCoins = success ? 1 : -5;
+  const difficultyBonus = difficulty * (success ? 1 : -1);
   const timeBonus = 0;
   const premiumBonus = ctx.game.hasAiAccess ? 5 : 0;
 
-  const totalCoins = baseCoins + difficultyBonus + timeBonus + premiumBonus;
+  const totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus);
 
   if (totalCoins > 0) {
-    await CoinManager.addCoins(ctx.user.id, totalCoins);
+    await WalletHelper.addCoins(ctx.user.id, totalCoins);
   } else {
-    await CoinManager.removeCoins(ctx.user.id, Math.abs(totalCoins));
+    await WalletHelper.removeCoins(ctx.user.id, totalCoins * -1);
   }
 }
 

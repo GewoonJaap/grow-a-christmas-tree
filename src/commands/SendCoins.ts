@@ -10,17 +10,20 @@ import {
   SlashCommandIntegerOption,
   SlashCommandUserOption
 } from "interactions.ts";
-import { CoinManager } from "../util/CoinManager";
+import { WalletHelper } from "../util/wallet/WalletHelper";
 
-const builder = new SlashCommandBuilder("wallet", "Transfer coins to another player.")
+const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
   .addIntegerOption(
-    new SlashCommandIntegerOption("amount", "The amount of coins to transfer.").setRequired(true).setMinValue(1)
+    new SlashCommandIntegerOption("amount", "The amount of coins to transfer.")
+      .setRequired(true)
+      .setMinValue(1)
+      .setMaxValue(1000)
   );
 
 builder.setDMEnabled(false);
 
-export class WalletCommand implements ISlashCommand {
+export class SendCoinsCommand implements ISlashCommand {
   autocompleteHandler?: ((ctx: AutocompleteContext) => Promise<void>) | undefined;
   public components: Component[] = [];
   public builder = builder;
@@ -47,8 +50,8 @@ export class WalletCommand implements ISlashCommand {
       return ctx.reply(SimpleError("Game data missing."));
     }
 
-    const sender = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
-    const recipient = ctx.game.contributors.find((contributor) => contributor.userId === recipientId);
+    const sender = await WalletHelper.getWallet(ctx.user.id);
+    const recipient = await WalletHelper.getWallet(recipientId);
 
     if (!sender) {
       return ctx.reply(SimpleError("You do not have a wallet."));
@@ -62,18 +65,27 @@ export class WalletCommand implements ISlashCommand {
       return ctx.reply(SimpleError("The transfer amount must be a positive number."));
     }
 
-    if (sender.wallet.coins < amount) {
-      return ctx.reply(SimpleError("You do not have enough coins to complete the transfer."));
+    if (sender.coins < amount) {
+      return ctx.reply(
+        SimpleError(`You do not have enough coins to complete the transfer. You have ${sender.coins} coins.`)
+      );
     }
 
-    await CoinManager.removeCoins(sender.userId, amount);
-    await CoinManager.addCoins(recipient.userId, amount);
+    await WalletHelper.removeCoins(sender.userId, amount);
+    await WalletHelper.addCoins(recipient.userId, amount);
 
     const embed = new EmbedBuilder()
       .setTitle("Coin Transfer")
       .setDescription(
-        `You have successfully transferred ${amount} coins to <@${recipientId}>.\n\nYour new balance is ${sender.wallet.coins} coins.\n<@${recipientId}>'s new balance is ${recipient.wallet.coins} coins.`
-      );
+        `You have successfully transferred ${amount} coins to <@${recipientId}>.\n\nYour new balance is ${
+          sender.coins - amount
+        } coins.\n<@${recipientId}>'s new balance is ${recipient.coins + amount} coins.`
+      )
+      .setFooter({
+        text: `Did you know? You can earn coins by playing minigames and using other commands.${
+          ctx.game.hasAiAccess ? "" : " Premium servers earn more coins!"
+        }`
+      });
 
     await ctx.reply(new MessageBuilder().addEmbed(embed));
 
