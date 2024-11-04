@@ -35,7 +35,10 @@ export class RedeemCoinsCommand implements ISlashCommand {
     const entitlements = await fetchEntitlementsFromApi(userId, true, [SMALL_POUCH_OF_COINS_SKU_ID]);
 
     if (entitlements.length === 0) {
-      const actions = new ActionRowBuilder().addComponents(PremiumButtons.SmallPouchOfCoinsButton);
+      const actions = new ActionRowBuilder();
+      if (!process.env.DEV_MODE) {
+        actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
+      }
       const embed = new EmbedBuilder()
         .setTitle("Coins Redeemed")
         .setDescription("You have no coins to redeem.")
