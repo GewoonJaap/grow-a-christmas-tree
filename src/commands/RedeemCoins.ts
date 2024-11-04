@@ -35,15 +35,19 @@ export class RedeemCoinsCommand implements ISlashCommand {
     const entitlements = await fetchEntitlementsFromApi(userId, true, [SMALL_POUCH_OF_COINS_SKU_ID]);
 
     if (entitlements.length === 0) {
-      const actions = new ActionRowBuilder();
-      if (!process.env.DEV_MODE) {
-        actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
-      }
       const embed = new EmbedBuilder()
         .setTitle("Coins Redeemed")
         .setDescription("You have no coins to redeem.")
         .setFooter({ text: `You can purschage coins from the store by clicking on the bot avatar.` });
-      return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actions));
+
+      const message = new MessageBuilder().addEmbed(embed);
+      const actions = new ActionRowBuilder();
+      if (!process.env.DEV_MODE) {
+        actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
+        message.addComponents(actions);
+      }
+
+      return ctx.reply(message);
     }
 
     let totalCoins = 0;
