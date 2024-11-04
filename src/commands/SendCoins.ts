@@ -83,7 +83,7 @@ export class SendCoinsCommand implements ISlashCommand {
       )
       .setFooter({
         text: `Did you know? You can earn coins by playing minigames and using other commands.${
-          ctx.game.hasAiAccess ? "" : " Premium servers earn more coins!"
+          ctx.game.hasAiAccess ? "" : " Premium servers earn more coins, have access to more minigames and much more!"
         }`
       });
 

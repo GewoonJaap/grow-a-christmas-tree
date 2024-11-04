@@ -74,7 +74,13 @@ export class Leaderboard implements ISlashCommand {
 async function buildLeaderboardMessage(
   ctx: SlashCommandContext | ButtonContext<LeaderboardButtonState>
 ): Promise<MessageBuilder> {
-  if (ctx.game === null) throw new Error("Game data missing.");
+  if (ctx.game === null) {
+    return SimpleError("Use /plant to plant a christmas tree for your server first.");
+  }
+
+  if(ctx.isDM){
+    return SimpleError("This command can only be used in a server.");
+  }
 
   const state: LeaderboardButtonState =
     ctx instanceof SlashCommandContext
