@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
+import { minigameFinished } from "./MinigameFactory";
 
 const HOT_COCOA_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -52,11 +53,14 @@ export class HotCocoaMinigame implements Minigame {
     ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
     if (!ctx.game) throw new Error("Game data missing.");
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You spilled the cocoa! Better luck next time!");
+      .setDescription(`You spilled the cocoa! Better luck next time!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    await minigameFinished(ctx as ButtonContext, false, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }
@@ -77,10 +81,10 @@ export class HotCocoaMinigame implements Minigame {
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
-          .setDescription("This hot cocoa is delicious! Your tree has grown 1ft!");
+          .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft!`);
 
         ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+        await minigameFinished(ctx as ButtonContext, true, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
         transitionToDefaultTreeView(ctx);
       }
     ),

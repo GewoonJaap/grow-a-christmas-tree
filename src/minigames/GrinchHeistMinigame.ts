@@ -2,7 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -39,8 +39,6 @@ export class GrinchHeistMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
-
     const timeoutId = setTimeout(async () => {
       ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
       await GrinchHeistMinigame.handleGrinchButton(ctx, true);
@@ -73,6 +71,8 @@ export class GrinchHeistMinigame implements Minigame {
     }
 
     transitionToDefaultTreeView(ctx);
+
+    await minigameFinished(ctx, false, 1, GRINCH_HEIST_MINIGAME_MAX_DURATION);
   }
 
   public static buttons = [
@@ -98,6 +98,8 @@ export class GrinchHeistMinigame implements Minigame {
         await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
         transitionToDefaultTreeView(ctx);
+
+        await minigameFinished(ctx, true, 1, GRINCH_HEIST_MINIGAME_MAX_DURATION);
       }
     ),
     new Button(

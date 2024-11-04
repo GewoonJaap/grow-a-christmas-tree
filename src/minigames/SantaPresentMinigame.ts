@@ -2,8 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
-
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
 
 export class SantaPresentMinigame implements Minigame {
@@ -56,12 +55,14 @@ export class SantaPresentMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("Enjoy your present! There was some magic inside which made your tree grow 1ft!")
+      .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft!`)
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    await minigameFinished(ctx as ButtonContext, true, 1, SANTA_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }
@@ -72,9 +73,12 @@ export class SantaPresentMinigame implements Minigame {
     ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
     if (!ctx.game) throw new Error("Game data missing.");
-    const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription("Whoops! The witch stole your present!");
+
+    const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(`Whoops! The witch stole your present!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    await minigameFinished(ctx as ButtonContext, false, 1, SANTA_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }

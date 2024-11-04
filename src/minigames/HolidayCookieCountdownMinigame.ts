@@ -2,7 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
 const HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -79,6 +79,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
 
     await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
+    await minigameFinished(ctx as ButtonContext, true, 1, HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION);
+
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 
@@ -104,6 +106,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the cookie. Better luck next time!");
+
+    await minigameFinished(ctx as ButtonContext, false, 1, HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION);
 
     if (isTimeout) {
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));

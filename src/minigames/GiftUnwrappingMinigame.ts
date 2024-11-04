@@ -2,7 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "./MinigameFactory";
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
 const GIFT_UNWRAPPING_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -77,6 +77,8 @@ export class GiftUnwrappingMinigame implements Minigame {
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
     transitionToDefaultTreeView(ctx);
+
+    await minigameFinished(ctx, true, 1, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
   }
 
   private static async handleEmptyBoxButton(ctx: ButtonContext): Promise<void> {
@@ -92,6 +94,8 @@ export class GiftUnwrappingMinigame implements Minigame {
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
     transitionToDefaultTreeView(ctx);
+
+    await minigameFinished(ctx, false, 1, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
   }
 
   public static buttons = [
