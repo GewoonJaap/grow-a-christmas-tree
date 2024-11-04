@@ -1,12 +1,32 @@
 import { Wallet } from "../../models/Wallet";
 
 export class WalletHelper {
-  static async getWallet(userId: string) {
+  static async getWallet(userId: string): Promise<InstanceType<typeof Wallet>> {
     const wallet = await Wallet.findOne({ userId: userId });
     if (!wallet) {
       return await Wallet.create({ userId: userId, coins: 0 });
     }
     return wallet;
+  }
+
+  static async getWallets(userIds: string[]): Promise<Map<string, InstanceType<typeof Wallet>>> {
+    const wallets = await Wallet.find({ userId: { $in: userIds } });
+    const walletMap = new Map<string, InstanceType<typeof Wallet>>();
+
+    // Add existing wallets to the map
+    wallets.forEach((wallet) => {
+      walletMap.set(wallet.userId, wallet);
+    });
+
+    // Create missing wallets and add them to the map
+    const missingUserIds = userIds.filter((userId) => !walletMap.has(userId));
+    const newWallets = await Wallet.insertMany(missingUserIds.map((userId) => ({ userId: userId, coins: 0 })));
+
+    newWallets.forEach((wallet) => {
+      walletMap.set(wallet.userId, wallet);
+    });
+
+    return walletMap;
   }
 
   static async addCoins(userId: string, amount: number) {

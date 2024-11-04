@@ -88,19 +88,22 @@ async function buildLeaderboardMessage(
   if (contributors.length === 0) return SimpleError("This page is empty.");
 
   const start = (state.page - 1) * 10;
+  const end = Math.min(start + 10, contributors.length);
+  const maxPages = Math.ceil(contributors.length / 10);
 
-  for (let i = start; i < start + 10; i++) {
-    if (i === contributors.length) {
-      if (i === start) description = `This page is empty.`;
-      break;
-    }
+  // Get user IDs for the current page
+  const userIds = contributors.slice(start, end).map((contributor) => contributor.userId);
 
+  // Fetch wallets in a single batch
+  const walletMap = await WalletHelper.getWallets(userIds);
+
+  for (let i = start; i < end; i++) {
     const contributor = contributors[i];
-    const wallet = await WalletHelper.getWallet(contributor.userId);
+    const wallet = walletMap.get(contributor.userId);
 
-    description += `${i < 3 ? `${MEDAL_EMOJIS[i]}` : `\`\`${i + 1}${i < 9 ? " " : ""}\`\``} - 💧${
-      contributor.count
-    } - 🪙 ${wallet.coins} <@${contributor.userId}>\n`;
+    description += `${i < 3 ? `${MEDAL_EMOJIS[i]}` : `${i + 1}${i < 9 ? " " : ""}`} - 💧${contributor.count} - 🪙 ${
+      wallet?.coins ?? 0
+    } <@${contributor.userId}>\n`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(
@@ -111,11 +114,20 @@ async function buildLeaderboardMessage(
     actionRow.addComponents(await ctx.manager.components.createInstance("leaderboard.back", state));
   }
 
-  if (state.page < Math.ceil(contributors.length / 10)) {
+  if (state.page < maxPages) {
     actionRow.addComponents(await ctx.manager.components.createInstance("leaderboard.next", state));
   }
 
   return new MessageBuilder()
-    .addEmbed(new EmbedBuilder().setTitle("Leaderboard").setDescription(description))
+    .addEmbed(
+      new EmbedBuilder()
+        .setTitle("Leaderboard")
+        .setDescription(description)
+        .setFooter({
+          text: `Page ${state.page}/${maxPages} | ${
+            ctx.game.hasAiAccess ? "" : "Premium servers earn extra coins, have access to more minigames, and more!"
+          }`
+        })
+    )
     .addComponents(actionRow);
 }

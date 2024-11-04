@@ -75,7 +75,7 @@ export class SendCoinsCommand implements ISlashCommand {
     await WalletHelper.addCoins(recipient.userId, amount);
 
     const embed = new EmbedBuilder()
-      .setTitle("Coin Transfer")
+      .setTitle("🪙 Coin Transfer 🪙")
       .setDescription(
         `You have successfully transferred ${amount} coins to <@${recipientId}>.\n\nYour new balance is ${
           sender.coins - amount
