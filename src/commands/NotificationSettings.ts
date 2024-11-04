@@ -12,6 +12,7 @@ import {
 import { Guild } from "../models/Guild";
 import { createWebhook } from "../util/discord/DiscordWebhookHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
+import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 
 const builder = new SlashCommandBuilder("notifications", "Configure the role and channel for notifications.")
   .addBooleanOption(new SlashCommandBooleanOption("enabled", "Turn notification on or off").setRequired(true))
@@ -36,6 +37,7 @@ export class NotificationSettings implements ISlashCommand {
         .setDescription("Use /plant to plant a tree for your server first.");
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
+    await updateEntitlementsToGame(ctx);
     if (!ctx.game.hasAiAccess) {
       const actionBuilder = new ActionRowBuilder();
       if (!process.env.DEV_MODE) {
