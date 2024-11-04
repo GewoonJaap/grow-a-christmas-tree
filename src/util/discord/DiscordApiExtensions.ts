@@ -106,6 +106,13 @@ export async function consumeEntitlement(entitlementId: string): Promise<boolean
   return true;
 }
 
+export function skuIdToCoins(skuId: string): number {
+  if (skuId === SMALL_POUCH_OF_COINS_SKU_ID) {
+    return 500;
+  }
+  return 0;
+}
+
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
   private sku_id?: string;
 

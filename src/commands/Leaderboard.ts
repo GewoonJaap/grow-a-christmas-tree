@@ -78,7 +78,7 @@ async function buildLeaderboardMessage(
     return SimpleError("Use /plant to plant a christmas tree for your server first.");
   }
 
-  if(ctx.isDM){
+  if (ctx.isDM) {
     return SimpleError("This command can only be used in a server.");
   }
 
