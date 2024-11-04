@@ -2,10 +2,12 @@ import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { Entitlement, EntitlementType } from "../types/discord/DiscordTypeExtension";
 import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
 import { ButtonStyle } from "discord-api-types/v10";
+import axios from "axios";
 
 export const FESTIVE_ENTITLEMENT_SKU_ID = "1298016263687110697";
 export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
 export const SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID = "1298016263687110698";
+export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
 
 export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
   const interaction = ctx.interaction;
@@ -37,9 +39,22 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
   return new Date(entitlement.ends_at) < new Date();
 }
 
+export async function fetchEntitlementsFromApi(userId: string, skuIds: string[]): Promise<Entitlement[]> {
+  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}&sku_ids=${skuIds.join(",")}`;
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bot ${process.env.TOKEN}`
+    }
+  });
+  return response.data;
+}
+
 export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
   if (ctx.game == null) return;
-  const entitlements = getEntitlements(ctx, true);
+
+  const userId = ctx.user.id;
+  const skuIds = [FESTIVE_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_ENTITLEMENT_SKU_ID, SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID];
+  const entitlements = await fetchEntitlementsFromApi(userId, skuIds);
 
   const hasUnlimitedLevels = entitlements.some(
     (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
@@ -55,6 +70,19 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   }
 
   await ctx.game.save();
+}
+
+export async function consumeEntitlement(entitlementId: string): Promise<void> {
+  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
+  const response = await axios.post(url, {}, {
+    headers: {
+      Authorization: `Bot ${process.env.TOKEN}`
+    }
+  });
+
+  if (response.status !== 204) {
+    throw new Error(`Error consuming entitlement: ${response.statusText}`);
+  }
 }
 
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
