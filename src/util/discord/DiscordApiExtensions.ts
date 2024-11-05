@@ -43,7 +43,7 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
   if (ctx.game == null) return;
 
   const userId = ctx.user.id;
-  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true);
+  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id);
   const entitlementsFromInteraction = getEntitlements(ctx, true);
   const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
@@ -66,6 +66,7 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
 export async function fetchEntitlementsFromApi(
   userId: string,
   withoutExpired = false,
+  guildId: string,
   skuIds?: string[]
 ): Promise<Entitlement[]> {
   try {
@@ -78,7 +79,10 @@ export async function fetchEntitlementsFromApi(
         Authorization: `Bot ${process.env.TOKEN}`
       }
     });
-    const data: Entitlement[] = response.data;
+    let data: Entitlement[] = response.data;
+
+    data = data.filter((entitlement) => !entitlement.guild_id || entitlement.guild_id === guildId);
+
     if (withoutExpired) {
       return data.filter((entitlement) => !hasEntitlementExpired(entitlement));
     }
