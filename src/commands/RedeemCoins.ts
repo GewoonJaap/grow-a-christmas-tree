@@ -32,7 +32,9 @@ export class RedeemCoinsCommand implements ISlashCommand {
     }
 
     const userId = ctx.user.id;
-    const entitlements = await fetchEntitlementsFromApi(userId, true, [SMALL_POUCH_OF_COINS_SKU_ID]);
+    const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id, [
+      SMALL_POUCH_OF_COINS_SKU_ID
+    ]);
 
     if (entitlements.length === 0) {
       const embed = new EmbedBuilder()
