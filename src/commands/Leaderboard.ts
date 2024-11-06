@@ -109,7 +109,7 @@ async function buildLeaderboardMessage(
 
     description += `${i < 3 ? `${MEDAL_EMOJIS[i]}` : `${i + 1}${i < 9 ? " " : ""}`} - 💧${contributor.count} - 🪙 ${
       wallet?.coins ?? 0
-    } <@${contributor.userId}>\n`;
+    } - 🔥${wallet?.streak ?? 0} <@${contributor.userId}>\n`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(
