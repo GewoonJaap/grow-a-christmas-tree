@@ -11,9 +11,9 @@ export class ThanksgivingFeastMinigame implements Minigame {
   };
 
   private feastImages = [
-    "https://example.com/feast-1.jpg",
-    "https://example.com/feast-2.jpg",
-    "https://example.com/feast-3.jpg"
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/thanks-giving/thanks-giving-1.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/thanks-giving/thanks-giving-2.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/thanks-giving/thanks-giving-3.jpg"
   ];
 
   async start(ctx: ButtonContext): Promise<void> {
@@ -58,7 +58,9 @@ export class ThanksgivingFeastMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You prepared a delicious Thanksgiving feast and your tree grew 2ft taller!")
-      .setImage("https://example.com/feast-1.jpg");
+      .setImage(
+        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/thanks-giving/thanks-giving-3.jpg"
+      );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 

@@ -11,9 +11,9 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
   };
 
   private treasureImages = [
-    "https://example.com/treasure-1.jpg",
-    "https://example.com/treasure-2.jpg",
-    "https://example.com/treasure-3.jpg"
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/st-patricks-day/st-patricks-day-1.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/st-patricks-day/st-patricks-day-2.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/st-patricks-day/st-patricks-day-3.jpg"
   ];
 
   async start(ctx: ButtonContext): Promise<void> {
@@ -56,7 +56,9 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You found a hidden treasure and your tree grew 2ft taller!")
-      .setImage("https://example.com/treasure-1.jpg");
+      .setImage(
+        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/st-patricks-day/st-patricks-day-1.jpg"
+      );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
