@@ -67,6 +67,28 @@ export class Leaderboard implements ISlashCommand {
         ctx.state.page++;
         return ctx.reply(await buildLeaderboardMessage(ctx));
       }
+    ),
+    new Button(
+      "leaderboard.first",
+      new ButtonBuilder().setEmoji({ name: "⏮️" }).setStyle(2),
+      async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
+        if (!ctx.state) return;
+
+        ctx.state.page = 1;
+        return ctx.reply(await buildLeaderboardMessage(ctx));
+      }
+    ),
+    new Button(
+      "leaderboard.last",
+      new ButtonBuilder().setEmoji({ name: "⏭️" }).setStyle(2),
+      async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
+        if (!ctx.state) return;
+
+        const contributors = ctx.game?.contributors.length ?? 0;
+        const maxPages = Math.ceil(contributors / 10);
+        ctx.state.page = maxPages;
+        return ctx.reply(await buildLeaderboardMessage(ctx));
+      }
     )
   ];
 }
@@ -123,6 +145,9 @@ async function buildLeaderboardMessage(
   if (state.page < maxPages) {
     actionRow.addComponents(await ctx.manager.components.createInstance("leaderboard.next", state));
   }
+
+  actionRow.addComponents(await ctx.manager.components.createInstance("leaderboard.first", state));
+  actionRow.addComponents(await ctx.manager.components.createInstance("leaderboard.last", state));
 
   return new MessageBuilder()
     .addEmbed(

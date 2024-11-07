@@ -20,7 +20,9 @@ export class WalletHelper {
 
     // Create missing wallets and add them to the map
     const missingUserIds = userIds.filter((userId) => !walletMap.has(userId));
-    const newWallets = await Wallet.insertMany(missingUserIds.map((userId) => ({ userId: userId, coins: 0, streak: 0 })));
+    const newWallets = await Wallet.insertMany(
+      missingUserIds.map((userId) => ({ userId: userId, coins: 0, streak: 0 }))
+    );
 
     newWallets.forEach((wallet) => {
       walletMap.set(wallet.userId, wallet);
