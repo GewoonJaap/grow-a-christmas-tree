@@ -66,9 +66,12 @@ export async function updateEntitlementsToGame(ctx: SlashCommandContext | Button
 export async function fetchEntitlementsFromApi(
   userId: string,
   withoutExpired = false,
-  guildId: string,
+  guildId: string | null | undefined,
   skuIds?: string[]
 ): Promise<Entitlement[]> {
+  if (!guildId) {
+    return [];
+  }
   try {
     let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}`;
     if (skuIds) {
