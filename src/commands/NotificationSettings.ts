@@ -28,12 +28,14 @@ export class NotificationSettings implements ISlashCommand {
     if (ctx.isDM) {
       const embed = new EmbedBuilder()
         .setTitle("Woah there!")
+        .setColor(0xff0000)
         .setDescription("This command can only be used in a server.");
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
     if (!ctx.game) {
       const embed = new EmbedBuilder()
         .setTitle("Woah there!")
+        .setColor(0xff0000)
         .setDescription("Use /plant to plant a tree for your server first.");
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
@@ -48,6 +50,7 @@ export class NotificationSettings implements ISlashCommand {
           "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the [Festive Forest subscription](https://discord.com/application-directory/1050722873569968128/store/1298016263687110697) to gain access."
         )
         .setTitle("Woah there!")
+        .setColor(0xff0000)
         .setFooter({ text: "Enjoying the bot? Consider supporting us by buying a subscription!" });
       return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actionBuilder));
     }
@@ -66,6 +69,7 @@ export class NotificationSettings implements ISlashCommand {
     if (!role || !channel) {
       const embed = new EmbedBuilder()
         .setTitle("Missing Options")
+        .setColor(0xff0000)
         .setDescription("Please provide the following options: role or channel.");
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
@@ -94,6 +98,7 @@ export class NotificationSettings implements ISlashCommand {
     } catch (err) {
       const embed = new EmbedBuilder()
         .setTitle("Error")
+        .setColor(0xff0000)
         .setDescription(
           "An error occurred while updating the notification settings. Does the bot have `Manage Webhook` permissions? Check our guide on how to set up notifications [here](https://christmas-tree.app/how-to-setup-notifications/?utm_source=setup-notif-bot)."
         );
