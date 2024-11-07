@@ -68,6 +68,9 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
   const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
   const wallet = await WalletHelper.getWallet(id);
 
+  const contributorRank =
+    ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
+
   return new MessageBuilder()
     .addEmbed(
       new EmbedBuilder()
@@ -77,15 +80,11 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
             contributor
               ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
                   ctx.user.id === id ? `You` : `They `
-                } are ranked #${
-                  ctx.game.contributors
-                    .sort((a, b) => b.count - a.count)
-                    .findIndex((contributor) => contributor.userId === id) + 1
-                } out of ${ctx.game.contributors.length}.`
+                } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
               : "not yet watered the christmas tree."
           }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
             wallet ? wallet.streak : 0
-          } days.`
+          } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.`
         )
     )
     .addComponents(
