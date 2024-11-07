@@ -8,6 +8,7 @@ import { GrinchHeistMinigame } from "./GrinchHeistMinigame";
 import { HolidayCookieCountdownMinigame } from "./HolidayCookieCountdownMinigame";
 import { TinselTwisterMinigame } from "./TinselTwisterMinigame";
 import { CarolingChoirMinigame } from "./CarolingChoirMinigame";
+
 import { FireworksShowMinigame } from "./specialDays/FireworksShowMinigame";
 import { HeartCollectionMinigame } from "./specialDays/HeartCollectionMinigame";
 import { PumpkinHuntMinigame } from "./specialDays/PumpkinHuntMinigame";
@@ -15,6 +16,9 @@ import { ThanksgivingFeastMinigame } from "./specialDays/ThanksgivingFeastMiniga
 import { StPatricksDayTreasureHuntMinigame } from "./specialDays/StPatricksDayTreasureHuntMinigame";
 import { EarthDayCleanupMinigame } from "./specialDays/EarthDayCleanupMinigame";
 import { getRandomElement } from "../util/helpers/arrayHelper";
+
+import { WalletHelper } from "../util/wallet/WalletHelper";
+
 
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
@@ -106,4 +110,35 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
     return `${textSuffix}You have just discovered a premium feature! Subscribe in the [store](https://discord.com/application-directory/1050722873569968128/store) to enjoy more fun minigames!`;
   }
   return "";
+}
+
+export async function handleMinigameCoins(
+  ctx: ButtonContext,
+  success: boolean,
+  difficulty: number,
+  maxDuration: number
+): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  const baseCoins = success ? 1 : -5;
+  const difficultyBonus = difficulty * (success ? 1 : -1);
+  const timeBonus = 0;
+  const premiumBonus = ctx.game.hasAiAccess ? 5 : 0;
+
+  const totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus);
+
+  if (totalCoins > 0) {
+    await WalletHelper.addCoins(ctx.user.id, totalCoins);
+  } else {
+    await WalletHelper.removeCoins(ctx.user.id, totalCoins * -1);
+  }
+}
+
+export async function minigameFinished(
+  ctx: ButtonContext,
+  success: boolean,
+  difficulty: number,
+  maxDuration: number
+): Promise<void> {
+  await handleMinigameCoins(ctx, success, difficulty, maxDuration);
 }

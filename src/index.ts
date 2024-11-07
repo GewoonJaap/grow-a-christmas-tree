@@ -15,7 +15,19 @@ import {
 } from "interactions.ts";
 import { connect, HydratedDocument } from "mongoose";
 import { createClient } from "redis";
-import { About, Forest, Leaderboard, Ping, Plant, Profile, Tree, Recycle, NotificationSettings } from "./commands";
+import {
+  About,
+  Forest,
+  Leaderboard,
+  Ping,
+  Plant,
+  Profile,
+  Tree,
+  Recycle,
+  NotificationSettings,
+  SendCoinsCommand,
+  RedeemCoinsCommand
+} from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
 import { Feedback } from "./commands/Feedback";
@@ -94,7 +106,9 @@ if (keys.some((key) => !(key in process.env))) {
       new About(),
       new Recycle(),
       new Feedback(),
-      new NotificationSettings()
+      new NotificationSettings(),
+      new SendCoinsCommand(),
+      new RedeemCoinsCommand()
     ],
     false
   );
