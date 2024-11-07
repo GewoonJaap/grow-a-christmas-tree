@@ -140,7 +140,7 @@ function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  updateEntitlementsToGame(ctx);
+  await updateEntitlementsToGame(ctx);
 
   const actionBuilder = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("tree.grow"),
