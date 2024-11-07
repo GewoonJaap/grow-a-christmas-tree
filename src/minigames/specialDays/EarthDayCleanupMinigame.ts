@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "../MinigameFactory";
+import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
 
 const EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -62,6 +62,8 @@ export class EarthDayCleanupMinigame implements Minigame {
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
+    minigameFinished(ctx as ButtonContext, true, 1, EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION);
+
     transitionToDefaultTreeView(ctx);
   }
 
@@ -76,6 +78,8 @@ export class EarthDayCleanupMinigame implements Minigame {
       .setDescription("You missed the trash. Better luck next time!");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+
+    minigameFinished(ctx as ButtonContext, false, 1, EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }

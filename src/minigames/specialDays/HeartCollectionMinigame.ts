@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "../MinigameFactory";
+import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
 
 const HEART_COLLECTION_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -61,7 +61,7 @@ export class HeartCollectionMinigame implements Minigame {
       );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+    minigameFinished(ctx as ButtonContext, true, 1, HEART_COLLECTION_MINIGAME_MAX_DURATION);
     transitionToDefaultTreeView(ctx);
   }
 
@@ -76,7 +76,7 @@ export class HeartCollectionMinigame implements Minigame {
       .setDescription("You missed the hearts. Better luck next time!");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+    minigameFinished(ctx as ButtonContext, false, 1, HEART_COLLECTION_MINIGAME_MAX_DURATION);
     transitionToDefaultTreeView(ctx);
   }
 

@@ -1,7 +1,7 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
-import { getPremiumUpsellMessage } from "../MinigameFactory";
+import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
 
 const PUMPKIN_HUNT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -59,7 +59,7 @@ export class PumpkinHuntMinigame implements Minigame {
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-2.jpg");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+    minigameFinished(ctx as ButtonContext, true, 1, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
     transitionToDefaultTreeView(ctx);
   }
 
@@ -74,7 +74,7 @@ export class PumpkinHuntMinigame implements Minigame {
       .setDescription("You missed the pumpkins. Better luck next time!");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-
+    minigameFinished(ctx as ButtonContext, false, 1, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
     transitionToDefaultTreeView(ctx);
   }
 

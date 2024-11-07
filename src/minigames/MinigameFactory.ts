@@ -19,7 +19,6 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 
 import { WalletHelper } from "../util/wallet/WalletHelper";
 
-
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
   new HotCocoaMinigame(),
