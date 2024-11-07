@@ -1,7 +1,8 @@
 import {
   ActionRowBuilder,
-  AutocompleteContext,
-  Component,
+  Button,
+  ButtonBuilder,
+  ButtonContext,
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
@@ -22,8 +23,6 @@ const builder = new SlashCommandBuilder("redeemcoins", "Redeem all your coin pur
 builder.setDMEnabled(false);
 
 export class RedeemCoinsCommand implements ISlashCommand {
-  autocompleteHandler?: ((ctx: AutocompleteContext) => Promise<void>) | undefined;
-  components: Component[] = [];
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
@@ -31,44 +30,63 @@ export class RedeemCoinsCommand implements ISlashCommand {
       return ctx.reply("This command can only be used in a server.");
     }
 
-    const userId = ctx.user.id;
-    const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id, [
-      SMALL_POUCH_OF_COINS_SKU_ID
-    ]);
+    return ctx.reply(await buildRedeemCoinsMessage(ctx));
+  };
 
-    if (entitlements.length === 0) {
-      const embed = new EmbedBuilder()
-        .setTitle("Coins Redeemed")
-        .setDescription("You have no coins to redeem.")
-        .setFooter({ text: `You can purschage coins from the store by clicking on the bot avatar.` });
-
-      const message = new MessageBuilder().addEmbed(embed);
-      const actions = new ActionRowBuilder();
-      if (!process.env.DEV_MODE) {
-        actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
-        message.addComponents(actions);
+  public components = [
+    new Button(
+      "redeemcoins.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
+      async (ctx: ButtonContext): Promise<void> => {
+        return ctx.reply(await buildRedeemCoinsMessage(ctx));
       }
+    )
+  ];
+}
 
-      return ctx.reply(message);
-    }
+async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+  const userId = ctx.user.id;
+  const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game?.id, [
+    SMALL_POUCH_OF_COINS_SKU_ID
+  ]);
 
-    let totalCoins = 0;
-
-    for (const entitlement of entitlements) {
-      const success = await consumeEntitlement(entitlement.id);
-      if (success) {
-        totalCoins += skuIdToCoins(entitlement.sku_id);
-      }
-    }
-
-    if (totalCoins > 0) {
-      await WalletHelper.addCoins(userId, totalCoins);
-    }
-
+  if (entitlements.length === 0) {
     const embed = new EmbedBuilder()
       .setTitle("Coins Redeemed")
-      .setDescription(`You have successfully redeemed ${totalCoins} coins.`);
+      .setDescription("You have no coins to redeem.")
+      .setFooter({ text: `You can purchase coins from the store by clicking on the bot avatar or the button.` });
 
-    return ctx.reply(new MessageBuilder().addEmbed(embed));
-  };
+    const message = new MessageBuilder().addEmbed(embed);
+    const actions = new ActionRowBuilder();
+    if (!process.env.DEV_MODE) {
+      actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
+    }
+    actions.addComponents(await ctx.manager.components.createInstance("redeemcoins.refresh"));
+    message.addComponents(actions);
+    return message;
+  }
+
+  let totalCoins = 0;
+
+  for (const entitlement of entitlements) {
+    const success = await consumeEntitlement(entitlement.id);
+    if (success) {
+      totalCoins += skuIdToCoins(entitlement.sku_id);
+    }
+  }
+
+  if (totalCoins > 0) {
+    await WalletHelper.addCoins(ctx.user.id, totalCoins);
+  }
+
+  const embed = new EmbedBuilder()
+    .setTitle("Coins Redeemed")
+    .setDescription(`You have successfully redeemed ${totalCoins} coins.`);
+
+  const message = new MessageBuilder().addEmbed(embed);
+  const actions = new ActionRowBuilder().addComponents(
+    await ctx.manager.components.createInstance("redeemcoins.refresh")
+  );
+
+  return message.addComponents(actions);
 }

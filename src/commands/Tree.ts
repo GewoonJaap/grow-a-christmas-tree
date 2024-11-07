@@ -14,16 +14,8 @@ import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-ca
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
-import { startRandomMinigame } from "../minigames/MinigameFactory";
-import { SantaPresentMinigame } from "../minigames/SantaPresentMinigame";
-import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
-import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
-import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
-import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
+import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFactory";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
-import { HolidayCookieCountdownMinigame } from "../minigames/HolidayCookieCountdownMinigame";
-import { TinselTwisterMinigame } from "../minigames/TinselTwisterMinigame";
-import { CarolingChoirMinigame } from "../minigames/CarolingChoirMinigame";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -122,14 +114,7 @@ export class Tree implements ISlashCommand {
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     ),
-    ...SantaPresentMinigame.buttons,
-    ...HotCocoaMinigame.buttons,
-    ...GiftUnwrappingMinigame.buttons,
-    ...SnowballFightMinigame.buttons,
-    ...GrinchHeistMinigame.buttons,
-    ...HolidayCookieCountdownMinigame.buttons,
-    ...TinselTwisterMinigame.buttons,
-    ...CarolingChoirMinigame.buttons
+    ...minigameButtons
   ];
 }
 
@@ -155,7 +140,7 @@ function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  await updateEntitlementsToGame(ctx);
+  updateEntitlementsToGame(ctx);
 
   const actionBuilder = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("tree.grow"),
