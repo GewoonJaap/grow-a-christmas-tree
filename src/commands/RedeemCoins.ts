@@ -53,6 +53,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
   if (entitlements.length === 0) {
     const embed = new EmbedBuilder()
       .setTitle("Coins Redeemed")
+      .setColor(0xff0000)
       .setDescription("You have no coins to redeem.")
       .setFooter({ text: `You can purchase coins from the store by clicking on the bot avatar or the button.` });
 
