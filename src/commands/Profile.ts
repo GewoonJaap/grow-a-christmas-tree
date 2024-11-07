@@ -83,7 +83,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
                     .findIndex((contributor) => contributor.userId === id) + 1
                 } out of ${ctx.game.contributors.length}.`
               : "not yet watered the christmas tree."
-          }\n\nCurrent Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\nCurrent Streak: ${
+          }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
             wallet ? wallet.streak : 0
           } days.`
         )

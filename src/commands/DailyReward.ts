@@ -75,7 +75,7 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
   const embed = new EmbedBuilder()
     .setTitle("Daily Reward")
     .setDescription(
-      `<@${ctx.interaction.user?.id}> You have claimed your daily reward of ${reward} coins.\n\nCurrent Streak: ${
+      `<@${ctx.user.id}> You have claimed your daily reward of ${reward} coins.\n\nCurrent Streak: ${
         wallet.streak
       } days.\n\n${
         isPremium
@@ -83,7 +83,7 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
           : "Subscribe to Festive Forest to receive more coins and a longer grace period! Click on the bot avatar to open the [store](https://discord.com/application-directory/1050722873569968128/store)."
       }`
     )
-    .setFooter({ text: "Claim your daily reward once every 24 hours." });
+    .setFooter({ text: "🔥 Claim your daily reward once every 24 hours." });
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("dailyreward.refresh")
