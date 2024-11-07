@@ -2,7 +2,6 @@ import {
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
-  SimpleError,
   SlashCommandBuilder,
   SlashCommandContext,
   Button,
@@ -11,6 +10,8 @@ import {
   ActionRowBuilder
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { MessageUpsellType } from "../util/types/MessageUpsellType";
+import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
 
 const GRACE_PERIOD_DAYS = 1;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
@@ -38,6 +39,22 @@ export class DailyReward implements ISlashCommand {
   ];
 }
 
+function upsellText(hasPremium: boolean): MessageUpsellType {
+  const random = Math.random();
+  if (random > 0.5 && !hasPremium) {
+    return {
+      message:
+        "🔥 Did you know that with the Festive Forest subscription you can get more coins each day and a longer grace period?",
+      isUpsell: true,
+      buttonSku: FESTIVE_ENTITLEMENT_SKU_ID
+    };
+  }
+  return {
+    message: "🔥 Claim your daily reward once every 24 hours.",
+    isUpsell: false
+  };
+}
+
 async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
   const wallet = await WalletHelper.getWallet(userId);
@@ -48,12 +65,27 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
   const gracePeriod = isPremium ? PREMIUM_GRACE_PERIOD_DAYS : GRACE_PERIOD_DAYS;
   const baseReward = isPremium ? PREMIUM_BASE_REWARD : BASE_REWARD;
 
+  const upsellData = upsellText(isPremium);
+
   if (lastClaimDate && isSameDay(currentDate, lastClaimDate)) {
-    return SimpleError(
-      `You have already claimed your daily reward. You can claim it again <t:${Math.floor(
-        lastClaimDate.getTime() / MILLISECONDS_IN_A_SECOND + SECONDS_IN_A_DAY
-      )}:R>.`
-    );
+    const embed = new EmbedBuilder()
+      .setTitle("Daily Reward")
+      .setDescription(
+        `<@${ctx.user.id}> You have already claimed your daily reward. You can claim it again <t:${Math.floor(
+          lastClaimDate.getTime() / MILLISECONDS_IN_A_SECOND + SECONDS_IN_A_DAY
+        )}:R>.`
+      )
+      .setColor(0xff0000)
+      .setFooter({ text: upsellData.message });
+
+    const message = new MessageBuilder().addEmbed(embed);
+
+    if (upsellData.isUpsell && upsellData.buttonSku && !process.env.DEV_MODE) {
+      const actions = new ActionRowBuilder();
+      actions.addComponents(new PremiumButtonBuilder().setSkuId(upsellData.buttonSku));
+      message.addComponents(actions);
+    }
+    return message;
   }
 
   const daysSinceLastClaim = lastClaimDate ? getDaysDifference(currentDate, lastClaimDate) : null;
@@ -83,11 +115,15 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
           : "Subscribe to Festive Forest to receive more coins and a longer grace period! Click on the bot avatar to open the [store](https://discord.com/application-directory/1050722873569968128/store)."
       }`
     )
-    .setFooter({ text: "🔥 Claim your daily reward once every 24 hours." });
+    .setFooter({ text: upsellData.message });
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("dailyreward.refresh")
   );
+
+  if (upsellData.isUpsell && upsellData.buttonSku && !process.env.DEV_MODE) {
+    actionRow.addComponents(new PremiumButtonBuilder().setSkuId(upsellData.buttonSku));
+  }
 
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
 }
