@@ -79,12 +79,12 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
       .setFooter({ text: upsellData.message });
 
     const message = new MessageBuilder().addEmbed(embed);
-
+    const actions = new ActionRowBuilder();
     if (upsellData.isUpsell && upsellData.buttonSku && !process.env.DEV_MODE) {
-      const actions = new ActionRowBuilder();
       actions.addComponents(new PremiumButtonBuilder().setSkuId(upsellData.buttonSku));
-      message.addComponents(actions);
     }
+    actions.addComponents(await ctx.manager.components.createInstance("dailyreward.refresh"));
+    message.addComponents(actions);
     return message;
   }
 
