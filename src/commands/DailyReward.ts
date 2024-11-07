@@ -109,7 +109,7 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
     .setDescription(
       `<@${ctx.user.id}> You have claimed your daily reward of ${reward} coins.\n\nCurrent Streak: ${
         wallet.streak
-      } days.\n\n${
+      } day${wallet.streak === 1 ? "" : "s"}.\n\n${
         isPremium
           ? "As a premium user, you receive more coins and have a longer grace period!"
           : "Subscribe to Festive Forest to receive more coins and a longer grace period! Click on the bot avatar to open the [store](https://discord.com/application-directory/1050722873569968128/store)."
