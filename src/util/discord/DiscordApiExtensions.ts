@@ -40,27 +40,31 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
 }
 
 export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
-  if (ctx.game == null) return;
+  try {
+    if (ctx.game == null) return;
 
-  const userId = ctx.user.id;
-  const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id);
-  const entitlementsFromInteraction = getEntitlements(ctx, true);
-  const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
+    const userId = ctx.user.id;
+    const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id);
+    const entitlementsFromInteraction = getEntitlements(ctx, true);
+    const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
-  const hasUnlimitedLevels = entitlements.some(
-    (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
-  );
+    const hasUnlimitedLevels = entitlements.some(
+      (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
+    );
 
-  const hasSuperThirsty = entitlements.some(
-    (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
-  );
+    const hasSuperThirsty = entitlements.some(
+      (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
+    );
 
-  ctx.game.hasAiAccess = hasUnlimitedLevels;
-  if (ctx.game.superThirsty === undefined || !ctx.game.superThirsty) {
-    ctx.game.superThirsty = hasSuperThirsty;
+    ctx.game.hasAiAccess = hasUnlimitedLevels;
+    if (ctx.game.superThirsty === undefined || !ctx.game.superThirsty) {
+      ctx.game.superThirsty = hasSuperThirsty;
+    }
+
+    await ctx.game.save();
+  } catch (error: unknown) {
+    console.error(error);
   }
-
-  await ctx.game.save();
 }
 
 export async function fetchEntitlementsFromApi(
