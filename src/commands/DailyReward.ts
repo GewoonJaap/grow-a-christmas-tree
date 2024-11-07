@@ -18,7 +18,7 @@ const PREMIUM_GRACE_PERIOD_DAYS = 3;
 const BASE_REWARD = 10;
 const PREMIUM_BASE_REWARD = 15;
 const MAX_STREAK_DAYS = 30;
-const SECONDS_IN_A_DAY = 60 * 24;
+const SECONDS_IN_A_DAY = 60 * 60 * 24;
 const MILLISECONDS_IN_A_SECOND = 1000;
 
 export class DailyReward implements ISlashCommand {
