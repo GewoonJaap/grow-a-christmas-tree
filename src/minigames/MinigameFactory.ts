@@ -19,6 +19,23 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 
 import { WalletHelper } from "../util/wallet/WalletHelper";
 
+export const minigameButtons = [
+  ...SantaPresentMinigame.buttons,
+  ...HotCocoaMinigame.buttons,
+  ...GiftUnwrappingMinigame.buttons,
+  ...SnowballFightMinigame.buttons,
+  ...GrinchHeistMinigame.buttons,
+  ...HolidayCookieCountdownMinigame.buttons,
+  ...TinselTwisterMinigame.buttons,
+  ...CarolingChoirMinigame.buttons,
+  ...FireworksShowMinigame.buttons,
+  ...EarthDayCleanupMinigame.buttons,
+  ...HeartCollectionMinigame.buttons,
+  ...PumpkinHuntMinigame.buttons,
+  ...StPatricksDayTreasureHuntMinigame.buttons,
+  ...ThanksgivingFeastMinigame.buttons
+];
+
 const minigames: Minigame[] = [
   new SantaPresentMinigame(),
   new HotCocoaMinigame(),

@@ -60,9 +60,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     const actions = new ActionRowBuilder();
     if (!process.env.DEV_MODE) {
       actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
-      message.addComponents(actions);
     }
-
+    actions.addComponents(await ctx.manager.components.createInstance("redeemcoins.refresh"));
+    message.addComponents(actions);
     return message;
   }
 
