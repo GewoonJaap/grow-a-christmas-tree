@@ -249,7 +249,7 @@ function coinUpsell(upgradeCost: number): MessageUpsellType {
 
 export function calculateGrowthChance(level: number, hasAiAccess: boolean): number {
   const baseChance = hasAiAccess ? 1.1 : 1; // Premium users get a 10% boost
-  return Math.min(MAX_BOOST, (level / MAX_LEVEL) * MAX_BOOST * baseChance);
+  return parseFloat(Math.min(MAX_BOOST, (level / MAX_LEVEL) * MAX_BOOST * baseChance).toFixed(1));
 }
 
 export function calculateGrowthAmount(level: number, hasAiAccess: boolean): number {
