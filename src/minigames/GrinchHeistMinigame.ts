@@ -39,6 +39,8 @@ export class GrinchHeistMinigame implements Minigame {
 
     message.addEmbed(embed);
 
+    await ctx.reply(message);
+
     const timeoutId = setTimeout(async () => {
       ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
       await GrinchHeistMinigame.handleGrinchButton(ctx, true);
@@ -105,17 +107,23 @@ export class GrinchHeistMinigame implements Minigame {
     new Button(
       "minigame.grinchheist.grinch-1",
       new ButtonBuilder().setEmoji({ name: "😈" }).setStyle(4),
-      GrinchHeistMinigame.handleGrinchButton
+      async (ctx: ButtonContext): Promise<void> => {
+        GrinchHeistMinigame.handleGrinchButton(ctx, false);
+      }
     ),
     new Button(
       "minigame.grinchheist.grinch-2",
       new ButtonBuilder().setEmoji({ name: "🎃" }).setStyle(4),
-      GrinchHeistMinigame.handleGrinchButton
+      async (ctx: ButtonContext): Promise<void> => {
+        GrinchHeistMinigame.handleGrinchButton(ctx, false);
+      }
     ),
     new Button(
       "minigame.grinchheist.grinch-3",
       new ButtonBuilder().setEmoji({ name: "👽" }).setStyle(4),
-      GrinchHeistMinigame.handleGrinchButton
+      async (ctx: ButtonContext): Promise<void> => {
+        GrinchHeistMinigame.handleGrinchButton(ctx, false);
+      }
     )
   ];
 }

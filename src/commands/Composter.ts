@@ -49,7 +49,7 @@ export class Composter implements ISlashCommand {
     ),
     new Button(
       "composter.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await buildComposterMessage(ctx));
       }
