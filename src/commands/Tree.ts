@@ -80,7 +80,8 @@ export class Tree implements ISlashCommand {
         ctx.game.lastWateredAt = time;
         ctx.game.lastWateredBy = ctx.user.id;
 
-        ctx.game.size++;
+        const growthBoost = calculateGrowthBoost(ctx.game.composter.efficiencyLevel + ctx.game.composter.qualityLevel, ctx.game.hasAiAccess);
+        ctx.game.size += growthBoost;
 
         const contributor = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
 
@@ -137,6 +138,16 @@ function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
   return "";
 }
 
+function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): string {
+  if (ctx.game?.composter) {
+    const efficiencyLevel = ctx.game.composter.efficiencyLevel;
+    const qualityLevel = ctx.game.composter.qualityLevel;
+    const growthBoost = calculateGrowthBoost(efficiencyLevel + qualityLevel, ctx.game.hasAiAccess);
+    return `\n🎅 Santa's Magic Composter is at level ${efficiencyLevel + qualityLevel}, providing a ${growthBoost}% growth boost!`;
+  }
+  return "";
+}
+
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
@@ -183,7 +194,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}`
+      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
     );
   } else {
     embed.setDescription(
@@ -193,7 +204,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}`
+      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
@@ -228,4 +239,13 @@ async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonConte
       "The tree is ready to be watered! 🌲💧"
     );
   }
+}
+
+function calculateGrowthBoost(level: number, hasAiAccess: boolean): number {
+  const baseBoost = hasAiAccess ? 10 : 5;
+  const diminishingReturnLevel = 5;
+  if (level <= diminishingReturnLevel) {
+    return level * baseBoost;
+  }
+  return diminishingReturnLevel * baseBoost + (level - diminishingReturnLevel);
 }

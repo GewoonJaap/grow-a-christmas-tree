@@ -10,3 +10,4 @@ export * from "./NotificationSettings";
 export * from "./SendCoins";
 export * from "./RedeemCoins";
 export * from "./DailyReward";
+export * from "./Composter";
