@@ -1,4 +1,5 @@
 import { IWallet, Wallet } from "../../models/Wallet";
+const MAX_COINS = 1000000;
 
 export class WalletHelper {
   static async getWallet(userId: string): Promise<InstanceType<typeof Wallet>> {
@@ -39,7 +40,7 @@ export class WalletHelper {
     }
     const wallet = await WalletHelper.getWallet(userId);
     wallet.coins += amount;
-    wallet.coins = Math.min(wallet.coins, Number.MAX_SAFE_INTEGER);
+    wallet.coins = Math.min(wallet.coins, MAX_COINS);
     wallet.coins = Math.max(wallet.coins, 0);
     await wallet.save();
   }
@@ -50,7 +51,7 @@ export class WalletHelper {
     }
     const wallet = await WalletHelper.getWallet(userId);
     wallet.coins -= Math.max(0, amount);
-    wallet.coins = Math.min(wallet.coins, Number.MAX_SAFE_INTEGER);
+    wallet.coins = Math.min(wallet.coins, MAX_COINS);
     wallet.coins = Math.max(wallet.coins, 0);
     await wallet.save();
   }
