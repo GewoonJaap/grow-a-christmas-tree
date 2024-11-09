@@ -175,9 +175,15 @@ if (keys.some((key) => !(key in process.env))) {
     const timestamp = request.headers["x-signature-timestamp"];
 
     if (typeof request.rawBody !== "string" || typeof signature !== "string" || typeof timestamp !== "string") {
-      return reply.code(400).send({
+      return reply.code(401).send({
         error: "Invalid request"
       });
+    }
+
+    const body = JSON.parse(request.rawBody);
+
+    if (body.type === WebhookEventType.PING) {
+      return reply.code(204).send();
     }
 
     const isVerified = nacl.sign.detached.verify(
@@ -190,12 +196,6 @@ if (keys.some((key) => !(key in process.env))) {
       return reply.code(401).send({
         error: "Invalid request signature"
       });
-    }
-
-    const body = JSON.parse(request.rawBody);
-
-    if (body.type === WebhookEventType.PING) {
-      return reply.code(204).send();
     }
 
     if (body.type === WebhookEventType.EVENT) {
