@@ -11,7 +11,14 @@ import {
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { getRandomElement } from "../util/helpers/arrayHelper";
-import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
+import {
+  FESTIVE_ENTITLEMENT_SKU_ID,
+  PremiumButtonBuilder,
+  SMALL_POUCH_OF_COINS_SKU_ID,
+  GOLDEN_COIN_STASH_SKU_ID,
+  LUCKY_COIN_BAG_SKU_ID,
+  TREASURE_CHEST_OF_COINS_SKU_ID
+} from "../util/discord/DiscordApiExtensions";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
 
 const BASE_COST = 100;
@@ -49,7 +56,7 @@ export class Composter implements ISlashCommand {
     ),
     new Button(
       "composter.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await buildComposterMessage(ctx));
       }
@@ -162,14 +169,24 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
 
   const wallet = await WalletHelper.getWallet(ctx.user.id);
 
-  if (wallet.coins < upgradeCost && !process.env.DEV_MODE) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("Upgrade Failed")
-        .setDescription(`You need ${upgradeCost} coins to upgrade the composter.`)
-        .setImage(getRandomElement(composterImages) ?? "")
-        .setColor(0xff0000)
-    );
+  if (wallet.coins < upgradeCost) {
+    const coinUpsellData = coinUpsell(upgradeCost);
+    const embed = new EmbedBuilder()
+      .setTitle("Upgrade Failed")
+      .setDescription(`You need ${upgradeCost} coins to upgrade the composter.`)
+      .setImage(getRandomElement(composterImages) ?? "")
+      .setColor(0xff0000)
+      .setFooter({ text: coinUpsellData.message });
+
+    const message = new MessageBuilder().addEmbed(embed);
+
+    if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
+      const actionRow = new ActionRowBuilder();
+      actionRow.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
+      message.addComponents(actionRow);
+    }
+
+    return message;
   }
 
   await WalletHelper.removeCoins(ctx.user.id, upgradeCost);
@@ -183,6 +200,36 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
   await ctx.game.save();
 
   return buildComposterMessage(ctx);
+}
+
+function coinUpsell(upgradeCost: number): MessageUpsellType {
+  const needMoreCoins =
+    "🎅 Need more coins? Play minigames after watering, claim your daily reward or purschage more coins in the store";
+  if (upgradeCost <= 500) {
+    return {
+      message: needMoreCoins,
+      isUpsell: true,
+      buttonSku: SMALL_POUCH_OF_COINS_SKU_ID
+    };
+  } else if (upgradeCost <= 1500) {
+    return {
+      message: needMoreCoins,
+      isUpsell: true,
+      buttonSku: LUCKY_COIN_BAG_SKU_ID
+    };
+  } else if (upgradeCost <= 3000) {
+    return {
+      message: needMoreCoins,
+      isUpsell: true,
+      buttonSku: TREASURE_CHEST_OF_COINS_SKU_ID
+    };
+  } else {
+    return {
+      message: needMoreCoins,
+      isUpsell: true,
+      buttonSku: GOLDEN_COIN_STASH_SKU_ID
+    };
+  }
 }
 
 export function calculateGrowthChance(level: number, hasAiAccess: boolean): number {
