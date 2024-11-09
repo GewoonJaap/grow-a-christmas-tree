@@ -8,6 +8,9 @@ export const FESTIVE_ENTITLEMENT_SKU_ID = "1298016263687110697";
 export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
 export const SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID = "1298016263687110698";
 export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
+export const GOLDEN_COIN_STASH_SKU_ID = "1304819461366480946";
+export const LUCKY_COIN_BAG_SKU_ID = "1304819131543195738";
+export const TREASURE_CHEST_OF_COINS_SKU_ID = "1304819358442192936";
 
 export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
   const interaction = ctx.interaction;
@@ -118,10 +121,18 @@ export async function consumeEntitlement(entitlementId: string): Promise<boolean
 }
 
 export function skuIdToCoins(skuId: string): number {
-  if (skuId === SMALL_POUCH_OF_COINS_SKU_ID) {
-    return 500;
+  switch (skuId) {
+    case SMALL_POUCH_OF_COINS_SKU_ID:
+      return 500;
+    case GOLDEN_COIN_STASH_SKU_ID:
+      return 5000;
+    case LUCKY_COIN_BAG_SKU_ID:
+      return 1500;
+    case TREASURE_CHEST_OF_COINS_SKU_ID:
+      return 3000;
+    default:
+      return 0;
   }
-  return 0;
 }
 
 export class PremiumButtonBuilder extends OriginalButtonBuilder {

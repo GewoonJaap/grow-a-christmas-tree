@@ -13,7 +13,10 @@ import {
   fetchEntitlementsFromApi,
   consumeEntitlement,
   SMALL_POUCH_OF_COINS_SKU_ID,
-  skuIdToCoins
+  skuIdToCoins,
+  GOLDEN_COIN_STASH_SKU_ID,
+  LUCKY_COIN_BAG_SKU_ID,
+  TREASURE_CHEST_OF_COINS_SKU_ID
 } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
@@ -47,7 +50,10 @@ export class RedeemCoinsCommand implements ISlashCommand {
 async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
   const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game?.id, [
-    SMALL_POUCH_OF_COINS_SKU_ID
+    SMALL_POUCH_OF_COINS_SKU_ID,
+    GOLDEN_COIN_STASH_SKU_ID,
+    LUCKY_COIN_BAG_SKU_ID,
+    TREASURE_CHEST_OF_COINS_SKU_ID
   ]);
 
   if (entitlements.length === 0) {
