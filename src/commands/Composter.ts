@@ -43,13 +43,19 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
   const qualityLevel = guild.composter?.qualityLevel ?? 0;
 
   const upgradeCost = BASE_COST + (efficiencyLevel + qualityLevel) * COST_INCREMENT;
-  const growthBoost = calculateGrowthBoost(efficiencyLevel + qualityLevel);
+  const growthBoost = calculateGrowthBoost(efficiencyLevel + qualityLevel, guild.hasAiAccess);
 
   const embed = new EmbedBuilder()
     .setTitle("Santa’s Magic Composter")
     .setDescription(
       `**Current Level:** ${efficiencyLevel + qualityLevel}\n**Upgrade Cost:** ${upgradeCost} coins\n**Growth Boost:** ${growthBoost}%\n\nUpgrade the composter to make your tree grow faster!`
     );
+
+  if (!guild.hasAiAccess) {
+    embed.setFooter({
+      text: "🔥 Did you know that with the Festive Forest subscription you can get higher growth boosts and reduced upgrade costs?"
+    });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("composter.upgrade")
@@ -65,7 +71,7 @@ async function handleUpgrade(ctx: ButtonContext): Promise<MessageBuilder> {
   const efficiencyLevel = guild.composter?.efficiencyLevel ?? 0;
   const qualityLevel = guild.composter?.qualityLevel ?? 0;
 
-  const upgradeCost = BASE_COST + (efficiencyLevel + qualityLevel) * COST_INCREMENT;
+  const upgradeCost = BASE_COST + (efficiencyLevel + qualityLevel) * (guild.hasAiAccess ? 25 : COST_INCREMENT);
   const wallet = await WalletHelper.getWallet(ctx.user.id);
 
   if (wallet.coins < upgradeCost) {
@@ -91,9 +97,10 @@ async function handleUpgrade(ctx: ButtonContext): Promise<MessageBuilder> {
   return buildComposterMessage(ctx);
 }
 
-function calculateGrowthBoost(level: number): number {
+function calculateGrowthBoost(level: number, hasAiAccess: boolean): number {
+  const baseBoost = hasAiAccess ? 10 : BASE_GROWTH_BOOST;
   if (level <= DIMINISHING_RETURN_LEVEL) {
-    return level * BASE_GROWTH_BOOST;
+    return level * baseBoost;
   }
-  return DIMINISHING_RETURN_LEVEL * BASE_GROWTH_BOOST + (level - DIMINISHING_RETURN_LEVEL);
+  return DIMINISHING_RETURN_LEVEL * baseBoost + (level - DIMINISHING_RETURN_LEVEL);
 }
