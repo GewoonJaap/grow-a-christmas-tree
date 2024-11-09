@@ -158,13 +158,18 @@ function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): stri
   if (ctx.game?.composter) {
     const efficiencyLevel = ctx.game.composter.efficiencyLevel;
     const qualityLevel = ctx.game.composter.qualityLevel;
+
+    if (efficiencyLevel === 0 && qualityLevel === 0) {
+      return "\n🎅 Santa's Magic Composter is at level 0. Use /composter to upgrade it and boost your tree's growth!";
+    }
+
     const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess ?? false);
     const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess ?? false);
     return `\n🎅 Santa's Magic Composter is at level ${
       efficiencyLevel + qualityLevel
     }, providing a ${growthChance}% chance to grow ${growthAmount}ft more!`;
   }
-  return "";
+  return "\n🎅 Santa's Magic Composter is at level 0. Use /composter to upgrade it and boost your tree's growth!";
 }
 
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
