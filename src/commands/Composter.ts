@@ -178,13 +178,15 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
       .setColor(0xff0000)
       .setFooter({ text: coinUpsellData.message });
 
-    const message = new MessageBuilder().addEmbed(embed);
+    const message = new MessageBuilder().addEmbed(embed).setComponents([]);
 
     if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
       const actionRow = new ActionRowBuilder();
       actionRow.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
       message.addComponents(actionRow);
     }
+
+    transistionBackToDefaultComposterViewWithTimeout(ctx);
 
     return message;
   }
@@ -200,6 +202,19 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
   await ctx.game.save();
 
   return buildComposterMessage(ctx);
+}
+
+function transistionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
+  const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+  if (timeout) clearTimeout(timeout);
+  ctx.timeouts.set(
+    ctx.interaction.message.id,
+    setTimeout(async () => {
+      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+
+      await ctx.edit(await buildComposterMessage(ctx));
+    }, delay)
+  );
 }
 
 function coinUpsell(upgradeCost: number): MessageUpsellType {
