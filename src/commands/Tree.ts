@@ -16,6 +16,7 @@ import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFactory";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
+import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -80,8 +81,17 @@ export class Tree implements ISlashCommand {
         ctx.game.lastWateredAt = time;
         ctx.game.lastWateredBy = ctx.user.id;
 
-        const growthBoost = calculateGrowthBoost(ctx.game.composter.efficiencyLevel + ctx.game.composter.qualityLevel, ctx.game.hasAiAccess);
-        ctx.game.size += growthBoost;
+        const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
+        const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
+        const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess);
+        const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess);
+
+        // Apply growth chance and amount
+        if (Math.random() * 100 < growthChance) {
+          ctx.game.size += 1 + growthAmount;
+        } else {
+          ctx.game.size += 1;
+        }
 
         const contributor = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
 
@@ -142,8 +152,11 @@ function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): stri
   if (ctx.game?.composter) {
     const efficiencyLevel = ctx.game.composter.efficiencyLevel;
     const qualityLevel = ctx.game.composter.qualityLevel;
-    const growthBoost = calculateGrowthBoost(efficiencyLevel + qualityLevel, ctx.game.hasAiAccess);
-    return `\n🎅 Santa's Magic Composter is at level ${efficiencyLevel + qualityLevel}, providing a ${growthBoost}% growth boost!`;
+    const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess);
+    const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess);
+    return `\n🎅 Santa's Magic Composter is at level ${
+      efficiencyLevel + qualityLevel
+    }, providing a ${growthChance}% chance to grow ${growthAmount}ft more!`;
   }
   return "";
 }
@@ -239,13 +252,4 @@ async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonConte
       "The tree is ready to be watered! 🌲💧"
     );
   }
-}
-
-function calculateGrowthBoost(level: number, hasAiAccess: boolean): number {
-  const baseBoost = hasAiAccess ? 10 : 5;
-  const diminishingReturnLevel = 5;
-  if (level <= diminishingReturnLevel) {
-    return level * baseBoost;
-  }
-  return diminishingReturnLevel * baseBoost + (level - diminishingReturnLevel);
 }
