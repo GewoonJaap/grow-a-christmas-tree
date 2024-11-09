@@ -39,6 +39,8 @@ export class WalletHelper {
     }
     const wallet = await WalletHelper.getWallet(userId);
     wallet.coins += amount;
+    wallet.coins = Math.min(wallet.coins, Number.MAX_SAFE_INTEGER);
+    wallet.coins = Math.max(wallet.coins, 0);
     await wallet.save();
   }
 
@@ -48,6 +50,8 @@ export class WalletHelper {
     }
     const wallet = await WalletHelper.getWallet(userId);
     wallet.coins -= Math.max(0, amount);
+    wallet.coins = Math.min(wallet.coins, Number.MAX_SAFE_INTEGER);
+    wallet.coins = Math.max(wallet.coins, 0);
     await wallet.save();
   }
 
