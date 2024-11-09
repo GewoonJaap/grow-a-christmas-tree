@@ -1,7 +1,7 @@
 import "dotenv/config";
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
-import nacl from "tweetnacl";
+import * as nacl from "tweetnacl";
 import {
   AutocompleteContext,
   DiscordApplication,
