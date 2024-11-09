@@ -79,3 +79,33 @@ export enum PremiumButtonStyleTypes {
   LINK = 5,
   PREMIUM = 6
 }
+
+export interface WebhookEvent {
+  version: number;
+  application_id: string;
+  type: WebhookEventType;
+  event: WebhookEventBody;
+}
+
+export enum WebhookEventType {
+  PING = 0,
+  EVENT = 1
+}
+
+export interface WebhookEventBody {
+  type: string;
+  timestamp: string;
+  data: EntitlementCreateData;
+}
+
+export interface EntitlementCreateData {
+  application_id: string;
+  consumed: boolean;
+  deleted: boolean;
+  gift_code_flags: number;
+  id: string;
+  promotion_id: string | null;
+  sku_id: string;
+  type: number;
+  user_id: string;
+}

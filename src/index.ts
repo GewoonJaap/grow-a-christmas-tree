@@ -34,6 +34,8 @@ import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
 import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
+import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
+import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 const VERSION = "1.5";
 
 declare module "interactions.ts" {
@@ -47,7 +49,7 @@ const timeouts = new Map();
 const keys = ["CLIENT_ID", "TOKEN", "PUBLIC_KEY", "PORT"];
 
 if (keys.some((key) => !(key in process.env))) {
-  console.error(`Missing Enviroment Variables`);
+  console.error(`Missing Environment Variables`);
   process.exit(1);
 }
 
@@ -163,7 +165,43 @@ if (keys.some((key) => !(key in process.env))) {
       }
 
       console.error(err);
+      reply.code(500).send({ error: "Internal Server Error" });
     }
+  });
+
+  server.post("/webhook-events", async (request, reply) => {
+    const signature = request.headers["x-signature-ed25519"];
+    const timestamp = request.headers["x-signature-timestamp"];
+
+    if (typeof request.rawBody !== "string" || typeof signature !== "string" || typeof timestamp !== "string") {
+      return reply.code(400).send({
+        error: "Invalid request"
+      });
+    }
+
+    const body = JSON.parse(request.rawBody);
+
+    if (body.type === WebhookEventType.PING) {
+      return reply.code(204).send();
+    }
+
+    if (body.type === WebhookEventType.EVENT) {
+      const event = body.event;
+
+      switch (event.type) {
+        case "ENTITLEMENT_CREATE":
+          await handleEntitlementCreate(event.data);
+          break;
+        default:
+          console.warn(`Unhandled event type: ${event.type}`);
+      }
+
+      return reply.code(204).send();
+    }
+
+    return reply.code(400).send({
+      error: "Unknown event type"
+    });
   });
 
   server.get("/api/stats", async (request, reply) => {
