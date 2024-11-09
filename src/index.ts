@@ -182,6 +182,8 @@ if (keys.some((key) => !(key in process.env))) {
 
     const body = JSON.parse(request.rawBody);
 
+    console.log(body, signature, timestamp);
+
     if (body.type === WebhookEventType.PING) {
       return reply.code(204).send();
     }
