@@ -18,7 +18,7 @@ const BASE_GROWTH_BOOST = 5;
 const DIMINISHING_RETURN_LEVEL = 5;
 
 export class Composter implements ISlashCommand {
-  public builder = new SlashCommandBuilder("composter", "View and upgrade Santa’s Magic Composter.");
+  public builder = new SlashCommandBuilder("composter", "View and upgrade Santa's Magic Composter.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     return ctx.reply(await buildComposterMessage(ctx));

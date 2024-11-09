@@ -27,7 +27,8 @@ import {
   NotificationSettings,
   SendCoinsCommand,
   RedeemCoinsCommand,
-  DailyReward
+  DailyReward,
+  Composter
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -110,7 +111,8 @@ if (keys.some((key) => !(key in process.env))) {
       new NotificationSettings(),
       new SendCoinsCommand(),
       new RedeemCoinsCommand(),
-      new DailyReward()
+      new DailyReward(),
+      new Composter()
     ],
     false
   );
