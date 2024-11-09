@@ -22,6 +22,11 @@ interface IGuild {
   notificationRoleId?: string;
   webhookId?: string;
   webhookToken?: string;
+
+  composter: {
+    efficiencyLevel: number;
+    qualityLevel: number;
+  };
 }
 
 interface IContributor {
@@ -57,7 +62,12 @@ const GuildSchema = new Schema<IGuild>({
 
   notificationRoleId: { type: String, required: false },
   webhookId: { type: String, required: false },
-  webhookToken: { type: String, required: false }
+  webhookToken: { type: String, required: false },
+
+  composter: {
+    efficiencyLevel: { type: Number, required: true, default: 0 },
+    qualityLevel: { type: Number, required: true, default: 0 }
+  }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);

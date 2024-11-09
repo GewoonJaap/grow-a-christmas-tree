@@ -10,6 +10,7 @@ export async function calculateTreeTierImage(
   guildId: string,
   currentImageUri?: string
 ): Promise<TreeTier> {
+  size = Math.floor(size);
   let level = getCurrentTreeTier(size, useAiGen);
   if (process.env.AI_ENABLED && useAiGen && size >= AI_GEN_AFTER_TIER.requiredTreeLength) {
     const imageGenApi = new ImageGenApi();

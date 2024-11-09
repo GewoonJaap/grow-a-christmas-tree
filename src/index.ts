@@ -27,13 +27,14 @@ import {
   NotificationSettings,
   SendCoinsCommand,
   RedeemCoinsCommand,
-  DailyReward
+  DailyReward,
+  Composter
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
 import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
-const VERSION = "1.4";
+const VERSION = "1.5";
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {
@@ -110,7 +111,8 @@ if (keys.some((key) => !(key in process.env))) {
       new NotificationSettings(),
       new SendCoinsCommand(),
       new RedeemCoinsCommand(),
-      new DailyReward()
+      new DailyReward(),
+      new Composter()
     ],
     false
   );

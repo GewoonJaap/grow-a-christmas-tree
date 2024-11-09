@@ -16,6 +16,7 @@ import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFactory";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
+import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -39,72 +40,7 @@ export class Tree implements ISlashCommand {
       "tree.grow",
       new ButtonBuilder().setEmoji({ name: "💧" }).setStyle(1),
       async (ctx: ButtonContext): Promise<void> => {
-        if (!ctx.game) throw new Error("Game data missing.");
-
-        if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
-          const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-          if (timeout) clearTimeout(timeout);
-
-          ctx.reply(
-            SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
-          );
-
-          transitionToDefaultTreeView(ctx);
-
-          return;
-        }
-
-        const wateringInterval = getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false),
-          time = Math.floor(Date.now() / 1000);
-        if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
-          const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-          if (timeout) clearTimeout(timeout);
-
-          ctx.reply(
-            new MessageBuilder().addEmbed(
-              new EmbedBuilder()
-                .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
-                .setDescription(
-                  `It was recently watered by <@${ctx.game.lastWateredBy}>.\n\nYou can next water it: <t:${
-                    ctx.game.lastWateredAt + wateringInterval
-                  }:R>`
-                )
-            )
-          );
-
-          transitionToDefaultTreeView(ctx);
-
-          return;
-        }
-
-        ctx.game.lastWateredAt = time;
-        ctx.game.lastWateredBy = ctx.user.id;
-
-        ctx.game.size++;
-
-        const contributor = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
-
-        if (contributor) {
-          contributor.count++;
-          contributor.lastWateredAt = time;
-        } else {
-          ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
-        }
-
-        await ctx.game.save();
-
-        if (
-          process.env.DEV_MODE === "true" ||
-          (Math.random() < MINIGAME_CHANCE &&
-            ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Math.floor(Date.now() / 1000))
-        ) {
-          ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
-          await ctx.game.save();
-          const minigameStarted = await startRandomMinigame(ctx);
-          if (minigameStarted) return;
-        }
-
-        return ctx.reply(await buildTreeDisplayMessage(ctx));
+        await handleTreeGrow(ctx);
       }
     ),
     new Button(
@@ -116,6 +52,87 @@ export class Tree implements ISlashCommand {
     ),
     ...minigameButtons
   ];
+}
+
+async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
+    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+    if (timeout) clearTimeout(timeout);
+
+    ctx.reply(SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true));
+
+    transitionToDefaultTreeView(ctx);
+
+    return;
+  }
+
+  const wateringInterval = getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false),
+    time = Math.floor(Date.now() / 1000);
+  if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
+    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
+    if (timeout) clearTimeout(timeout);
+
+    ctx.reply(
+      new MessageBuilder().addEmbed(
+        new EmbedBuilder()
+          .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
+          .setDescription(
+            `It was recently watered by <@${ctx.game.lastWateredBy}>.\n\nYou can next water it: <t:${
+              ctx.game.lastWateredAt + wateringInterval
+            }:R>`
+          )
+      )
+    );
+
+    transitionToDefaultTreeView(ctx);
+
+    return;
+  }
+
+  ctx.game.lastWateredAt = time;
+  ctx.game.lastWateredBy = ctx.user.id;
+
+  applyGrowthBoost(ctx);
+
+  const contributor = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
+
+  if (contributor) {
+    contributor.count++;
+    contributor.lastWateredAt = time;
+  } else {
+    ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
+  }
+
+  await ctx.game.save();
+
+  if (
+    process.env.DEV_MODE === "true" ||
+    (Math.random() < MINIGAME_CHANCE && ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Math.floor(Date.now() / 1000))
+  ) {
+    ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
+    await ctx.game.save();
+    const minigameStarted = await startRandomMinigame(ctx);
+    if (minigameStarted) return;
+  }
+
+  return ctx.reply(await buildTreeDisplayMessage(ctx));
+}
+
+function applyGrowthBoost(ctx: ButtonContext): void {
+  if (!ctx.game) throw new Error("Game data missing.");
+  const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
+  const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
+  const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess);
+  const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess);
+
+  // Apply growth chance and amount
+  if (Math.random() * 100 < growthChance) {
+    ctx.game.size += 1 + growthAmount;
+  } else {
+    ctx.game.size += 1;
+  }
 }
 
 export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
@@ -133,6 +150,19 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
 function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
   if (ctx.game?.superThirsty) {
     return "\n💨This tree is growing faster thanks to the super thirsty upgrade!";
+  }
+  return "";
+}
+
+function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): string {
+  if (ctx.game?.composter) {
+    const efficiencyLevel = ctx.game.composter.efficiencyLevel;
+    const qualityLevel = ctx.game.composter.qualityLevel;
+    const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess ?? false);
+    const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess ?? false);
+    return `\n🎅 Santa's Magic Composter is at level ${
+      efficiencyLevel + qualityLevel
+    }, providing a ${growthChance}% chance to grow ${growthAmount}ft more!`;
   }
   return "";
 }
@@ -183,7 +213,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}`
+      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
     );
   } else {
     embed.setDescription(
@@ -193,7 +223,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}`
+      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {

@@ -11,6 +11,7 @@ export class ImageGenApi {
   }
 
   public async getGeneratedImage(guildId: string, treeLevel: number): Promise<ImageReponse> {
+    treeLevel = Math.floor(treeLevel);
     console.log(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
     try {
       const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/image`);
@@ -22,6 +23,7 @@ export class ImageGenApi {
   }
 
   public async getHasGeneratedImage(guildId: string, treeLevel: number): Promise<boolean> {
+    treeLevel = Math.floor(treeLevel);
     console.log(`Checking if image exists for guild ${guildId} and tree level ${treeLevel}`);
     try {
       const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/has-image`);
