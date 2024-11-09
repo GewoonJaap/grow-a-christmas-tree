@@ -1,6 +1,7 @@
 import "dotenv/config";
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
+import nacl from "tweetnacl";
 import {
   AutocompleteContext,
   DiscordApplication,
@@ -176,6 +177,18 @@ if (keys.some((key) => !(key in process.env))) {
     if (typeof request.rawBody !== "string" || typeof signature !== "string" || typeof timestamp !== "string") {
       return reply.code(400).send({
         error: "Invalid request"
+      });
+    }
+
+    const isVerified = nacl.sign.detached.verify(
+      Buffer.from(timestamp + request.rawBody),
+      Buffer.from(signature, "hex"),
+      Buffer.from(process.env.PUBLIC_KEY as string, "hex")
+    );
+
+    if (!isVerified) {
+      return reply.code(401).send({
+        error: "Invalid request signature"
       });
     }
 
