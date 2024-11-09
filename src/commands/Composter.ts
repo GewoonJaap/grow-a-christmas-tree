@@ -82,7 +82,7 @@ function upsellText(hasPremium: boolean): MessageUpsellType {
     };
   }
   return {
-    message: "🎅 Let Santa's elves and festive magic boost your tree's growth. Experience the magic today!",
+    message: "🎅 Let Santa's elves and festive magic boost your tree's growth.",
     isUpsell: false
   };
 }
