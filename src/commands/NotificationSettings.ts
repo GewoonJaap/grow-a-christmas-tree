@@ -13,6 +13,7 @@ import { Guild } from "../models/Guild";
 import { createWebhook } from "../util/discord/DiscordWebhookHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
+import { permissionsExtractor } from "../util/bitfield-permission-calculator";
 
 const builder = new SlashCommandBuilder("notifications", "Configure the role and channel for notifications.")
   .addBooleanOption(new SlashCommandBooleanOption("enabled", "Turn notification on or off").setRequired(true))
@@ -39,12 +40,9 @@ export class NotificationSettings implements ISlashCommand {
         .setDescription("Use /plant to plant a tree for your server first.");
       return ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
+
     await updateEntitlementsToGame(ctx);
     if (!ctx.game.hasAiAccess) {
-      const actionBuilder = new ActionRowBuilder();
-      if (!process.env.DEV_MODE) {
-        actionBuilder.addComponents(PremiumButtons.FestiveForestButton);
-      }
       const embed = new EmbedBuilder()
         .setDescription(
           "You have just discovered a premium only feature! Visit the [shop](https://discord.com/application-directory/1050722873569968128/store) or click the bot avatar and buy the [Festive Forest subscription](https://discord.com/application-directory/1050722873569968128/store/1298016263687110697) to gain access."
@@ -52,8 +50,21 @@ export class NotificationSettings implements ISlashCommand {
         .setTitle("Woah there!")
         .setColor(0xff0000)
         .setFooter({ text: "Enjoying the bot? Consider supporting us by buying a subscription!" });
-      return ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(actionBuilder));
+      const message = new MessageBuilder().addEmbed(embed);
+      if (!process.env.DEV_MODE) {
+        const actionBuilder = new ActionRowBuilder();
+        actionBuilder.addComponents(PremiumButtons.FestiveForestButton);
+        message.addComponents(actionBuilder);
+      }
+      return ctx.reply(message);
     }
+
+    //only with manage server perms
+    const perms = permissionsExtractor((ctx.interaction.member?.permissions as unknown as number) ?? 0);
+
+    if (!perms.includes("MANAGE_GUILD"))
+      return ctx.reply(`You need the Manage Server permission to recycle your christmas tree.`);
+
     const role = ctx.options.get("role")?.value as string | undefined;
     const channel = ctx.options.get("channel")?.value as string | undefined;
     const enabled = ctx.options.get("enabled")?.value as boolean | undefined;
