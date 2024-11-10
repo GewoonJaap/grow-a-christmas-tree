@@ -4,7 +4,6 @@ import { Context, initialize } from "unleash-client";
 export const unleash = initialize({
   url: process.env.UNLEASH_URL ?? "http://unleash-web:4242/api",
   appName: "christmas-tree-bot",
-  environment: "production",
   customHeaders: { Authorization: process.env.UNLEASH_TOKEN ?? "" }
 });
 
