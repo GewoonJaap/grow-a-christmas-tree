@@ -37,7 +37,10 @@ import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
-const VERSION = "1.5";
+import { unleash } from "./util/unleash/UnleashHelper";
+const VERSION = "1.6";
+
+unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {
