@@ -20,6 +20,7 @@ import {
   TREASURE_CHEST_OF_COINS_SKU_ID
 } from "../util/discord/DiscordApiExtensions";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
+import { toFixed } from "../util/helpers/numberHelper";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -249,10 +250,10 @@ function coinUpsell(upgradeCost: number): MessageUpsellType {
 
 export function calculateGrowthChance(level: number, hasAiAccess: boolean): number {
   const baseChance = hasAiAccess ? 1.1 : 1; // Premium users get a 10% boost
-  return parseFloat(Math.min(MAX_BOOST, (level / MAX_LEVEL) * MAX_BOOST * baseChance).toFixed(1));
+  return toFixed(Math.min(MAX_BOOST, (level / MAX_LEVEL) * MAX_BOOST * baseChance), 1);
 }
 
 export function calculateGrowthAmount(level: number, hasAiAccess: boolean): number {
   const baseAmount = hasAiAccess ? 1.1 : 1; // Premium users get a 10% boost
-  return parseFloat(Math.min(MAX_GROWTH_AMOUNT, (level / MAX_LEVEL) * MAX_GROWTH_AMOUNT * baseAmount).toFixed(1));
+  return toFixed(Math.min(MAX_GROWTH_AMOUNT, (level / MAX_LEVEL) * MAX_GROWTH_AMOUNT * baseAmount), 1);
 }

@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { toFixed } from "../util/helpers/numberHelper";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -56,7 +57,7 @@ export class GrinchHeistMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
     const randomLoss = Math.floor(Math.random() * Math.min(5, Math.floor(ctx.game.size * 0.1))) + 1;
-    ctx.game.size = Math.max(0, ctx.game.size - randomLoss);
+    ctx.game.size = toFixed(Math.max(0, ctx.game.size - randomLoss), 2);
     await ctx.game.save();
 
     const embed = new EmbedBuilder()

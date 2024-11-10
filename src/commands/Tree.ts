@@ -17,6 +17,7 @@ import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFactory";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
+import { toFixed } from "../util/helpers/numberHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -133,6 +134,7 @@ function applyGrowthBoost(ctx: ButtonContext): void {
   } else {
     ctx.game.size += 1;
   }
+  ctx.game.size = toFixed(ctx.game.size, 2);
 }
 
 export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {

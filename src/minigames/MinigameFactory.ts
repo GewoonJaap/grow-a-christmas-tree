@@ -136,12 +136,13 @@ export async function handleMinigameCoins(
 ): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  const baseCoins = success ? 1 : -5;
+  const baseCoins = success ? 20 : -5;
   const difficultyBonus = difficulty * (success ? 1 : -1);
   const timeBonus = 0;
-  const premiumBonus = ctx.game.hasAiAccess ? 5 : 0;
+  const premiumBonus = ctx.game.hasAiAccess ? 15 : 0;
+  const ramdomBonus = Math.floor(Math.random() * 10);
 
-  const totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus);
+  const totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus + ramdomBonus);
 
   if (totalCoins > 0) {
     await WalletHelper.addCoins(ctx.user.id, totalCoins);
