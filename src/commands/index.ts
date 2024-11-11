@@ -11,3 +11,4 @@ export * from "./SendCoins";
 export * from "./RedeemCoins";
 export * from "./DailyReward";
 export * from "./Composter";
+export * from "./Shop";

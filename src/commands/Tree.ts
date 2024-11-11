@@ -174,6 +174,17 @@ function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): stri
   return "\n🎅 Santa's Magic Composter is at level 0. Use /composter to upgrade it and boost your tree's growth!";
 }
 
+function getActiveBoostersText(ctx: SlashCommandContext | ButtonContext): string {
+  if (ctx.game?.activeBoosters && ctx.game.activeBoosters.length > 0) {
+    const activeBoosters = ctx.game.activeBoosters.map((booster) => {
+      const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
+      return `${booster.type} (${humanizeDuration(remainingTime * 1000, { largest: 1 })} remaining)`;
+    });
+    return `\n\nActive Boosters: ${activeBoosters.join(", ")}`;
+  }
+  return "";
+}
+
 export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
@@ -220,7 +231,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
+      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}${getActiveBoostersText(ctx)}`
     );
   } else {
     embed.setDescription(
@@ -230,7 +241,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
+      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}${getActiveBoostersText(ctx)}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
