@@ -144,9 +144,13 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
   ctx.timeouts.set(
     ctx.interaction.message.id,
     setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+      try {
+        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+        await ctx.edit(await buildTreeDisplayMessage(ctx));
+      } catch (e) {
+        console.error(e);
+      }
     }, delay)
   );
 }
