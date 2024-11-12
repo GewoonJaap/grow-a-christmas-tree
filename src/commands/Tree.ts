@@ -61,9 +61,11 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
     const timeout = ctx.timeouts.get(ctx.interaction.message.id);
     if (timeout) clearTimeout(timeout);
-
+    const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
-      SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
+      SimpleError("You watered this tree last, you must let someone else water it first.")
+        .setEphemeral(true)
+        .addComponents(actions)
     );
 
     transitionToDefaultTreeView(ctx);
@@ -76,17 +78,19 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
     const timeout = ctx.timeouts.get(ctx.interaction.message.id);
     if (timeout) clearTimeout(timeout);
-
+    const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
-      new MessageBuilder().addEmbed(
-        new EmbedBuilder()
-          .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
-          .setDescription(
-            `It was recently watered by <@${ctx.game.lastWateredBy}>.\n\nYou can next water it: <t:${
-              ctx.game.lastWateredAt + wateringInterval
-            }:R>`
-          )
-      )
+      new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
+            .setDescription(
+              `It was recently watered by <@${ctx.game.lastWateredBy}>.\n\nYou can next water it: <t:${
+                ctx.game.lastWateredAt + wateringInterval
+              }:R>`
+            )
+        )
+        .addComponents(actions)
     );
 
     transitionToDefaultTreeView(ctx);
@@ -150,6 +154,12 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
         await ctx.edit(await buildTreeDisplayMessage(ctx));
       } catch (e) {
         console.error(e);
+        try {
+          //One last retry
+          await ctx.edit(await buildTreeDisplayMessage(ctx));
+        } catch (e) {
+          console.error(e);
+        }
       }
     }, delay)
   );
