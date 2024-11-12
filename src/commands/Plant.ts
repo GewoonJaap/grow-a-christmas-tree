@@ -20,16 +20,18 @@ export class Plant implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM) return ctx.reply("This command can only be used in a server.");
+    if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
     if (ctx.game !== null)
-      return ctx.reply(`A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`);
-    if (ctx.interaction.guild_id === undefined) return ctx.reply(SimpleError("Guild ID missing."));
+      return await ctx.reply(
+        `A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`
+      );
+    if (ctx.interaction.guild_id === undefined) return await ctx.reply(SimpleError("Guild ID missing."));
 
     const name = ctx.options.get("name")?.value as string | undefined;
-    if (name === undefined) return ctx.reply(SimpleError("Name not found."));
+    if (name === undefined) return await ctx.reply(SimpleError("Name not found."));
 
     if (!validateTreeName(name))
-      return ctx.reply(
+      return await ctx.reply(
         SimpleError(
           "Your christmas tree name must be 1-36 characters, and contain only alphanumeric characters, hyphens, and apostrophes."
         )
@@ -51,7 +53,7 @@ export class Plant implements ISlashCommand {
       ]
     }).save();
 
-    return ctx.reply(
+    return await ctx.reply(
       new MessageBuilder().addEmbed(new EmbedBuilder().setTitle(`You planted \`\`${name}\`\` in your server!`))
     );
   };

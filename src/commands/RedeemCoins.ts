@@ -30,10 +30,10 @@ export class RedeemCoinsCommand implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM || !ctx.game) {
-      return ctx.reply("This command can only be used in a server.");
+      return await ctx.reply("This command can only be used in a server.");
     }
 
-    return ctx.reply(await buildRedeemCoinsMessage(ctx));
+    return await ctx.reply(await buildRedeemCoinsMessage(ctx));
   };
 
   public components = [
@@ -41,7 +41,7 @@ export class RedeemCoinsCommand implements ISlashCommand {
       "redeemcoins.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await buildRedeemCoinsMessage(ctx));
+        return await ctx.reply(await buildRedeemCoinsMessage(ctx));
       }
     )
   ];

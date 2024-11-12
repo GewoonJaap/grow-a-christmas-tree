@@ -26,7 +26,7 @@ export class Forest implements ISlashCommand {
   );
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return ctx.reply(await buildLeaderboardMessage(ctx));
+    return await ctx.reply(await buildLeaderboardMessage(ctx));
   };
 
   public components = [
@@ -34,7 +34,7 @@ export class Forest implements ISlashCommand {
       "forest.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -44,7 +44,7 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -54,7 +54,7 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     )
   ];

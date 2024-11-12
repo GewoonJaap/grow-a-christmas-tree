@@ -29,7 +29,7 @@ export class SendCoinsCommand implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM || !ctx.game) return ctx.reply("This command can only be used in a server.");
+    if (ctx.isDM || !ctx.game) return await ctx.reply("This command can only be used in a server.");
 
     return this.handleTransfer(ctx);
   };
@@ -39,34 +39,34 @@ export class SendCoinsCommand implements ISlashCommand {
     const amount = ctx.options.get("amount")?.value as number;
 
     if (recipientId === ctx.user.id) {
-      return ctx.reply(SimpleError("You cannot transfer coins to yourself."));
+      return await ctx.reply(SimpleError("You cannot transfer coins to yourself."));
     }
 
     if (ctx.isDM) {
-      return ctx.reply(SimpleError("This command can only be used in a server."));
+      return await ctx.reply(SimpleError("This command can only be used in a server."));
     }
 
     if (!ctx.game) {
-      return ctx.reply(SimpleError("Game data missing."));
+      return await ctx.reply(SimpleError("Game data missing."));
     }
 
     const sender = await WalletHelper.getWallet(ctx.user.id);
     const recipient = await WalletHelper.getWallet(recipientId);
 
     if (!sender) {
-      return ctx.reply(SimpleError("You do not have a wallet."));
+      return await ctx.reply(SimpleError("You do not have a wallet."));
     }
 
     if (!recipient) {
-      return ctx.reply(SimpleError("The recipient does not have a wallet."));
+      return await ctx.reply(SimpleError("The recipient does not have a wallet."));
     }
 
     if (amount <= 0) {
-      return ctx.reply(SimpleError("The transfer amount must be a positive number."));
+      return await ctx.reply(SimpleError("The transfer amount must be a positive number."));
     }
 
     if (sender.coins < amount) {
-      return ctx.reply(
+      return await ctx.reply(
         SimpleError(`You do not have enough coins to complete the transfer. You have ${sender.coins} coins.`)
       );
     }

@@ -37,7 +37,7 @@ export class Composter implements ISlashCommand {
   public builder = new SlashCommandBuilder("composter", "View and upgrade Santa's Magic Composter.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return ctx.reply(await buildComposterMessage(ctx));
+    return await ctx.reply(await buildComposterMessage(ctx));
   };
 
   public components = [
@@ -45,21 +45,21 @@ export class Composter implements ISlashCommand {
       "composter.upgrade.efficiency",
       new ButtonBuilder().setEmoji({ name: "🧝" }).setStyle(1).setLabel("Elf-Powered Efficiency"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await handleUpgrade(ctx, "efficiency"));
+        return await ctx.reply(await handleUpgrade(ctx, "efficiency"));
       }
     ),
     new Button(
       "composter.upgrade.quality",
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Sparkling Spirit"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await handleUpgrade(ctx, "quality"));
+        return await ctx.reply(await handleUpgrade(ctx, "quality"));
       }
     ),
     new Button(
       "composter.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await buildComposterMessage(ctx));
+        return await ctx.reply(await buildComposterMessage(ctx));
       }
     )
   ];

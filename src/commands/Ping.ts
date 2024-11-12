@@ -20,7 +20,7 @@ export class Ping implements ISlashCommand {
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     const button = await ctx.manager.components.createInstance("ping.pong", { ping: false });
 
-    return ctx.reply(
+    return await ctx.reply(
       new MessageBuilder()
         .addEmbed(new EmbedBuilder().setTitle("Pong!"))
         .addComponents(new ActionRowBuilder().addComponents(button))
