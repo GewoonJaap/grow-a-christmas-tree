@@ -179,13 +179,15 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
       .setColor(0xff0000)
       .setFooter({ text: coinUpsellData.message });
 
-    const message = new MessageBuilder().addEmbed(embed).setComponents([]);
+    const actions = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("composter.refresh")
+    );
 
     if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
-      const actionRow = new ActionRowBuilder();
-      actionRow.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
-      message.addComponents(actionRow);
+      actions.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
     }
+
+    const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 
     transistionBackToDefaultComposterViewWithTimeout(ctx);
 
@@ -202,7 +204,7 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
 
   await ctx.game.save();
 
-  return buildComposterMessage(ctx);
+  return await buildComposterMessage(ctx);
 }
 
 function transistionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
@@ -211,9 +213,13 @@ function transistionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, de
   ctx.timeouts.set(
     ctx.interaction.message.id,
     setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+      try {
+        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 
-      await ctx.edit(await buildComposterMessage(ctx));
+        await ctx.edit(await buildComposterMessage(ctx));
+      } catch (e) {
+        console.log(e);
+      }
     }, delay)
   );
 }
