@@ -4,7 +4,7 @@ export class About implements ISlashCommand {
   public builder = new SlashCommandBuilder("about", "Learn about all the magical commands!");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return ctx.reply(
+    return await ctx.reply(
       new MessageBuilder().addEmbed(
         new EmbedBuilder()
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/about/about-1.jpg")

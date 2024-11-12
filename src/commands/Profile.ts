@@ -28,9 +28,9 @@ export class Profile implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM || !ctx.game) return ctx.reply("This command can only be used in a server.");
+    if (ctx.isDM || !ctx.game) return await ctx.reply("This command can only be used in a server.");
     await updateEntitlementsToGame(ctx);
-    return ctx.reply(await buildProfileMessage(ctx));
+    return await ctx.reply(await buildProfileMessage(ctx));
   };
 
   public components = [
@@ -38,7 +38,7 @@ export class Profile implements ISlashCommand {
       "profile.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1),
       async (ctx: ButtonContext<State>): Promise<void> => {
-        return ctx.reply(await buildProfileMessage(ctx));
+        return await ctx.reply(await buildProfileMessage(ctx));
       }
     )
   ];

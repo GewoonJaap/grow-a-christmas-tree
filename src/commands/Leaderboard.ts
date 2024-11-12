@@ -31,9 +31,9 @@ export class Leaderboard implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.game === null) return ctx.reply("Use /plant to plant a christmas tree for your server first.");
+    if (ctx.game === null) return await ctx.reply("Use /plant to plant a christmas tree for your server first.");
 
-    return ctx.reply(await buildLeaderboardMessage(ctx));
+    return await ctx.reply(await buildLeaderboardMessage(ctx));
   };
 
   public components = [
@@ -45,7 +45,7 @@ export class Leaderboard implements ISlashCommand {
           ctx.state = { page: 1 };
         }
 
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -55,7 +55,7 @@ export class Leaderboard implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -65,7 +65,7 @@ export class Leaderboard implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -75,7 +75,7 @@ export class Leaderboard implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page = 1;
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -87,7 +87,7 @@ export class Leaderboard implements ISlashCommand {
         const contributors = ctx.game?.contributors.length ?? 0;
         const maxPages = Math.ceil(contributors / 10);
         ctx.state.page = maxPages;
-        return ctx.reply(await buildLeaderboardMessage(ctx));
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
     )
   ];

@@ -30,10 +30,10 @@ export class Tree implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM) return ctx.reply("This command can only be used in a server.");
-    if (ctx.game === null || !ctx.game) return ctx.reply("Use /plant to plant a tree for your server first.");
+    if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
+    if (ctx.game === null || !ctx.game) return await ctx.reply("Use /plant to plant a tree for your server first.");
 
-    return ctx.reply(await buildTreeDisplayMessage(ctx));
+    return await ctx.reply(await buildTreeDisplayMessage(ctx));
   };
 
   public components = [
@@ -48,7 +48,7 @@ export class Tree implements ISlashCommand {
       "tree.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await buildTreeDisplayMessage(ctx));
+        return await ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     ),
     ...minigameButtons
@@ -62,7 +62,9 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     const timeout = ctx.timeouts.get(ctx.interaction.message.id);
     if (timeout) clearTimeout(timeout);
 
-    ctx.reply(SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true));
+    await ctx.reply(
+      SimpleError("You watered this tree last, you must let someone else water it first.").setEphemeral(true)
+    );
 
     transitionToDefaultTreeView(ctx);
 
@@ -75,7 +77,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     const timeout = ctx.timeouts.get(ctx.interaction.message.id);
     if (timeout) clearTimeout(timeout);
 
-    ctx.reply(
+    await ctx.reply(
       new MessageBuilder().addEmbed(
         new EmbedBuilder()
           .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
@@ -118,7 +120,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     if (minigameStarted) return;
   }
 
-  return ctx.reply(await buildTreeDisplayMessage(ctx));
+  return await ctx.reply(await buildTreeDisplayMessage(ctx));
 }
 
 function applyGrowthBoost(ctx: ButtonContext): void {

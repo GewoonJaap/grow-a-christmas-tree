@@ -28,7 +28,7 @@ export class Feedback implements ISlashCommand {
 
     postFeedback(feedback);
 
-    return ctx.reply(
+    return await ctx.reply(
       new MessageBuilder().addEmbed(
         new EmbedBuilder().setTitle(
           `Thanks for submitting your feedback! We'll look into it. If you have a question, please join our support server https://discord.gg/KEJwtK5Z8k`
