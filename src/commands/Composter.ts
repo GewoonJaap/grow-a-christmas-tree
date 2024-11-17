@@ -21,6 +21,7 @@ import {
 } from "../util/discord/DiscordApiExtensions";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { toFixed } from "../util/helpers/numberHelper";
+import { disposeActiveTimeouts } from "./Tree";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -208,13 +209,12 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
 }
 
 function transistionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
-  const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-  if (timeout) clearTimeout(timeout);
+  disposeActiveTimeouts(ctx);
   ctx.timeouts.set(
     ctx.interaction.message.id,
     setTimeout(async () => {
       try {
-        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+        disposeActiveTimeouts(ctx);
 
         await ctx.edit(await buildComposterMessage(ctx));
       } catch (e) {

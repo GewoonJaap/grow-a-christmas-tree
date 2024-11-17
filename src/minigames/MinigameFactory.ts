@@ -123,7 +123,7 @@ export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> 
 export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", appearAlways = false): string {
   const shouldAppear = appearAlways || Math.random() < 0.4;
   if (!ctx.game?.hasAiAccess && shouldAppear) {
-    return `${textSuffix}You have just discovered a premium feature! Subscribe in the [store](https://discord.com/application-directory/1050722873569968128/store) to enjoy more fun minigames!`;
+    return `${textSuffix}You have just discovered a **premium** feature! Subscribe in the [store](https://discord.com/application-directory/1050722873569968128/store) to enjoy more fun minigames!`;
   }
   return "";
 }

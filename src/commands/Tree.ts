@@ -59,8 +59,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
   if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
+    disposeActiveTimeouts(ctx);
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
       SimpleError("You watered this tree last, you must let someone else water it first.")
@@ -76,8 +75,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   const wateringInterval = getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false),
     time = Math.floor(Date.now() / 1000);
   if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
+    disposeActiveTimeouts(ctx);
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
       new MessageBuilder()
@@ -143,14 +141,22 @@ function applyGrowthBoost(ctx: ButtonContext): void {
   ctx.game.size = toFixed(ctx.game.size, 2);
 }
 
+export function disposeActiveTimeouts(
+  ctx: ButtonContext | ButtonContext<never> | SlashCommandContext | ButtonContext<unknown>
+): void {
+  const timeout = ctx.timeouts.get(ctx.interaction?.message?.id ?? "");
+  if (timeout) clearTimeout(timeout);
+  ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+}
+
 export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
   if (!ctx.game) throw new Error("Game data missing.");
+  disposeActiveTimeouts(ctx);
   ctx.timeouts.set(
     ctx.interaction.message.id,
     setTimeout(async () => {
       try {
-        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
-
+        disposeActiveTimeouts(ctx);
         await ctx.edit(await buildTreeDisplayMessage(ctx));
       } catch (e) {
         console.error(e);
@@ -253,7 +259,7 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
       ctx.timeouts.set(
         ctx.interaction.message.id,
         setTimeout(async () => {
-          ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+          disposeActiveTimeouts(ctx);
           sendWebhookOnWateringReady(ctx);
           await ctx.edit(await buildTreeDisplayMessage(ctx));
         }, canBeWateredAt * 1000 - Date.now())

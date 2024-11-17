@@ -1,6 +1,6 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
+import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
@@ -60,10 +60,10 @@ export class CarolingChoirMinigame implements Minigame {
     await ctx.reply(message);
 
     const timeoutId = setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction.message.id);
+      disposeActiveTimeouts(ctx);
       await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
     }, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
-
+    disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
@@ -84,9 +84,7 @@ export class CarolingChoirMinigame implements Minigame {
   }
 
   private static async handleNoteButton(ctx: ButtonContext<CarolingChoirButtonState>): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction.message.id);
+    disposeActiveTimeouts(ctx);
 
     const currentStage = ctx.state?.currentStage ?? 0;
     const minigame = new CarolingChoirMinigame();
@@ -94,9 +92,7 @@ export class CarolingChoirMinigame implements Minigame {
   }
 
   private static async handleWrongNoteButton(ctx: ButtonContext<CarolingChoirButtonState>): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction.message.id);
+    disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
     const embed = new EmbedBuilder()

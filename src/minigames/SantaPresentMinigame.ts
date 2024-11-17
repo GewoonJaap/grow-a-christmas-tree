@@ -1,6 +1,6 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../commands/Tree";
+import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
@@ -37,17 +37,15 @@ export class SantaPresentMinigame implements Minigame {
     await ctx.reply(message);
 
     const timeoutId = setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+      disposeActiveTimeouts(ctx);
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, SANTA_MINIGAME_MAX_DURATION);
-
+    disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
   private static async handlePresentButton(ctx: ButtonContext): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+    disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
     ctx.game.size++;
@@ -68,9 +66,7 @@ export class SantaPresentMinigame implements Minigame {
   }
 
   private static async handleWitchButton(ctx: ButtonContext): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+    disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
 

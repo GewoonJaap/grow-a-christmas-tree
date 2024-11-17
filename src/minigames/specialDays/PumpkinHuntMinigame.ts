@@ -1,5 +1,5 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { buildTreeDisplayMessage, transitionToDefaultTreeView } from "../../commands/Tree";
+import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
 
@@ -37,17 +37,15 @@ export class PumpkinHuntMinigame implements Minigame {
     await ctx.reply(message);
 
     const timeoutId = setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction.message.id);
+      disposeActiveTimeouts(ctx);
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
-
+    disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
   private static async handlePumpkinButton(ctx: ButtonContext): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction.message.id);
+    disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
     ctx.game.size += 2;
@@ -64,9 +62,7 @@ export class PumpkinHuntMinigame implements Minigame {
   }
 
   private static async handleEmptyButton(ctx: ButtonContext): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction.message.id);
+    disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
     const embed = new EmbedBuilder()
