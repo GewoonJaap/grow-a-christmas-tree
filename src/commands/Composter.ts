@@ -21,6 +21,7 @@ import {
 } from "../util/discord/DiscordApiExtensions";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { toFixed } from "../util/helpers/numberHelper";
+import { disposeActiveTimeouts } from "./Tree";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -37,7 +38,7 @@ export class Composter implements ISlashCommand {
   public builder = new SlashCommandBuilder("composter", "View and upgrade Santa's Magic Composter.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return ctx.reply(await buildComposterMessage(ctx));
+    return await ctx.reply(await buildComposterMessage(ctx));
   };
 
   public components = [
@@ -45,21 +46,21 @@ export class Composter implements ISlashCommand {
       "composter.upgrade.efficiency",
       new ButtonBuilder().setEmoji({ name: "🧝" }).setStyle(1).setLabel("Elf-Powered Efficiency"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await handleUpgrade(ctx, "efficiency"));
+        return await ctx.reply(await handleUpgrade(ctx, "efficiency"));
       }
     ),
     new Button(
       "composter.upgrade.quality",
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Sparkling Spirit"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await handleUpgrade(ctx, "quality"));
+        return await ctx.reply(await handleUpgrade(ctx, "quality"));
       }
     ),
     new Button(
       "composter.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await buildComposterMessage(ctx));
+        return await ctx.reply(await buildComposterMessage(ctx));
       }
     )
   ];
@@ -179,13 +180,15 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
       .setColor(0xff0000)
       .setFooter({ text: coinUpsellData.message });
 
-    const message = new MessageBuilder().addEmbed(embed).setComponents([]);
+    const actions = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("composter.refresh")
+    );
 
     if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
-      const actionRow = new ActionRowBuilder();
-      actionRow.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
-      message.addComponents(actionRow);
+      actions.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
     }
+
+    const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 
     transistionBackToDefaultComposterViewWithTimeout(ctx);
 
@@ -202,18 +205,21 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
 
   await ctx.game.save();
 
-  return buildComposterMessage(ctx);
+  return await buildComposterMessage(ctx);
 }
 
 function transistionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
-  const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-  if (timeout) clearTimeout(timeout);
+  disposeActiveTimeouts(ctx);
   ctx.timeouts.set(
     ctx.interaction.message.id,
     setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+      try {
+        disposeActiveTimeouts(ctx);
 
-      await ctx.edit(await buildComposterMessage(ctx));
+        await ctx.edit(await buildComposterMessage(ctx));
+      } catch (e) {
+        console.log(e);
+      }
     }, delay)
   );
 }

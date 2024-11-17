@@ -1,6 +1,6 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { transitionToDefaultTreeView } from "../commands/Tree";
+import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { toFixed } from "../util/helpers/numberHelper";
@@ -43,17 +43,14 @@ export class GrinchHeistMinigame implements Minigame {
     await ctx.reply(message);
 
     const timeoutId = setTimeout(async () => {
-      ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
       await GrinchHeistMinigame.handleGrinchButton(ctx, true);
     }, GRINCH_HEIST_MINIGAME_MAX_DURATION);
-
+    disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
   private static async handleGrinchButton(ctx: ButtonContext, isTimeout = false): Promise<void> {
-    const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-    if (timeout) clearTimeout(timeout);
-    ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+    disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
     const randomLoss = Math.floor(Math.random() * Math.min(5, Math.floor(ctx.game.size * 0.1))) + 1;
@@ -83,9 +80,7 @@ export class GrinchHeistMinigame implements Minigame {
       "minigame.grinchheist.tree",
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1),
       async (ctx: ButtonContext): Promise<void> => {
-        const timeout = ctx.timeouts.get(ctx.interaction.message.id);
-        if (timeout) clearTimeout(timeout);
-        ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
+        disposeActiveTimeouts(ctx);
 
         if (!ctx.game) throw new Error("Game data missing.");
         ctx.game.size++;

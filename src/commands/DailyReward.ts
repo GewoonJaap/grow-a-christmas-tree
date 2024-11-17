@@ -25,7 +25,7 @@ export class DailyReward implements ISlashCommand {
   public builder = new SlashCommandBuilder("dailyreward", "Claim your daily coin reward.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return ctx.reply(await buildDailyRewardMessage(ctx));
+    return await ctx.reply(await buildDailyRewardMessage(ctx));
   };
 
   public components = [
@@ -33,7 +33,7 @@ export class DailyReward implements ISlashCommand {
       "dailyreward.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await buildDailyRewardMessage(ctx));
+        return await ctx.reply(await buildDailyRewardMessage(ctx));
       }
     )
   ];
