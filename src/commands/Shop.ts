@@ -10,37 +10,7 @@ import {
   SlashCommandContext
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
-
-const BOOSTERS = [
-  {
-    name: "Growth Booster",
-    emoji: "🌱",
-    effect: "Increases tree growth rate by 50%",
-    cost: 100,
-    duration: 3600
-  },
-  {
-    name: "Watering Booster",
-    emoji: "💧",
-    effect: "Reduces watering cooldown by 50%",
-    cost: 100,
-    duration: 3600
-  },
-  {
-    name: "Minigame Booster",
-    emoji: "🎮",
-    effect: "Increases minigame chances by 50%",
-    cost: 100,
-    duration: 3600
-  },
-  {
-    name: "Coin Booster",
-    emoji: "🪙",
-    effect: "Increases coin earnings by 50%",
-    cost: 100,
-    duration: 3600
-  }
-];
+import { BoosterHelper } from "../util/booster/BoosterHelper";
 
 export class Shop implements ISlashCommand {
   public builder = new SlashCommandBuilder("shop", "View and purchase boosters from the shop.");
@@ -49,7 +19,7 @@ export class Shop implements ISlashCommand {
     return ctx.reply(await buildShopMessage(ctx));
   };
 
-  public components = BOOSTERS.map(
+  public components = BoosterHelper.BOOSTERS.map(
     (booster) =>
       new Button(
         `shop.buy.${booster.name.toLowerCase().replace(/ /g, "_")}`,
@@ -68,7 +38,7 @@ async function buildShopMessage(ctx: SlashCommandContext | ButtonContext): Promi
       "Welcome to the Booster Shop! Here you can purchase limited-time boosters to enhance your tree growth, watering, minigame chances, and coin earnings. Each booster lasts for 1 hour."
     );
 
-  const fields = BOOSTERS.map((booster) => ({
+  const fields = BoosterHelper.BOOSTERS.map((booster) => ({
     name: `${booster.name} ${booster.emoji}`,
     value: `**Effect:** ${booster.effect}\n**Cost:** ${booster.cost} coins`,
     inline: false
@@ -78,7 +48,7 @@ async function buildShopMessage(ctx: SlashCommandContext | ButtonContext): Promi
 
   const actionRow = new ActionRowBuilder().addComponents(
     ...(await Promise.all(
-      BOOSTERS.map((booster) =>
+      BoosterHelper.BOOSTERS.map((booster) =>
         ctx.manager.components.createInstance(`shop.buy.${booster.name.toLowerCase().replace(/ /g, "_")}`)
       )
     ))
@@ -93,9 +63,7 @@ async function handleBoosterPurchase(
 ): Promise<MessageBuilder> {
   if (!ctx.game) {
     return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("Error")
-        .setDescription("Please use /plant to plant a tree first.")
+      new EmbedBuilder().setTitle("Error").setDescription("Please use /plant to plant a tree first.")
     );
   }
   const wallet = await WalletHelper.getWallet(ctx.user.id);
@@ -110,7 +78,9 @@ async function handleBoosterPurchase(
     );
   }
 
-  // Deduct coins and apply booster logic here
+  await WalletHelper.removeCoins(ctx.user.id, booster.cost);
+  BoosterHelper.addBooster(ctx.game, booster.name);
+  await ctx.game.save();
 
   return new MessageBuilder().addEmbed(
     new EmbedBuilder()
