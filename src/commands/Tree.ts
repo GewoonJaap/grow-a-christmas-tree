@@ -273,13 +273,14 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
+      const canBeWateredAtTimeoutTime = canBeWateredAt * 1000 - Date.now();
+      setWateringReadyTimeout(ctx, canBeWateredAtTimeoutTime);
       ctx.timeouts.set(
         ctx.interaction.message.id,
         setTimeout(async () => {
           disposeActiveTimeouts(ctx);
-          sendWebhookOnWateringReady(ctx);
           await ctx.edit(await buildTreeDisplayMessage(ctx));
-        }, canBeWateredAt * 1000 - Date.now())
+        }, canBeWateredAtTimeoutTime)
       );
     }
   }
@@ -287,6 +288,26 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
   message.addEmbed(embed);
 
   return message;
+}
+
+function removeWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext): void {
+  if (!ctx.game) return;
+  const timeout = ctx.timeouts.get(ctx.game.id);
+  if (timeout) clearTimeout(timeout);
+  ctx.timeouts.delete(ctx.game.id);
+}
+
+function setWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext, timeoutTime: number): void {
+  if (!ctx.game) return;
+  removeWateringReadyTimeout(ctx);
+
+  ctx.timeouts.set(
+    ctx.game.id,
+    setTimeout(async () => {
+      removeWateringReadyTimeout(ctx);
+      sendWebhookOnWateringReady(ctx);
+    }, timeoutTime)
+  );
 }
 
 async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext) {
