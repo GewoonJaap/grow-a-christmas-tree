@@ -18,6 +18,7 @@ import { EarthDayCleanupMinigame } from "./specialDays/EarthDayCleanupMinigame";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { FailedAttempt } from "../models/FailedAttempt";
 
 export const minigameButtons = [
   ...SantaPresentMinigame.buttons,
@@ -158,4 +159,18 @@ export async function minigameFinished(
   maxDuration: number
 ): Promise<void> {
   await handleMinigameCoins(ctx, success, difficulty, maxDuration);
+}
+
+export async function logFailedMinigameAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  const failedAttempt = new FailedAttempt({
+    userId: ctx.user.id,
+    guildId: ctx.game.id,
+    attemptType: "minigame",
+    failureReason,
+    timestamp: new Date()
+  });
+
+  await failedAttempt.save();
 }

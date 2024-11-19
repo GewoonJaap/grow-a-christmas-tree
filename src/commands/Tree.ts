@@ -18,6 +18,7 @@ import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFacto
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 import { toFixed } from "../util/helpers/numberHelper";
+import { FailedAttempt } from "../models/FailedAttempt";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -91,6 +92,8 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
         .addComponents(actions)
     );
 
+    await logFailedWateringAttempt(ctx, "tree not ready");
+
     transitionToDefaultTreeView(ctx);
 
     return;
@@ -123,6 +126,20 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   }
 
   return await ctx.reply(await buildTreeDisplayMessage(ctx));
+}
+
+async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  const failedAttempt = new FailedAttempt({
+    userId: ctx.user.id,
+    guildId: ctx.game.id,
+    attemptType: "watering",
+    failureReason,
+    timestamp: new Date()
+  });
+
+  await failedAttempt.save();
 }
 
 function applyGrowthBoost(ctx: ButtonContext): void {
