@@ -79,7 +79,11 @@ export class HolidayCookieCountdownMinigame implements Minigame {
 
     await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
-    await minigameFinished(ctx as ButtonContext, true, 1, HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION
+    });
 
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
@@ -103,12 +107,22 @@ export class HolidayCookieCountdownMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription("You missed the cookie. Better luck next time!");
 
-    await minigameFinished(ctx as ButtonContext, false, 1, HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION);
-
     if (isTimeout) {
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
     } else {
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION,
+        failureReason: "Wrong button"
+      });
     }
 
     transitionToDefaultTreeView(ctx as ButtonContext);

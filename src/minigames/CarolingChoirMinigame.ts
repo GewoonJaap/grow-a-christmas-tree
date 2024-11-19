@@ -61,6 +61,12 @@ export class CarolingChoirMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx as ButtonContext, {
+        success: false,
+        difficulty: 1,
+        maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
     }, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -80,7 +86,11 @@ export class CarolingChoirMinigame implements Minigame {
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
-    await minigameFinished(ctx as ButtonContext, true, this.maxStages, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx as ButtonContext, {
+      success: true,
+      difficulty: 1,
+      maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION
+    });
   }
 
   private static async handleNoteButton(ctx: ButtonContext<CarolingChoirButtonState>): Promise<void> {
@@ -103,7 +113,12 @@ export class CarolingChoirMinigame implements Minigame {
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
-    await minigameFinished(ctx as ButtonContext, false, 0, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx as ButtonContext, {
+      success: false,
+      difficulty: 1,
+      maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
   }
 
   public static buttons = [

@@ -40,6 +40,12 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -76,7 +82,7 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     transitionToDefaultTreeView(ctx);
 
-    await minigameFinished(ctx, true, 1, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION });
   }
 
   private static async handleEmptyBoxButton(ctx: ButtonContext): Promise<void> {
@@ -91,7 +97,12 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     transitionToDefaultTreeView(ctx);
 
-    await minigameFinished(ctx, false, 1, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
   }
 
   public static buttons = [

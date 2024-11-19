@@ -8,8 +8,8 @@ interface IFlaggedUser {
 }
 
 const FlaggedUserSchema = new Schema<IFlaggedUser>({
-  userId: { type: String, required: true },
-  guildId: { type: String, required: true },
+  userId: { type: String, required: true, index: true },
+  guildId: { type: String, required: true, index: true },
   reason: { type: String, required: true },
   timestamp: { type: Date, required: true, default: Date.now }
 });

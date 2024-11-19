@@ -62,6 +62,12 @@ export class TinselTwisterMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
     }, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -78,7 +84,7 @@ export class TinselTwisterMinigame implements Minigame {
       .setDescription(`You completed the Tinsel Twister! Your tree has grown 1ft!`);
 
     await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    await minigameFinished(ctx as ButtonContext, true, 1, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 
@@ -108,7 +114,12 @@ export class TinselTwisterMinigame implements Minigame {
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
     }
 
-    await minigameFinished(ctx as ButtonContext, false, 1, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 

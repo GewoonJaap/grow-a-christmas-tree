@@ -9,11 +9,11 @@ interface IFailedAttempt {
 }
 
 const FailedAttemptSchema = new Schema<IFailedAttempt>({
-  userId: { type: String, required: true },
-  guildId: { type: String, required: true },
+  userId: { type: String, required: true, index: true },
+  guildId: { type: String, required: true, index: true },
   attemptType: { type: String, required: true },
   failureReason: { type: String, required: true },
-  timestamp: { type: Date, required: true, default: Date.now }
+  timestamp: { type: Date, required: true, default: Date.now, index: true }
 });
 
 const FailedAttempt = model<IFailedAttempt>("FailedAttempt", FailedAttemptSchema);

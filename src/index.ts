@@ -38,8 +38,9 @@ import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 import { unleash } from "./util/unleash/UnleashHelper";
-import { FailedAttempt } from "./models/FailedAttempt";
-const VERSION = "1.6";
+import { flagPotentialAutoClickers } from "./util/anti-bot/antiBotHelper";
+import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
+const VERSION = "1.7";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
@@ -86,6 +87,7 @@ if (keys.some((key) => !(key in process.env))) {
           game = await Guild.findOne({ id: ctx.interaction.guild_id });
 
           if (game) await game.populate("contributors");
+          flagPotentialAutoClickers(ctx.user.id, ctx.interaction.guild_id);
         } catch (err) {
           console.error(err);
 
@@ -257,25 +259,4 @@ if (keys.some((key) => !(key in process.env))) {
 console.log(`Grow a christmas tree - V${VERSION}`);
 
 startBackupTimer();
-
-async function checkFailedAttempts(userId: string, guildId: string, timeFrame: number): Promise<number> {
-  const now = new Date();
-  const startTime = new Date(now.getTime() - timeFrame);
-
-  const failedAttempts = await FailedAttempt.countDocuments({
-    userId,
-    guildId,
-    timestamp: { $gte: startTime, $lte: now }
-  });
-
-  return failedAttempts;
-}
-
-async function flagPotentialAutoClickers(userId: string, guildId: string, threshold: number, timeFrame: number): Promise<void> {
-  const failedAttempts = await checkFailedAttempts(userId, guildId, timeFrame);
-
-  if (failedAttempts > threshold) {
-    console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
-    // Add your logic to handle flagged users here, such as logging or applying penalties.
-  }
-}
+startAntiBotCleanupTimer();

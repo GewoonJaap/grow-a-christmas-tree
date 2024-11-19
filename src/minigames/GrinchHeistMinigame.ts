@@ -65,14 +65,24 @@ export class GrinchHeistMinigame implements Minigame {
       );
 
     if (isTimeout) {
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
     } else {
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
+        failureReason: "Wrong button"
+      });
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
     }
 
     transitionToDefaultTreeView(ctx);
-
-    await minigameFinished(ctx, false, 1, GRINCH_HEIST_MINIGAME_MAX_DURATION);
   }
 
   public static buttons = [
@@ -97,7 +107,7 @@ export class GrinchHeistMinigame implements Minigame {
 
         transitionToDefaultTreeView(ctx);
 
-        await minigameFinished(ctx, true, 1, GRINCH_HEIST_MINIGAME_MAX_DURATION);
+        await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION });
       }
     ),
     new Button(
