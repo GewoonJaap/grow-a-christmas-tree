@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
+import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
 
 const THANKSGIVING_FEAST_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -96,22 +97,22 @@ export class ThanksgivingFeastMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.thanksgivingfeast.feast",
-      new ButtonBuilder().setEmoji({ name: "🍗" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🍗" }).setStyle(getRandomButtonStyle()),
       ThanksgivingFeastMinigame.handleFeastButton
     ),
     new Button(
       "minigame.thanksgivingfeast.empty-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       ThanksgivingFeastMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.thanksgivingfeast.empty-2",
-      new ButtonBuilder().setEmoji({ name: "🍽️" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🍽️" }).setStyle(getRandomButtonStyle()),
       ThanksgivingFeastMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.thanksgivingfeast.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🥄" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥄" }).setStyle(getRandomButtonStyle()),
       ThanksgivingFeastMinigame.handleEmptyButton
     )
   ];

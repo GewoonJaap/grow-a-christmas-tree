@@ -1,10 +1,14 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { shuffleArray } from "../util/helpers/arrayHelper";
+import { getRandomElements, shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { SPOOKY_EMOJIS, getRandomEmojiWithExclusion } from "../util/emoji";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const CAROLING_CHOIR_MINIGAME_MAX_DURATION = 10 * 1000;
+const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
+const BUTTON_SUCCESS_EMOJI = getRandomEmojiWithExclusion(BUTTON_FAIL_EMOJIS);
 
 type CarolingChoirButtonState = {
   currentStage: number;
@@ -37,7 +41,7 @@ export class CarolingChoirMinigame implements Minigame {
       .setDescription(
         `Stage ${
           currentStage + 1
-        }: Click the 🎶 to lead the carolers. Follow the correct sequence!${getPremiumUpsellMessage(
+        }: Click the ${BUTTON_SUCCESS_EMOJI} to lead the carolers. Follow the correct sequence!${getPremiumUpsellMessage(
           ctx as ButtonContext
         )}`
       )
@@ -124,22 +128,22 @@ export class CarolingChoirMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.carolingchoir.note",
-      new ButtonBuilder().setEmoji({ name: "🎶" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: BUTTON_SUCCESS_EMOJI }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleNoteButton
     ),
     new Button(
       "minigame.carolingchoir.wrongnote-1",
-      new ButtonBuilder().setEmoji({ name: "🪘" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[0] }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleWrongNoteButton
     ),
     new Button(
       "minigame.carolingchoir.wrongnote-2",
-      new ButtonBuilder().setEmoji({ name: "🐈" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[1] }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleWrongNoteButton
     ),
     new Button(
       "minigame.carolingchoir.wrongnote-3",
-      new ButtonBuilder().setEmoji({ name: "😼" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[2] }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleWrongNoteButton
     )
   ];

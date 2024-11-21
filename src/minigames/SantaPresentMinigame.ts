@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
 
 export class SantaPresentMinigame implements Minigame {
@@ -93,22 +94,22 @@ export class SantaPresentMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.santapresent.present",
-      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handlePresentButton
     ),
     new Button(
       "minigame.santapresent.witch-1",
-      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
     ),
     new Button(
       "minigame.santapresent.witch-2",
-      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
     ),
     new Button(
       "minigame.santapresent.witch-3",
-      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
     )
   ];

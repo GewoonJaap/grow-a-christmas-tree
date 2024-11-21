@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
+import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
 
 const EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -94,22 +95,22 @@ export class EarthDayCleanupMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.earthdaycleanup.trash",
-      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleTrashButton
     ),
     new Button(
       "minigame.earthdaycleanup.empty-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.earthdaycleanup.empty-2",
-      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.earthdaycleanup.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
     )
   ];

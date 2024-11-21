@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
+import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
 
 const HEART_COLLECTION_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -90,22 +91,22 @@ export class HeartCollectionMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.heartcollection.heart",
-      new ButtonBuilder().setEmoji({ name: "❤️" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "❤️" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleHeartButton
     ),
     new Button(
       "minigame.heartcollection.empty-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.heartcollection.empty-2",
-      new ButtonBuilder().setEmoji({ name: "💔" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "💔" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.heartcollection.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🖤" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🖤" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleEmptyButton
     )
   ];
