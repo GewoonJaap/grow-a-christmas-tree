@@ -1,6 +1,7 @@
 import { EmbedBuilder, MessageBuilder } from "interactions.ts";
 import { BannedUser, IBannedUser } from "../../models/BannedUser";
 import { getRandomElement } from "../helpers/arrayHelper";
+import { SUPPORT_SERVER_INVITE } from "../const";
 
 const BAN_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/banned/ban-1.jpg",
@@ -75,9 +76,9 @@ export class BanHelper {
       .setImage(getRandomElement(BAN_IMAGES) ?? BAN_IMAGES[0])
       .setTitle("🎅 Oops! You're on Santa's Naughty List!")
       .setDescription(
-        "It seems you've been banned and Santa's workshop is off-limits for now. Don't worry, even the naughtiest elves can make amends! Reach out to support, and let's see if we can bring back the holiday cheer! 🎁✨"
+        `It seems you've been banned and Santa's workshop is off-limits for now. Don't worry, even the naughtiest elves can make amends! Reach out to [support](${SUPPORT_SERVER_INVITE}), and let's see if we can bring back the holiday cheer! 🎁✨`
       )
-      .setURL("https://discord.gg/KEJwtK5Z8k")
+      .setURL(SUPPORT_SERVER_INVITE)
       .setColor(0xff0000)
       .setFooter({ text: "If you believe this is a mistake, please join our support server." });
     return new MessageBuilder().addEmbed(embed).setEphemeral(true);
