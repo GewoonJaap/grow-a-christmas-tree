@@ -180,6 +180,11 @@ export async function minigameFinished(
   ctx: ButtonContext | ButtonContext<unknown>,
   data: MinigameEndedType
 ): Promise<void> {
+  if (data.penalty) {
+    console.log(
+      `Penalty minigame finished for user ${ctx.user.id}, success: ${data.success}, reason: ${data.failureReason}`
+    );
+  }
   if (!data.penalty) {
     await handleMinigameCoins(ctx, data.success, data.difficulty, data.maxDuration);
   }
