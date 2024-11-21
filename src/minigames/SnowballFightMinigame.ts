@@ -1,6 +1,6 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
+import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 
@@ -41,7 +41,7 @@ export class SnowballFightMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      SnowballFightMinigame.handleMissButton(ctx, true);
     }, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -67,7 +67,7 @@ export class SnowballFightMinigame implements Minigame {
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
     await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
-    await minigameFinished(ctx as ButtonContext, true, 1, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -82,12 +82,22 @@ export class SnowballFightMinigame implements Minigame {
       .setDescription(`You missed the target. Better luck next time!`);
 
     if (isTimeout) {
+      await minigameFinished(ctx, {
+        success: true,
+        difficulty: 1,
+        maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
     } else {
+      await minigameFinished(ctx, {
+        success: true,
+        difficulty: 1,
+        maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
+        failureReason: "Wrong button"
+      });
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
     }
-
-    await minigameFinished(ctx as ButtonContext, false, 1, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }

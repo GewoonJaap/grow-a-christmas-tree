@@ -38,6 +38,12 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -59,7 +65,11 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
       );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, true, 1, STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION
+    });
     transitionToDefaultTreeView(ctx);
   }
 
@@ -72,7 +82,12 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
       .setDescription("You missed the treasures. Better luck next time!");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, false, 1, STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
     transitionToDefaultTreeView(ctx);
   }
 

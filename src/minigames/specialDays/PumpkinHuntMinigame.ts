@@ -38,6 +38,12 @@ export class PumpkinHuntMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -57,7 +63,7 @@ export class PumpkinHuntMinigame implements Minigame {
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-2.jpg");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, true, 1, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
 
@@ -70,7 +76,12 @@ export class PumpkinHuntMinigame implements Minigame {
       .setDescription("You missed the pumpkins. Better luck next time!");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, false, 1, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
     transitionToDefaultTreeView(ctx);
   }
 

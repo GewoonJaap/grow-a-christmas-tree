@@ -9,6 +9,7 @@ import {
   InteractionHandlerTimedOut,
   PingContext,
   SimpleError,
+  SlashCommandContext,
   UnauthorizedInteraction,
   UnknownApplicationCommandType,
   UnknownComponentType,
@@ -38,7 +39,9 @@ import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 import { unleash } from "./util/unleash/UnleashHelper";
-const VERSION = "1.6";
+import { flagPotentialAutoClickers } from "./util/anti-bot/antiBotHelper";
+import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
+const VERSION = "1.7";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
@@ -99,6 +102,11 @@ if (keys.some((key) => !(key in process.env))) {
 
         ctx.decorate("game", game);
         ctx.decorate("timeouts", timeouts);
+        try {
+          flagPotentialAutoClickers(ctx as SlashCommandContext);
+        } catch (err) {
+          console.error(err);
+        }
       }
     }
   });
@@ -256,3 +264,4 @@ if (keys.some((key) => !(key in process.env))) {
 console.log(`Grow a christmas tree - V${VERSION}`);
 
 startBackupTimer();
+startAntiBotCleanupTimer();

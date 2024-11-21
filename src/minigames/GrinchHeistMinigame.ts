@@ -4,8 +4,13 @@ import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { toFixed } from "../util/helpers/numberHelper";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
+
+type GrinchHeistButtonState = {
+  isPenalty: boolean;
+};
 
 export class GrinchHeistMinigame implements Minigame {
   config: MinigameConfig = {
@@ -18,7 +23,7 @@ export class GrinchHeistMinigame implements Minigame {
     "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-heist-3.jpg"
   ];
 
-  async start(ctx: ButtonContext): Promise<void> {
+  async start(ctx: ButtonContext, isPenalty = false): Promise<void> {
     const embed = new EmbedBuilder()
       .setTitle("Grinch Heist!")
       .setDescription(`Click the tree to save it from the Grinch. Avoid the Grinch!${getPremiumUpsellMessage(ctx)}`)
@@ -28,10 +33,10 @@ export class GrinchHeistMinigame implements Minigame {
       });
 
     const buttons = [
-      await ctx.manager.components.createInstance("minigame.grinchheist.tree"),
-      await ctx.manager.components.createInstance("minigame.grinchheist.grinch-1"),
-      await ctx.manager.components.createInstance("minigame.grinchheist.grinch-2"),
-      await ctx.manager.components.createInstance("minigame.grinchheist.grinch-3")
+      await ctx.manager.components.createInstance("minigame.grinchheist.tree", { isPenalty }),
+      await ctx.manager.components.createInstance("minigame.grinchheist.grinch-1", { isPenalty }),
+      await ctx.manager.components.createInstance("minigame.grinchheist.grinch-2", { isPenalty }),
+      await ctx.manager.components.createInstance("minigame.grinchheist.grinch-3", { isPenalty })
     ];
 
     shuffleArray(buttons);
@@ -49,11 +54,17 @@ export class GrinchHeistMinigame implements Minigame {
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
   }
 
-  private static async handleGrinchButton(ctx: ButtonContext, isTimeout = false): Promise<void> {
+  private static async handleGrinchButton(
+    ctx: ButtonContext<GrinchHeistButtonState>,
+    isTimeout = false
+  ): Promise<void> {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
-    const randomLoss = Math.floor(Math.random() * Math.min(5, Math.floor(ctx.game.size * 0.1))) + 1;
+    let randomLoss = Math.floor(Math.random() * Math.min(5, Math.floor(ctx.game.size * 0.1))) + 1;
+    if (ctx.state?.isPenalty) {
+      randomLoss += 5;
+    }
     ctx.game.size = toFixed(Math.max(0, ctx.game.size - randomLoss), 2);
     await ctx.game.save();
 
@@ -65,21 +76,31 @@ export class GrinchHeistMinigame implements Minigame {
       );
 
     if (isTimeout) {
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
     } else {
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
+        failureReason: "Wrong button"
+      });
       await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
     }
 
     transitionToDefaultTreeView(ctx);
-
-    await minigameFinished(ctx, false, 1, GRINCH_HEIST_MINIGAME_MAX_DURATION);
   }
 
   public static buttons = [
     new Button(
       "minigame.grinchheist.tree",
-      new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1),
-      async (ctx: ButtonContext): Promise<void> => {
+      new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         disposeActiveTimeouts(ctx);
 
         if (!ctx.game) throw new Error("Game data missing.");
@@ -88,7 +109,7 @@ export class GrinchHeistMinigame implements Minigame {
 
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
-          .setDescription("You saved the tree! Your tree grew 1ft taller!")
+          .setDescription(`You saved the tree!${ctx.state?.isPenalty ? "" : " Your tree grew 1ft taller!"}`)
           .setImage(
             "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-tree-saved-1.jpg"
           );
@@ -97,27 +118,32 @@ export class GrinchHeistMinigame implements Minigame {
 
         transitionToDefaultTreeView(ctx);
 
-        await minigameFinished(ctx, true, 1, GRINCH_HEIST_MINIGAME_MAX_DURATION);
+        await minigameFinished(ctx, {
+          success: true,
+          difficulty: 1,
+          maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
+          penalty: ctx.state?.isPenalty ?? false
+        });
       }
     ),
     new Button(
       "minigame.grinchheist.grinch-1",
-      new ButtonBuilder().setEmoji({ name: "😈" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
+      new ButtonBuilder().setEmoji({ name: "😈" }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         GrinchHeistMinigame.handleGrinchButton(ctx, false);
       }
     ),
     new Button(
       "minigame.grinchheist.grinch-2",
-      new ButtonBuilder().setEmoji({ name: "🎃" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
+      new ButtonBuilder().setEmoji({ name: "🎃" }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         GrinchHeistMinigame.handleGrinchButton(ctx, false);
       }
     ),
     new Button(
       "minigame.grinchheist.grinch-3",
-      new ButtonBuilder().setEmoji({ name: "👽" }).setStyle(4),
-      async (ctx: ButtonContext): Promise<void> => {
+      new ButtonBuilder().setEmoji({ name: "👽" }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         GrinchHeistMinigame.handleGrinchButton(ctx, false);
       }
     )

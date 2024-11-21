@@ -38,6 +38,12 @@ export class HeartCollectionMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, HEART_COLLECTION_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -59,7 +65,7 @@ export class HeartCollectionMinigame implements Minigame {
       );
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, true, 1, HEART_COLLECTION_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
 
@@ -72,7 +78,12 @@ export class HeartCollectionMinigame implements Minigame {
       .setDescription("You missed the hearts. Better luck next time!");
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, false, 1, HEART_COLLECTION_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
     transitionToDefaultTreeView(ctx);
   }
 

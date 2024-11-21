@@ -38,6 +38,12 @@ export class SantaPresentMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: SANTA_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, SANTA_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -60,7 +66,7 @@ export class SantaPresentMinigame implements Minigame {
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
-    await minigameFinished(ctx as ButtonContext, true, 1, SANTA_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SANTA_MINIGAME_MAX_DURATION });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -74,7 +80,12 @@ export class SantaPresentMinigame implements Minigame {
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
-    await minigameFinished(ctx as ButtonContext, false, 1, SANTA_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: SANTA_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
 
     transitionToDefaultTreeView(ctx);
   }

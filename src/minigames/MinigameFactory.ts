@@ -18,6 +18,16 @@ import { EarthDayCleanupMinigame } from "./specialDays/EarthDayCleanupMinigame";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { saveFailedAttempt } from "../util/anti-bot/antiBotHelper";
+import { UnleashHelper } from "../util/unleash/UnleashHelper";
+
+export interface MinigameEndedType {
+  success: boolean;
+  difficulty: number;
+  maxDuration: number;
+  failureReason?: string;
+  penalty?: boolean;
+}
 
 export const minigameButtons = [
   ...SantaPresentMinigame.buttons,
@@ -128,8 +138,23 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
   return "";
 }
 
+export async function startPenaltyMinigame(ctx: ButtonContext): Promise<boolean> {
+  if (UnleashHelper.isEnabled("anti-autoclicker-penalty", ctx)) {
+    try {
+      console.log(`Starting penalty minigame for user ${ctx.user.id}`);
+      const minigame = new GrinchHeistMinigame();
+      await minigame.start(ctx, true);
+      return true;
+    } catch (error) {
+      console.error(error);
+      return false;
+    }
+  }
+  return false;
+}
+
 export async function handleMinigameCoins(
-  ctx: ButtonContext,
+  ctx: ButtonContext | ButtonContext<unknown>,
   success: boolean,
   difficulty: number,
   maxDuration: number
@@ -152,10 +177,22 @@ export async function handleMinigameCoins(
 }
 
 export async function minigameFinished(
-  ctx: ButtonContext,
-  success: boolean,
-  difficulty: number,
-  maxDuration: number
+  ctx: ButtonContext | ButtonContext<unknown>,
+  data: MinigameEndedType
 ): Promise<void> {
-  await handleMinigameCoins(ctx, success, difficulty, maxDuration);
+  if (!data.penalty) {
+    await handleMinigameCoins(ctx, data.success, data.difficulty, data.maxDuration);
+  }
+  if (!data.success) {
+    await logFailedMinigameAttempt(ctx, data.failureReason ?? "Unknown");
+  }
+}
+
+export async function logFailedMinigameAttempt(
+  ctx: ButtonContext | ButtonContext<unknown>,
+  failureReason: string
+): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  await saveFailedAttempt(ctx, "minigame", failureReason);
 }

@@ -14,10 +14,11 @@ import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-ca
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
-import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFactory";
+import { minigameButtons, startPenaltyMinigame, startRandomMinigame } from "../minigames/MinigameFactory";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 import { toFixed } from "../util/helpers/numberHelper";
+import { isUserFlagged, saveFailedAttempt } from "../util/anti-bot/antiBotHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -67,6 +68,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
         .addComponents(actions)
     );
 
+    await logFailedWateringAttempt(ctx, "user watered last");
     transitionToDefaultTreeView(ctx);
 
     return;
@@ -91,6 +93,8 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
         .addComponents(actions)
     );
 
+    await logFailedWateringAttempt(ctx, "tree not ready");
+
     transitionToDefaultTreeView(ctx);
 
     return;
@@ -112,6 +116,11 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
 
   await ctx.game.save();
 
+  if (await isUserFlagged(ctx)) {
+    const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+    if (penaltyMinigameStarted) return;
+  }
+
   if (
     process.env.DEV_MODE === "true" ||
     (Math.random() < MINIGAME_CHANCE && ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Math.floor(Date.now() / 1000))
@@ -123,6 +132,12 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   }
 
   return await ctx.reply(await buildTreeDisplayMessage(ctx));
+}
+
+async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  await saveFailedAttempt(ctx, "watering", failureReason);
 }
 
 function applyGrowthBoost(ctx: ButtonContext): void {
@@ -149,7 +164,7 @@ export function disposeActiveTimeouts(
   ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 }
 
-export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
+export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<unknown>, delay = 4000) {
   if (!ctx.game) throw new Error("Game data missing.");
   disposeActiveTimeouts(ctx);
   ctx.timeouts.set(
@@ -171,14 +186,14 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
   );
 }
 
-function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
+function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
   if (ctx.game?.superThirsty) {
     return "\n💨This tree is growing faster thanks to the super thirsty upgrade!";
   }
   return "";
 }
 
-function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): string {
+function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
   if (ctx.game?.composter) {
     const efficiencyLevel = ctx.game.composter.efficiencyLevel;
     const qualityLevel = ctx.game.composter.qualityLevel;
@@ -196,7 +211,9 @@ function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): stri
   return "\n🎅 Santa's Magic Composter is at level 0. Use /composter to upgrade it and boost your tree's growth!";
 }
 
-export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+export async function buildTreeDisplayMessage(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
+): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
   await updateEntitlementsToGame(ctx);
@@ -273,14 +290,17 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
   return message;
 }
 
-function removeWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext): void {
+function removeWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): void {
   if (!ctx.game) return;
   const timeout = ctx.timeouts.get(ctx.game.id);
   if (timeout) clearTimeout(timeout);
   ctx.timeouts.delete(ctx.game.id);
 }
 
-function setWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext, timeoutTime: number): void {
+function setWateringReadyTimeout(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
+  timeoutTime: number
+): void {
   if (!ctx.game) return;
   removeWateringReadyTimeout(ctx);
 
@@ -293,7 +313,7 @@ function setWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext, timeo
   );
 }
 
-async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext) {
+async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>) {
   if (
     ctx.game &&
     (ctx.game.hasAiAccess || process.env.DEV_MODE) &&

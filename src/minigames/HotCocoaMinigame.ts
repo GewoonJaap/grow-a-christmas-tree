@@ -41,6 +41,13 @@ export class HotCocoaMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
+
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, HOT_COCOA_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -58,7 +65,12 @@ export class HotCocoaMinigame implements Minigame {
 
     ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
 
-    await minigameFinished(ctx as ButtonContext, false, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -80,7 +92,8 @@ export class HotCocoaMinigame implements Minigame {
           .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft!`);
 
         ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-        await minigameFinished(ctx as ButtonContext, true, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
+        await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION });
+
         transitionToDefaultTreeView(ctx);
       }
     ),
