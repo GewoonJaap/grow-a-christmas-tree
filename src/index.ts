@@ -38,9 +38,10 @@ import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
-import { unleash } from "./util/unleash/UnleashHelper";
+import { unleash, UnleashHelper } from "./util/unleash/UnleashHelper";
 import { flagPotentialAutoClickers } from "./util/anti-bot/antiBotHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
+import { BanHelper } from "./util/bans/BanHelper";
 const VERSION = "1.7";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
@@ -104,12 +105,33 @@ if (keys.some((key) => !(key in process.env))) {
         ctx.decorate("timeouts", timeouts);
         try {
           flagPotentialAutoClickers(ctx as SlashCommandContext);
+          const banResult = await checkAndHandleBan(ctx as SlashCommandContext);
+          if (banResult) return true;
         } catch (err) {
           console.error(err);
         }
       }
     }
   });
+
+  async function checkAndHandleBan(ctx: SlashCommandContext): Promise<boolean> {
+    if (
+      UnleashHelper.isEnabled("ban-enforcing", ctx as SlashCommandContext) &&
+      (await BanHelper.isUserBanned(ctx.user.id))
+    ) {
+      if (ctx instanceof AutocompleteContext) {
+        await ctx.reply([]);
+      } else {
+        await ctx.reply(
+          SimpleError(
+            "Something went wrong. Please join our [support server](https://discord.gg/KEJwtK5Z8k) for help."
+          ).setEphemeral(true)
+        );
+      }
+      return true;
+    }
+    return false;
+  }
 
   app.commands.register(
     [
