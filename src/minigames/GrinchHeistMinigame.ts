@@ -1,12 +1,15 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { shuffleArray } from "../util/helpers/arrayHelper";
+import { getRandomElements, shuffleArray } from "../util/helpers/arrayHelper";
 import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { toFixed } from "../util/helpers/numberHelper";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { getRandomEmojiWithExclusion, SPOOKY_EMOJIS } from "../util/emoji";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
+const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
+const BUTTON_SUCCESS_EMOJI = getRandomEmojiWithExclusion(BUTTON_FAIL_EMOJIS);
 
 type GrinchHeistButtonState = {
   isPenalty: boolean;
@@ -26,7 +29,9 @@ export class GrinchHeistMinigame implements Minigame {
   async start(ctx: ButtonContext, isPenalty = false): Promise<void> {
     const embed = new EmbedBuilder()
       .setTitle("Grinch Heist!")
-      .setDescription(`Click the tree to save it from the Grinch. Avoid the Grinch!${getPremiumUpsellMessage(ctx)}`)
+      .setDescription(
+        `Click the ${BUTTON_SUCCESS_EMOJI} to save it from the Grinch. Avoid the Grinch!${getPremiumUpsellMessage(ctx)}`
+      )
       .setImage(this.grinchImages[Math.floor(Math.random() * this.grinchImages.length)])
       .setFooter({
         text: "Hurry! The Grinch is coming! You have 10 seconds to save your tree!"
@@ -99,13 +104,16 @@ export class GrinchHeistMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.grinchheist.tree",
-      new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(getRandomButtonStyle()),
+      new ButtonBuilder().setEmoji({ name: BUTTON_SUCCESS_EMOJI }).setStyle(getRandomButtonStyle()),
       async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         disposeActiveTimeouts(ctx);
 
         if (!ctx.game) throw new Error("Game data missing.");
-        ctx.game.size++;
-        await ctx.game.save();
+
+        if (!ctx.state?.isPenalty) {
+          ctx.game.size++;
+          await ctx.game.save();
+        }
 
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
@@ -128,21 +136,21 @@ export class GrinchHeistMinigame implements Minigame {
     ),
     new Button(
       "minigame.grinchheist.grinch-1",
-      new ButtonBuilder().setEmoji({ name: "😈" }).setStyle(getRandomButtonStyle()),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[0] }).setStyle(getRandomButtonStyle()),
       async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         GrinchHeistMinigame.handleGrinchButton(ctx, false);
       }
     ),
     new Button(
       "minigame.grinchheist.grinch-2",
-      new ButtonBuilder().setEmoji({ name: "🎃" }).setStyle(getRandomButtonStyle()),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[1] }).setStyle(getRandomButtonStyle()),
       async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         GrinchHeistMinigame.handleGrinchButton(ctx, false);
       }
     ),
     new Button(
       "minigame.grinchheist.grinch-3",
-      new ButtonBuilder().setEmoji({ name: "👽" }).setStyle(getRandomButtonStyle()),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[2] }).setStyle(getRandomButtonStyle()),
       async (ctx: ButtonContext<GrinchHeistButtonState>): Promise<void> => {
         GrinchHeistMinigame.handleGrinchButton(ctx, false);
       }
