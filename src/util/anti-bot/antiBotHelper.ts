@@ -5,6 +5,7 @@ import { UnleashHelper } from "../unleash/UnleashHelper";
 
 const AUTOCLICKER_THRESHOLD = 15;
 const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
+const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
 const UNLEASH_AUTOCLICKER_FLAGGING = "anti-auto-clicker-logging";
 
 export async function countFailedAttempts(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<number> {
@@ -28,7 +29,7 @@ export async function countFailedAttempts(ctx: SlashCommandContext | ButtonConte
 export async function isUserFlagged(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<boolean> {
   if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {
     const now = new Date();
-    const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+    const startTime = new Date(now.getTime() - AUTOCLICKER_FLAGGED_TIMEFRAME);
     const userId = ctx.user.id;
     const guildId = ctx.game?.id;
     const flaggedUser = await FlaggedUser.findOne({
@@ -47,10 +48,8 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     const userId = ctx.user.id;
     const guildId = ctx.game?.id;
     const failedAttempts = await countFailedAttempts(ctx);
-
     if (failedAttempts > AUTOCLICKER_THRESHOLD) {
       const isFlagged = await isUserFlagged(ctx);
-
       if (!isFlagged) {
         console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
         const flaggedUser = new FlaggedUser({
