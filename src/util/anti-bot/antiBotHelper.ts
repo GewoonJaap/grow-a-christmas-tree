@@ -1,70 +1,88 @@
+import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { FailedAttempt } from "../../models/FailedAttempt";
 import { FlaggedUser } from "../../models/FlaggedUser";
+import { UnleashHelper } from "../unleash/UnleashHelper";
 
 const AUTOCLICKER_THRESHOLD = 15;
 const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
+const UNLEASH_AUTOCLICKER_FLAGGING = "anti-auto-clicker-logging";
 
-export async function countFailedAttempts(userId: string, guildId: string): Promise<number> {
-  const now = new Date();
-  const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+export async function countFailedAttempts(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<number> {
+  if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {
+    const now = new Date();
+    const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+    const userId = ctx.user.id;
+    const guildId = ctx.game?.id;
 
-  const failedAttempts = await FailedAttempt.countDocuments({
-    userId,
-    guildId,
-    timestamp: { $gte: startTime, $lte: now }
-  });
+    const failedAttempts = await FailedAttempt.countDocuments({
+      userId,
+      guildId,
+      timestamp: { $gte: startTime, $lte: now }
+    });
 
-  return failedAttempts;
+    return failedAttempts;
+  }
+  return 0;
 }
 
-export async function isUserFlagged(userId: string, guildId: string): Promise<boolean> {
-  const now = new Date();
-  const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+export async function isUserFlagged(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<boolean> {
+  if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {
+    const now = new Date();
+    const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+    const userId = ctx.user.id;
+    const guildId = ctx.game?.id;
+    const flaggedUser = await FlaggedUser.findOne({
+      userId,
+      guildId,
+      timestamp: { $gte: startTime, $lte: now }
+    });
 
-  const flaggedUser = await FlaggedUser.findOne({
-    userId,
-    guildId,
-    timestamp: { $gte: startTime, $lte: now }
-  });
-
-  return !!flaggedUser;
+    return !!flaggedUser;
+  }
+  return false;
 }
 
-export async function flagPotentialAutoClickers(userId: string, guildId?: string): Promise<void> {
-  if (!guildId) return;
-  const failedAttempts = await countFailedAttempts(userId, guildId);
+export async function flagPotentialAutoClickers(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<void> {
+  if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {
+    const userId = ctx.user.id;
+    const guildId = ctx.game?.id;
+    const failedAttempts = await countFailedAttempts(ctx);
 
-  if (failedAttempts > AUTOCLICKER_THRESHOLD) {
-    const isFlagged = await isUserFlagged(userId, guildId);
+    if (failedAttempts > AUTOCLICKER_THRESHOLD) {
+      const isFlagged = await isUserFlagged(ctx);
 
-    if (!isFlagged) {
-      console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
-      const flaggedUser = new FlaggedUser({
-        userId,
-        guildId,
-        reason: "Potential auto-clicker",
-        timestamp: new Date()
-      });
-      await flaggedUser.save();
-      // Add your logic to handle flagged users here, such as logging or applying penalties.
+      if (!isFlagged) {
+        console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
+        const flaggedUser = new FlaggedUser({
+          userId,
+          guildId,
+          reason: "Potential auto-clicker",
+          timestamp: new Date()
+        });
+        await flaggedUser.save();
+        // Add your logic to handle flagged users here, such as logging or applying penalties.
+      }
     }
   }
 }
 
 export async function saveFailedAttempt(
-  userId: string,
-  guildId: string,
+  ctx: SlashCommandContext | ButtonContext<unknown>,
   attemptType: string,
   failureReason: string
 ): Promise<void> {
-  const failedAttempt = new FailedAttempt({
-    userId,
-    guildId,
-    attemptType,
-    failureReason
-  });
+  if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {
+    const userId = ctx.user.id;
+    const guildId = ctx.game?.id;
+    const failedAttempt = new FailedAttempt({
+      userId,
+      guildId,
+      attemptType,
+      failureReason
+    });
 
-  await failedAttempt.save();
+    await failedAttempt.save();
+  }
 }
 
 export async function cleanOldFailedAttempts(): Promise<void> {

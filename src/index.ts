@@ -9,6 +9,7 @@ import {
   InteractionHandlerTimedOut,
   PingContext,
   SimpleError,
+  SlashCommandContext,
   UnauthorizedInteraction,
   UnknownApplicationCommandType,
   UnknownComponentType,
@@ -87,7 +88,6 @@ if (keys.some((key) => !(key in process.env))) {
           game = await Guild.findOne({ id: ctx.interaction.guild_id });
 
           if (game) await game.populate("contributors");
-          flagPotentialAutoClickers(ctx.user.id, ctx.interaction.guild_id);
         } catch (err) {
           console.error(err);
 
@@ -102,6 +102,11 @@ if (keys.some((key) => !(key in process.env))) {
 
         ctx.decorate("game", game);
         ctx.decorate("timeouts", timeouts);
+        try {
+          flagPotentialAutoClickers(ctx as SlashCommandContext);
+        } catch (err) {
+          console.error(err);
+        }
       }
     }
   });

@@ -175,5 +175,5 @@ export async function logFailedMinigameAttempt(
 ): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  await saveFailedAttempt(ctx.user.id, ctx.game.id, "minigame", failureReason);
+  await saveFailedAttempt(ctx, "minigame", failureReason);
 }

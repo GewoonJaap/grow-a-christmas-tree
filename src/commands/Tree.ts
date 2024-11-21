@@ -68,6 +68,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
         .addComponents(actions)
     );
 
+    await logFailedWateringAttempt(ctx, "user watered last");
     transitionToDefaultTreeView(ctx);
 
     return;
@@ -131,7 +132,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
 async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  await saveFailedAttempt(ctx.user.id, ctx.game.id, "watering", failureReason);
+  await saveFailedAttempt(ctx, "watering", failureReason);
 }
 
 function applyGrowthBoost(ctx: ButtonContext): void {

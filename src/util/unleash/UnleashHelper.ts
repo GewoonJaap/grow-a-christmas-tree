@@ -8,7 +8,9 @@ export const unleash = initialize({
 });
 
 export class UnleashHelper {
-  static getUnleashContext(ctx: SlashCommandContext | ButtonContext | ButtonContext<never>): Context {
+  static getUnleashContext(
+    ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>
+  ): Context {
     return {
       userId: ctx.game?.id ?? ctx.user.id,
       properties: {
@@ -21,7 +23,7 @@ export class UnleashHelper {
   }
   static isEnabled(
     name: string,
-    ctx: SlashCommandContext | ButtonContext | ButtonContext<never>,
+    ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>,
     fallbackValue = false
   ): boolean {
     return unleash.isEnabled(name, this.getUnleashContext(ctx), fallbackValue);
