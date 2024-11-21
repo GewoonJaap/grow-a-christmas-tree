@@ -25,7 +25,11 @@ export async function banAutoClicker(ctx: SlashCommandContext | ButtonContext<un
       guildId
     });
 
-    if (flaggedUser && (await countFailedAttempts(ctx)) > AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD) {
+    if (
+      flaggedUser &&
+      (await countFailedAttempts(ctx)) > AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD &&
+      !(await BanHelper.isUserBanned(userId))
+    ) {
       console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
       BanHelper.banUser(userId, "Auto-clicking", AUTOBAN_TIME);
     }
@@ -85,7 +89,6 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
         await flaggedUser.save();
         // Add your logic to handle flagged users here, such as logging or applying penalties.
       }
-      banAutoClicker(ctx);
     }
   }
 }
