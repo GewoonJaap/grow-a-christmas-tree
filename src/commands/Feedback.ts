@@ -7,6 +7,7 @@ import {
   SlashCommandStringOption
 } from "interactions.ts";
 import { FeedbackPost, postFeedback } from "../util/postFeedback";
+import { SUPPORT_SERVER_INVITE } from "../util/const";
 
 const builder = new SlashCommandBuilder(
   "feedback",
@@ -31,7 +32,7 @@ export class Feedback implements ISlashCommand {
     return await ctx.reply(
       new MessageBuilder().addEmbed(
         new EmbedBuilder().setTitle(
-          `Thanks for submitting your feedback! We'll look into it. If you have a question, please join our support server https://discord.gg/KEJwtK5Z8k`
+          `Thanks for submitting your feedback! We'll look into it. If you have a question, please join our support server ${SUPPORT_SERVER_INVITE}`
         )
       )
     );

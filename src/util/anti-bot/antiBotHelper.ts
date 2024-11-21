@@ -2,11 +2,39 @@ import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { FailedAttempt } from "../../models/FailedAttempt";
 import { FlaggedUser } from "../../models/FlaggedUser";
 import { UnleashHelper } from "../unleash/UnleashHelper";
+import { BanHelper } from "../bans/BanHelper";
 
 const AUTOCLICKER_THRESHOLD = 15;
 const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
 const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
 const UNLEASH_AUTOCLICKER_FLAGGING = "anti-auto-clicker-logging";
+const UNLEASH_AUTOCLICKER_AUTOBAN = "auto-ban";
+const AUTOBAN_TIME = 1000 * 60 * 60 * 24 * 1; // 1 days
+
+const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = AUTOCLICKER_THRESHOLD * 2;
+
+export async function banAutoClicker(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<void> {
+  if (
+    UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx) &&
+    UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_AUTOBAN, ctx)
+  ) {
+    const userId = ctx.user.id;
+    const guildId = ctx.game?.id;
+    const flaggedUser = await FlaggedUser.findOne({
+      userId,
+      guildId
+    });
+
+    if (
+      flaggedUser &&
+      (await countFailedAttempts(ctx)) > AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD &&
+      !(await BanHelper.isUserBanned(userId))
+    ) {
+      console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
+      BanHelper.banUser(userId, "Auto-clicking", AUTOBAN_TIME);
+    }
+  }
+}
 
 export async function countFailedAttempts(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<number> {
   if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {

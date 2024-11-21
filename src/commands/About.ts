@@ -1,4 +1,5 @@
 import { EmbedBuilder, ISlashCommand, MessageBuilder, SlashCommandBuilder, SlashCommandContext } from "interactions.ts";
+import { SUPPORT_SERVER_INVITE } from "../util/const";
 
 export class About implements ISlashCommand {
   public builder = new SlashCommandBuilder("about", "Learn about all the magical commands!");
@@ -43,7 +44,7 @@ export class About implements ISlashCommand {
           🔔 **/notifications** - Setup tree watering notifications.
 
           **Support**
-          🎅 **[Join the support server](https://discord.gg/KEJwtK5Z8k)** for help and updates.
+          🎅 **[Join the support server](${SUPPORT_SERVER_INVITE})** for help and updates.
           `
           )
       )
