@@ -61,11 +61,11 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
 
   if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
     disposeActiveTimeouts(ctx);
-        await logFailedWateringAttempt(ctx, "user watered last");
+    await logFailedWateringAttempt(ctx, "user watered last");
     if (await isUserFlagged(ctx)) {
-    const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
-    if (penaltyMinigameStarted) return;
-  }
+      const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+      if (penaltyMinigameStarted) return;
+    }
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
       SimpleError("You watered this tree last, you must let someone else water it first.")
@@ -82,12 +82,12 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     time = Math.floor(Date.now() / 1000);
   if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
     disposeActiveTimeouts(ctx);
-await logFailedWateringAttempt(ctx, "tree not ready");
-if (await isUserFlagged(ctx)) {
-    const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
-    if (penaltyMinigameStarted) return;
-  }
-    
+    await logFailedWateringAttempt(ctx, "tree not ready");
+    if (await isUserFlagged(ctx)) {
+      const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+      if (penaltyMinigameStarted) return;
+    }
+
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
       new MessageBuilder()
