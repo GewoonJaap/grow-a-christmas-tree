@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
+import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
 
 const FIREWORKS_SHOW_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -90,22 +91,22 @@ export class FireworksShowMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.fireworksshow.firework",
-      new ButtonBuilder().setEmoji({ name: "🎆" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎆" }).setStyle(getRandomButtonStyle()),
       FireworksShowMinigame.handleFireworkButton
     ),
     new Button(
       "minigame.fireworksshow.empty-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       FireworksShowMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.fireworksshow.empty-2",
-      new ButtonBuilder().setEmoji({ name: "🎇" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🎇" }).setStyle(getRandomButtonStyle()),
       FireworksShowMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.fireworksshow.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🎉" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🎉" }).setStyle(getRandomButtonStyle()),
       FireworksShowMinigame.handleEmptyButton
     )
   ];

@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const GIFT_UNWRAPPING_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -108,22 +109,22 @@ export class GiftUnwrappingMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.giftunwrapping.gift",
-      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleGiftButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-1",
-      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-2",
-      new ButtonBuilder().setEmoji({ name: "🧃" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧃" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-3",
-      new ButtonBuilder().setEmoji({ name: "🧰" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧰" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     )
   ];

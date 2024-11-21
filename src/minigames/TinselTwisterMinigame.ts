@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const TINSEL_TWISTER_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -126,22 +127,22 @@ export class TinselTwisterMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.tinseltwister.tinsel",
-      new ButtonBuilder().setEmoji({ name: "🎀" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎀" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleTinselButton
     ),
     new Button(
       "minigame.tinseltwister.empty-1",
-      new ButtonBuilder().setEmoji({ name: "🦊" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🦊" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.tinseltwister.empty-2",
-      new ButtonBuilder().setEmoji({ name: "🦉" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🦉" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.tinseltwister.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🌲" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🌲" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
     )
   ];

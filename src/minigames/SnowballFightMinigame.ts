@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const SNOWBALL_FIGHT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -105,22 +106,22 @@ export class SnowballFightMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.snowballfight.snowball",
-      new ButtonBuilder().setEmoji({ name: "❄️" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "❄️" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleSnowballButton
     ),
     new Button(
       "minigame.snowballfight.miss-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleMissButton
     ),
     new Button(
       "minigame.snowballfight.miss-2",
-      new ButtonBuilder().setEmoji({ name: "🎅" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🎅" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleMissButton
     ),
     new Button(
       "minigame.snowballfight.miss-3",
-      new ButtonBuilder().setEmoji({ name: "⛄" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "⛄" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleMissButton
     )
   ];

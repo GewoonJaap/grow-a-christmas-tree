@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const HOT_COCOA_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -78,7 +79,7 @@ export class HotCocoaMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.hotcocoa.hotcocoa",
-      new ButtonBuilder().setEmoji({ name: "☕" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "☕" }).setStyle(getRandomButtonStyle()),
       async (ctx: ButtonContext): Promise<void> => {
         disposeActiveTimeouts(ctx);
 
@@ -99,17 +100,17 @@ export class HotCocoaMinigame implements Minigame {
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-1",
-      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-2",
-      new ButtonBuilder().setEmoji({ name: "🍲" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🍲" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-3",
-      new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
     )
   ];

@@ -11,3 +11,8 @@ export function getRandomElement<T>(array: T[]): T | undefined {
   const randomIndex = Math.floor(Math.random() * array.length);
   return array[randomIndex];
 }
+
+export function getRandomElements<T>(array: T[], count: number): T[] {
+  const shuffled = shuffleArray(array);
+  return shuffled.slice(0, count);
+}
