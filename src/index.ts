@@ -7,6 +7,7 @@ import {
   DiscordApplication,
   InteractionContext,
   InteractionHandlerTimedOut,
+  MessageBuilder,
   PingContext,
   SimpleError,
   SlashCommandContext,
@@ -122,11 +123,7 @@ if (keys.some((key) => !(key in process.env))) {
       if (ctx instanceof AutocompleteContext) {
         await ctx.reply([]);
       } else {
-        await ctx.reply(
-          SimpleError(
-            "Something went wrong. Please join our [support server](https://discord.gg/KEJwtK5Z8k) for help."
-          ).setEphemeral(true)
-        );
+        await ctx.reply(BanHelper.getBanEmbed());
       }
       return true;
     }
