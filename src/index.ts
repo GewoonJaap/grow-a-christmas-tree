@@ -7,7 +7,6 @@ import {
   DiscordApplication,
   InteractionContext,
   InteractionHandlerTimedOut,
-  MessageBuilder,
   PingContext,
   SimpleError,
   SlashCommandContext,
