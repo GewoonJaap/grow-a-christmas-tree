@@ -35,20 +35,27 @@ export class GrinchHeistMinigame implements Minigame {
   ];
 
   async start(ctx: ButtonContext, isPenalty = false): Promise<void> {
-
     const EMBED_DESCRIPTIONS = [
-      `Whoah! The Grinch is trying to steal your tree! Click the ${BUTTON_SUCCESS_EMOJI} to save it! But be careful! Don't click the ${getRandomElement(BUTTON_FAIL_EMOJIS)}${getPremiumUpsellMessage(ctx)}`,
-      `Watch out for the ${getRandomElement(BUTTON_FAIL_EMOJIS)}. The Grinch is nearby! Hit the ${BUTTON_SUCCESS_EMOJI}${getPremiumUpsellMessage(ctx)}`,
-      `Hurry! The Grinch is here! Click the ${BUTTON_SUCCESS_EMOJI} to save your tree! Avoid clicking the ${getRandomElement(BUTTON_FAIL_EMOJIS)}${getPremiumUpsellMessage(ctx)}`,
-      `Save your tree from the Grinch! Click the ${BUTTON_SUCCESS_EMOJI} now! But watch out for the ${getRandomElement(BUTTON_FAIL_EMOJIS)}${getPremiumUpsellMessage(ctx)}`,
-      `The Grinch is coming! Click the ${BUTTON_SUCCESS_EMOJI} to protect your tree! Don't click the ${getRandomElement(BUTTON_FAIL_EMOJIS)}${getPremiumUpsellMessage(ctx)}`,
+      `Whoah! The Grinch is trying to steal your tree! Click the ${BUTTON_SUCCESS_EMOJI} to save it! But be careful! Don't click the ${getRandomElement(
+        BUTTON_FAIL_EMOJIS
+      )}${getPremiumUpsellMessage(ctx)}`,
+      `Watch out for the ${getRandomElement(
+        BUTTON_FAIL_EMOJIS
+      )}. The Grinch is nearby! Hit the ${BUTTON_SUCCESS_EMOJI}${getPremiumUpsellMessage(ctx)}`,
+      `Hurry! The Grinch is here! Click the ${BUTTON_SUCCESS_EMOJI} to save your tree! Avoid clicking the ${getRandomElement(
+        BUTTON_FAIL_EMOJIS
+      )}${getPremiumUpsellMessage(ctx)}`,
+      `Save your tree from the Grinch! Click the ${BUTTON_SUCCESS_EMOJI} now! But watch out for the ${getRandomElement(
+        BUTTON_FAIL_EMOJIS
+      )}${getPremiumUpsellMessage(ctx)}`,
+      `The Grinch is coming! Click the ${BUTTON_SUCCESS_EMOJI} to protect your tree! Don't click the ${getRandomElement(
+        BUTTON_FAIL_EMOJIS
+      )}${getPremiumUpsellMessage(ctx)}`
     ];
 
     const embed = new EmbedBuilder()
       .setTitle("Grinch Heist!")
-      .setDescription(
-        getRandomElement(EMBED_DESCRIPTIONS) ?? EMBED_DESCRIPTIONS[0]
-      )
+      .setDescription(getRandomElement(EMBED_DESCRIPTIONS) ?? EMBED_DESCRIPTIONS[0])
       .setImage(this.grinchImages[Math.floor(Math.random() * this.grinchImages.length)])
       .setFooter({
         text: "Hurry! The Grinch is coming! You have 10 seconds to save your tree!"

@@ -40,6 +40,25 @@ export class BanHelper {
   }
 
   /**
+   * Check if a list of users are currently banned
+   * @param userIds - The IDs of the users to check
+   * @returns An array of banned user IDs
+   */
+  static async areUsersBanned(userIds: string[]): Promise<string[]> {
+    console.log(`Checking if users are banned: ${userIds.join(", ")}`);
+    const now = new Date();
+    const bannedUsers = await BannedUser.find({
+      userId: { $in: userIds },
+      $or: [
+        { timeEnd: { $gte: now } }, // Ban is still active
+        { timeEnd: null } // Permanent ban
+      ]
+    });
+
+    return bannedUsers.map((bannedUser) => bannedUser.userId);
+  }
+
+  /**
    * Check if a user is currently banned
    * @param userId - The ID of the user to check
    * @returns A boolean indicating if the user is banned
