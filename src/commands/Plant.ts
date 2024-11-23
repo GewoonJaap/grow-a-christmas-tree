@@ -9,6 +9,8 @@ import {
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
 import { validateTreeName } from "../util/validate-tree-name";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder("plant", "Plant a christmas tree for your server.").addStringOption(
   new SlashCommandStringOption("name", "A name for your server's christmas tree.").setRequired(true)
@@ -25,6 +27,16 @@ export class Plant implements ISlashCommand {
       return await ctx.reply(
         `A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`
       );
+    if (
+      UnleashHelper.isEnabled(
+        UNLEASH_FEATURES.banEnforcement.name,
+        ctx,
+        UNLEASH_FEATURES.banEnforcement.fallbackValue
+      ) &&
+      (await BanHelper.isUserBanned(ctx.user.id))
+    ) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
     if (ctx.interaction.guild_id === undefined) return await ctx.reply(SimpleError("Guild ID missing."));
 
     const name = ctx.options.get("name")?.value as string | undefined;

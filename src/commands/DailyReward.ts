@@ -12,6 +12,8 @@ import {
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const GRACE_PERIOD_DAYS = 1;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
@@ -25,6 +27,16 @@ export class DailyReward implements ISlashCommand {
   public builder = new SlashCommandBuilder("dailyreward", "Claim your daily coin reward.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    if (
+      UnleashHelper.isEnabled(
+        UNLEASH_FEATURES.banEnforcement.name,
+        ctx,
+        UNLEASH_FEATURES.banEnforcement.fallbackValue
+      ) &&
+      (await BanHelper.isUserBanned(ctx.user.id))
+    ) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
     return await ctx.reply(await buildDailyRewardMessage(ctx));
   };
 

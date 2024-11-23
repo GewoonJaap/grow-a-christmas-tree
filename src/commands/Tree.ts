@@ -21,6 +21,8 @@ import { toFixed } from "../util/helpers/numberHelper";
 import { WateringEvent } from "../models/WateringEvent";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
 import { isUserFlagged } from "../util/anti-bot/flaggingHelper";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -35,6 +37,17 @@ export class Tree implements ISlashCommand {
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
     if (ctx.game === null || !ctx.game) return await ctx.reply("Use /plant to plant a tree for your server first.");
+
+    if (
+      UnleashHelper.isEnabled(
+        UNLEASH_FEATURES.banEnforcement.name,
+        ctx,
+        UNLEASH_FEATURES.banEnforcement.fallbackValue
+      ) &&
+      (await BanHelper.isUserBanned(ctx.user.id))
+    ) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
 
     return await ctx.reply(await buildTreeDisplayMessage(ctx));
   };
@@ -51,6 +64,18 @@ export class Tree implements ISlashCommand {
       "tree.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(
+            UNLEASH_FEATURES.banEnforcement.name,
+            ctx,
+            UNLEASH_FEATURES.banEnforcement.fallbackValue
+          ) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transitionToDefaultTreeView(ctx);
+          return;
+        }
         return await ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     ),
@@ -60,6 +85,14 @@ export class Tree implements ISlashCommand {
 
 async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
+  if (
+    UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement.name, ctx, UNLEASH_FEATURES.banEnforcement.fallbackValue) &&
+    (await BanHelper.isUserBanned(ctx.user.id))
+  ) {
+    await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    transitionToDefaultTreeView(ctx);
+    return;
+  }
 
   if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
     disposeActiveTimeouts(ctx);

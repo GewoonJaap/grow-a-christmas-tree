@@ -38,9 +38,8 @@ import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
-import { unleash, UNLEASH_FEATURES, UnleashHelper } from "./util/unleash/UnleashHelper";
+import { unleash } from "./util/unleash/UnleashHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
-import { BanHelper } from "./util/bans/BanHelper";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 const VERSION = "1.8";
 
@@ -105,33 +104,12 @@ if (keys.some((key) => !(key in process.env))) {
         ctx.decorate("timeouts", timeouts);
         try {
           flagPotentialAutoClickers(ctx as SlashCommandContext);
-          const banResult = await checkAndHandleBan(ctx as SlashCommandContext);
-          if (banResult) return true;
         } catch (err) {
           console.error(err);
         }
       }
     }
   });
-
-  async function checkAndHandleBan(ctx: SlashCommandContext): Promise<boolean> {
-    if (
-      UnleashHelper.isEnabled(
-        UNLEASH_FEATURES.banEnforcement.name,
-        ctx as SlashCommandContext,
-        UNLEASH_FEATURES.banEnforcement.fallbackValue
-      ) &&
-      (await BanHelper.isUserBanned(ctx.user.id))
-    ) {
-      if (ctx instanceof AutocompleteContext) {
-        await ctx.reply([]);
-      } else {
-        await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-      }
-      return true;
-    }
-    return false;
-  }
 
   app.commands.register(
     [

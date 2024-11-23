@@ -1,6 +1,8 @@
 import { EmbedBuilder, ISlashCommand, MessageBuilder, SlashCommandBuilder, SlashCommandContext } from "interactions.ts";
 import { Guild } from "../models/Guild";
 import { permissionsExtractor } from "../util/bitfield-permission-calculator";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder(
   "recycle",
@@ -15,7 +17,16 @@ export class Recycle implements ISlashCommand {
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
     if (ctx.game === null) return await ctx.reply(`You don't have a christmas tree planted in this server.`);
-
+    if (
+      UnleashHelper.isEnabled(
+        UNLEASH_FEATURES.banEnforcement.name,
+        ctx,
+        UNLEASH_FEATURES.banEnforcement.fallbackValue
+      ) &&
+      (await BanHelper.isUserBanned(ctx.user.id))
+    ) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
     //only with manage server perms
     const perms = permissionsExtractor((ctx.interaction.member?.permissions as unknown as number) ?? 0);
 

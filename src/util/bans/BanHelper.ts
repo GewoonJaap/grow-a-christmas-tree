@@ -1,4 +1,4 @@
-import { ActionRowBuilder, EmbedBuilder, MessageBuilder } from "interactions.ts";
+import { EmbedBuilder, MessageBuilder } from "interactions.ts";
 import { BannedUser, IBannedUser } from "../../models/BannedUser";
 import { getRandomElement } from "../helpers/arrayHelper";
 import { CHEATER_CLOWN_EMOJI, SUPPORT_SERVER_INVITE } from "../const";
