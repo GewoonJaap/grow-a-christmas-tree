@@ -8,11 +8,15 @@ import { WateringEvent } from "../../models/WateringEvent";
 const AUTOCLICKER_THRESHOLD = 15;
 const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
 const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
+const AUTOCLICKER_REFLAG_TIMEFRAME = 1000 * 60 * 60 * 1; // 1 hour to reflag after being flagged
 const UNLEASH_AUTOCLICKER_FLAGGING = "anti-auto-clicker-logging";
 const UNLEASH_AUTOCLICKER_AUTOBAN = "auto-ban";
-const AUTOBAN_TIME = 1000 * 60 * 60 * 24 * 1; // 1 days
+const AUTOBAN_TIME = 1000 * 60 * 60 * 24 * 7; // 7 day
 
-const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = AUTOCLICKER_THRESHOLD * 2;
+const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 3; //Number of flags last day to ban
+
+const EXCESSIVE_WATERING_THRESHOLD = 16; // Threshold for excessive watering events in a day, if you water more than 16 different hours in a day you get flagged
+const WATERING_EVENT_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
 
 export async function banAutoClicker(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<void> {
   if (
@@ -21,16 +25,9 @@ export async function banAutoClicker(ctx: SlashCommandContext | ButtonContext<un
   ) {
     const userId = ctx.user.id;
     const guildId = ctx.game?.id;
-    const flaggedUser = await FlaggedUser.findOne({
-      userId,
-      guildId
-    });
+    const flaggedUser = await countFlagsForUserLastDay(userId);
 
-    if (
-      flaggedUser &&
-      (await countFailedAttempts(ctx)) > AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD &&
-      !(await BanHelper.isUserBanned(userId))
-    ) {
+    if (flaggedUser >= AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD && !(await BanHelper.isUserBanned(userId))) {
       console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
       BanHelper.banUser(userId, "Auto-clicking", AUTOBAN_TIME);
     }
@@ -58,7 +55,7 @@ export async function countFailedAttempts(ctx: SlashCommandContext | ButtonConte
 export async function isUserFlagged(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<boolean> {
   if (UnleashHelper.isEnabled(UNLEASH_AUTOCLICKER_FLAGGING, ctx)) {
     const now = new Date();
-    const startTime = new Date(now.getTime() - AUTOCLICKER_FLAGGED_TIMEFRAME);
+    const startTime = new Date(now.getTime() - AUTOCLICKER_REFLAG_TIMEFRAME);
     const userId = ctx.user.id;
     const guildId = ctx.game?.id;
     const flaggedUser = await FlaggedUser.findOne({
@@ -77,7 +74,8 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     const userId = ctx.user.id;
     const guildId = ctx.game?.id;
     const failedAttempts = await countFailedAttempts(ctx);
-    if (failedAttempts > AUTOCLICKER_THRESHOLD) {
+    const excessiveWatering = await countExcessiveWateringEvents(userId, guildId);
+    if (failedAttempts >= AUTOCLICKER_THRESHOLD) {
       const isFlagged = await isUserFlagged(ctx);
       if (!isFlagged) {
         console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
@@ -88,10 +86,41 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
           timestamp: new Date()
         });
         await flaggedUser.save();
-        // Add your logic to handle flagged users here, such as logging or applying penalties.
       }
     }
+
+    if (excessiveWatering) {
+      const isFlagged = await isUserFlagged(ctx);
+      if (!isFlagged) {
+        console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
+        const flaggedUser = new FlaggedUser({
+          userId,
+          guildId,
+          reason: "Excessive watering",
+          timestamp: new Date()
+        });
+        await flaggedUser.save();
+      }
+    }
+
+    const flaggedTimes = await countFlagsForUserLastDay(userId);
+    if (flaggedTimes >= AUTOCLICKER_THRESHOLD) {
+      console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
+      banAutoClicker(ctx);
+    }
   }
+}
+
+export async function countFlagsForUserLastDay(userId: string): Promise<number> {
+  const now = new Date();
+  const startTime = new Date(now.getTime() - AUTOCLICKER_FLAGGED_TIMEFRAME);
+
+  const flaggedUsers = await FlaggedUser.find({
+    userId,
+    timestamp: { $gte: startTime, $lte: now }
+  });
+
+  return flaggedUsers.length;
 }
 
 export async function saveFailedAttempt(
@@ -124,58 +153,22 @@ export async function cleanOldFailedAttempts(): Promise<void> {
   console.log("Old failed attempts cleaned up.");
 }
 
-export async function detectUnusualActivityPatterns(): Promise<void> {
+export async function countExcessiveWateringEvents(userId: string, guildId: string): Promise<boolean> {
   const now = new Date();
-  const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+  const startTime = new Date(now.getTime() - WATERING_EVENT_TIMEFRAME);
 
   const wateringEvents = await WateringEvent.find({
+    userId,
+    guildId,
     timestamp: { $gte: startTime, $lte: now }
   });
 
-  const userWateringCounts: { [userId: string]: number } = {};
+  const hours = new Set<number>();
 
   wateringEvents.forEach((event) => {
-    if (!userWateringCounts[event.userId]) {
-      userWateringCounts[event.userId] = 0;
-    }
-    userWateringCounts[event.userId]++;
+    const eventHour = event.timestamp.getUTCHours();
+    hours.add(eventHour);
   });
 
-  for (const userId in userWateringCounts) {
-    if (userWateringCounts[userId] > AUTOCLICKER_THRESHOLD) {
-      console.log(`User ${userId} flagged for unusual watering activity.`);
-      const flaggedUser = new FlaggedUser({
-        userId,
-        guildId: "", // You can set the guildId if needed
-        reason: "Unusual watering activity",
-        timestamp: new Date()
-      });
-      await flaggedUser.save();
-    }
-  }
-}
-
-export async function checkAndBan24_7WateringUsers(): Promise<void> {
-  const now = new Date();
-  const startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days
-
-  const wateringEvents = await WateringEvent.find({
-    timestamp: { $gte: startTime, $lte: now }
-  });
-
-  const userWateringCounts: { [userId: string]: number } = {};
-
-  wateringEvents.forEach((event) => {
-    if (!userWateringCounts[event.userId]) {
-      userWateringCounts[event.userId] = 0;
-    }
-    userWateringCounts[event.userId]++;
-  });
-
-  for (const userId in userWateringCounts) {
-    if (userWateringCounts[userId] > 7 * 24) {
-      console.log(`User ${userId} banned for watering 24/7.`);
-      await BanHelper.banUser(userId, "Watering 24/7", null); // Permanent ban
-    }
-  }
+  return hours.size >= EXCESSIVE_WATERING_THRESHOLD;
 }

@@ -124,12 +124,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   }
 
   // Log the watering event
-  const wateringEvent = new WateringEvent({
-    userId: ctx.user.id,
-    guildId: ctx.game.id,
-    timestamp: new Date()
-  });
-  await wateringEvent.save();
+  await logWateringEvent(ctx);
 
   await ctx.game.save();
 
@@ -149,6 +144,16 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   }
 
   return await ctx.reply(await buildTreeDisplayMessage(ctx));
+}
+
+async function logWateringEvent(ctx: ButtonContext): Promise<void> {
+  if (!ctx.game) return;
+  const wateringEvent = new WateringEvent({
+    userId: ctx.user.id,
+    guildId: ctx.game.id,
+    timestamp: new Date()
+  });
+  await wateringEvent.save();
 }
 
 async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {

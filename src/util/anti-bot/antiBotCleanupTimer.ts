@@ -1,6 +1,7 @@
 import { cleanOldFailedAttempts } from "./antiBotHelper";
 import { WateringEvent } from "../../models/WateringEvent";
-import { connect } from "mongoose";
+
+const WATERING_EVENT_TTL = 2 * 24 * 60 * 60 * 1000; // 2 days
 
 export function startAntiBotCleanupTimer() {
   cleanOldFailedAttempts();
@@ -13,7 +14,7 @@ export function startAntiBotCleanupTimer() {
 
 async function cleanOldWateringEvents() {
   const now = new Date();
-  const cutoffTime = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30 days
+  const cutoffTime = new Date(now.getTime() - WATERING_EVENT_TTL);
 
   await WateringEvent.deleteMany({
     timestamp: { $lt: cutoffTime }
