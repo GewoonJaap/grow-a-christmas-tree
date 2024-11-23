@@ -3,6 +3,7 @@ import { FailedAttempt } from "../../models/FailedAttempt";
 import { FlaggedUser } from "../../models/FlaggedUser";
 import { UnleashHelper } from "../unleash/UnleashHelper";
 import { BanHelper } from "../bans/BanHelper";
+import { WateringEvent } from "../../models/WateringEvent";
 
 const AUTOCLICKER_THRESHOLD = 15;
 const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
@@ -121,4 +122,60 @@ export async function cleanOldFailedAttempts(): Promise<void> {
   });
 
   console.log("Old failed attempts cleaned up.");
+}
+
+export async function detectUnusualActivityPatterns(): Promise<void> {
+  const now = new Date();
+  const startTime = new Date(now.getTime() - AUTOCLICKER_TIMEFRAME);
+
+  const wateringEvents = await WateringEvent.find({
+    timestamp: { $gte: startTime, $lte: now }
+  });
+
+  const userWateringCounts: { [userId: string]: number } = {};
+
+  wateringEvents.forEach((event) => {
+    if (!userWateringCounts[event.userId]) {
+      userWateringCounts[event.userId] = 0;
+    }
+    userWateringCounts[event.userId]++;
+  });
+
+  for (const userId in userWateringCounts) {
+    if (userWateringCounts[userId] > AUTOCLICKER_THRESHOLD) {
+      console.log(`User ${userId} flagged for unusual watering activity.`);
+      const flaggedUser = new FlaggedUser({
+        userId,
+        guildId: "", // You can set the guildId if needed
+        reason: "Unusual watering activity",
+        timestamp: new Date()
+      });
+      await flaggedUser.save();
+    }
+  }
+}
+
+export async function checkAndBan24_7WateringUsers(): Promise<void> {
+  const now = new Date();
+  const startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 days
+
+  const wateringEvents = await WateringEvent.find({
+    timestamp: { $gte: startTime, $lte: now }
+  });
+
+  const userWateringCounts: { [userId: string]: number } = {};
+
+  wateringEvents.forEach((event) => {
+    if (!userWateringCounts[event.userId]) {
+      userWateringCounts[event.userId] = 0;
+    }
+    userWateringCounts[event.userId]++;
+  });
+
+  for (const userId in userWateringCounts) {
+    if (userWateringCounts[userId] > 7 * 24) {
+      console.log(`User ${userId} banned for watering 24/7.`);
+      await BanHelper.banUser(userId, "Watering 24/7", null); // Permanent ban
+    }
+  }
 }

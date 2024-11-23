@@ -19,6 +19,7 @@ import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 import { toFixed } from "../util/helpers/numberHelper";
 import { isUserFlagged, saveFailedAttempt } from "../util/anti-bot/antiBotHelper";
+import { WateringEvent } from "../models/WateringEvent";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -121,6 +122,14 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   } else {
     ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
   }
+
+  // Log the watering event
+  const wateringEvent = new WateringEvent({
+    userId: ctx.user.id,
+    guildId: ctx.game.id,
+    timestamp: new Date()
+  });
+  await wateringEvent.save();
 
   await ctx.game.save();
 
