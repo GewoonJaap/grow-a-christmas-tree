@@ -80,12 +80,6 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     }
   }
 
-  console.log(
-    `User ${userId} in guild ${guildId} has ${failedAttempts} failed attempts and ${excessiveWatering} excessive watering events. Banning: ${
-      failedAttempts >= AUTOCLICKER_THRESHOLD
-    }`
-  );
-
   const flaggedTimes = await countFlagsForUserLastDay(userId);
   if (
     flaggedTimes >= AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD &&
