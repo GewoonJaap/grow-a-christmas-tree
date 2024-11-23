@@ -9,7 +9,7 @@ interface IWateringEvent {
 const WateringEventSchema = new Schema<IWateringEvent>({
   userId: { type: String, required: true, index: true },
   guildId: { type: String, required: true, index: true },
-  timestamp: { type: Date, required: true, default: Date.now, index: true }
+  timestamp: { type: Date, required: true, default: Date.now, index: true, expires: "2d" }
 });
 
 const WateringEvent = model<IWateringEvent>("WateringEvent", WateringEventSchema);
