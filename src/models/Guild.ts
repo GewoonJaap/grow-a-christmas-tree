@@ -12,6 +12,7 @@ interface IGuild {
   currentImageUrl?: string;
   hasAiAccess: boolean;
   superThirsty: boolean;
+  isCheating: boolean;
 
   lastEventAt: number;
 
@@ -50,6 +51,7 @@ const GuildSchema = new Schema<IGuild>({
   currentImageUrl: { type: String, required: false },
   hasAiAccess: { type: Boolean, required: true, default: false },
   superThirsty: { type: Boolean, required: true, default: false },
+  isCheating: { type: Boolean, required: true, default: false },
 
   lastEventAt: { type: Number, required: true, default: Math.floor(Date.now() / 1000) },
 

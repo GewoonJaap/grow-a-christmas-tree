@@ -1,7 +1,7 @@
 import { EmbedBuilder, MessageBuilder } from "interactions.ts";
 import { BannedUser, IBannedUser } from "../../models/BannedUser";
 import { getRandomElement } from "../helpers/arrayHelper";
-import { SUPPORT_SERVER_INVITE } from "../const";
+import { CHEATER_CLOWN_EMOJI, SUPPORT_SERVER_INVITE } from "../const";
 
 const BAN_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/banned/ban-1.jpg",
@@ -40,6 +40,24 @@ export class BanHelper {
   }
 
   /**
+   * Check if a list of users are currently banned
+   * @param userIds - The IDs of the users to check
+   * @returns An array of banned user IDs
+   */
+  static async areUsersBanned(userIds: string[]): Promise<string[]> {
+    const now = new Date();
+    const bannedUsers = await BannedUser.find({
+      userId: { $in: userIds },
+      $or: [
+        { timeEnd: { $gte: now } }, // Ban is still active
+        { timeEnd: null } // Permanent ban
+      ]
+    });
+
+    return bannedUsers.map((bannedUser) => bannedUser.userId);
+  }
+
+  /**
    * Check if a user is currently banned
    * @param userId - The ID of the user to check
    * @returns A boolean indicating if the user is banned
@@ -71,16 +89,16 @@ export class BanHelper {
     console.log(`User ${userId} has been unbanned.`);
   }
 
-  static getBanEmbed() {
+  static getBanEmbed(username: string): MessageBuilder {
     const embed = new EmbedBuilder()
       .setImage(getRandomElement(BAN_IMAGES) ?? BAN_IMAGES[0])
-      .setTitle("🎅 Oops! You're on Santa's Naughty List!")
+      .setTitle(`${CHEATER_CLOWN_EMOJI} Oops! ${username} you're on Santa's Naughty List!`)
       .setDescription(
         `It seems you've been banned and Santa's workshop is off-limits for now. Don't worry, even the naughtiest elves can make amends! Reach out to [support](${SUPPORT_SERVER_INVITE}), and let's see if we can bring back the holiday cheer! 🎁✨`
       )
       .setURL(SUPPORT_SERVER_INVITE)
       .setColor(0xff0000)
       .setFooter({ text: "If you believe this is a mistake, please join our support server." });
-    return new MessageBuilder().addEmbed(embed).setEphemeral(true);
+    return new MessageBuilder().addEmbed(embed).setEphemeral(true).setComponents([]);
   }
 }

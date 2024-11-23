@@ -13,7 +13,7 @@ const FailedAttemptSchema = new Schema<IFailedAttempt>({
   guildId: { type: String, required: true, index: true },
   attemptType: { type: String, required: true },
   failureReason: { type: String, required: true },
-  timestamp: { type: Date, required: true, default: Date.now, index: true }
+  timestamp: { type: Date, required: true, default: Date.now, index: true, expires: "2d" }
 });
 
 const FailedAttempt = model<IFailedAttempt>("FailedAttempt", FailedAttemptSchema);

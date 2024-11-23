@@ -12,6 +12,8 @@ import {
   SlashCommandIntegerOption
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
+import { BanHelper } from "../util/bans/BanHelper";
+import { CHEATER_CLOWN_EMOJI } from "../util/const";
 
 type LeaderboardButtonState = {
   page: number;
@@ -87,10 +89,12 @@ async function buildLeaderboardMessage(
     const treeName = `${tree.name}`;
     const premiumText = `${tree.hasAiAccess ? " | " + PREMIUM_EMOJI : ""}`;
     const treeSize = `${tree.size}ft`;
+    const bannedContributors = await BanHelper.areUsersBanned(tree.contributors.map((c) => c.userId));
+    const hasCheaters = tree.isCheating || bannedContributors.length > 0;
 
     description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
-      isOwnTree ? `**${treeName}**` : treeName
-    } - ${treeSize}${premiumText}\n`;
+      hasCheaters ? CHEATER_CLOWN_EMOJI : ""
+    }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}\n`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(
