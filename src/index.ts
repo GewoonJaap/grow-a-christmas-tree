@@ -39,9 +39,9 @@ import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 import { unleash, UnleashHelper } from "./util/unleash/UnleashHelper";
-import { flagPotentialAutoClickers } from "./util/anti-bot/antiBotHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { BanHelper } from "./util/bans/BanHelper";
+import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 const VERSION = "1.7";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));

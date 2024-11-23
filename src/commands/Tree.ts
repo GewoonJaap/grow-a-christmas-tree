@@ -18,8 +18,9 @@ import { minigameButtons, startPenaltyMinigame, startRandomMinigame } from "../m
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 import { toFixed } from "../util/helpers/numberHelper";
-import { isUserFlagged, saveFailedAttempt } from "../util/anti-bot/antiBotHelper";
 import { WateringEvent } from "../models/WateringEvent";
+import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
+import { isUserFlagged } from "../util/anti-bot/flaggingHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;

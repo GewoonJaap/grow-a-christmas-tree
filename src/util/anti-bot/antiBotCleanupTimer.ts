@@ -1,5 +1,5 @@
-import { cleanOldFailedAttempts } from "./antiBotHelper";
 import { WateringEvent } from "../../models/WateringEvent";
+import { cleanOldFailedAttempts } from "./failedAttemptsHelper";
 
 const WATERING_EVENT_TTL = 2 * 24 * 60 * 60 * 1000; // 2 days
 

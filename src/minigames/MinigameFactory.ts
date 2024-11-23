@@ -18,8 +18,8 @@ import { EarthDayCleanupMinigame } from "./specialDays/EarthDayCleanupMinigame";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 
 import { WalletHelper } from "../util/wallet/WalletHelper";
-import { saveFailedAttempt } from "../util/anti-bot/antiBotHelper";
 import { UnleashHelper } from "../util/unleash/UnleashHelper";
+import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
 
 export interface MinigameEndedType {
   success: boolean;
