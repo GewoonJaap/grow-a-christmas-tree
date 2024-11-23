@@ -42,6 +42,7 @@ export class About implements ISlashCommand {
           These require the Manage Server permission.
 
           🔔 **/notifications** - Setup tree watering notifications.
+          ⏲️ **/settimezone** - Set the timezone for your tree, so that dates en times are correctly shown.       
 
           **Support**
           🎅 **[Join the support server](${SUPPORT_SERVER_INVITE})** for help and updates.

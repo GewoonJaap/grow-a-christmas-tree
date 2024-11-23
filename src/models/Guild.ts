@@ -24,6 +24,8 @@ interface IGuild {
   webhookId?: string;
   webhookToken?: string;
 
+  timeZone: string;
+
   composter: {
     efficiencyLevel: number;
     qualityLevel: number;
@@ -65,6 +67,8 @@ const GuildSchema = new Schema<IGuild>({
   notificationRoleId: { type: String, required: false },
   webhookId: { type: String, required: false },
   webhookToken: { type: String, required: false },
+
+  timeZone: { type: String, required: true, default: "Europe/Amsterdam" },
 
   composter: {
     efficiencyLevel: { type: Number, required: true, default: 0 },

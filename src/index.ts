@@ -30,7 +30,8 @@ import {
   SendCoinsCommand,
   RedeemCoinsCommand,
   DailyReward,
-  Composter
+  Composter,
+  SetTimezone
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -126,7 +127,8 @@ if (keys.some((key) => !(key in process.env))) {
       new SendCoinsCommand(),
       new RedeemCoinsCommand(),
       new DailyReward(),
-      new Composter()
+      new Composter(),
+      new SetTimezone()
     ],
     false
   );
