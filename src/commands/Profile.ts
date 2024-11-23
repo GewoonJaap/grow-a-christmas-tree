@@ -12,6 +12,8 @@ import {
 } from "interactions.ts";
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { BanHelper } from "../util/bans/BanHelper";
+import { CHEATER_CLOWN_EMOJI } from "../util/const";
 
 type State = {
   id: string;
@@ -67,6 +69,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
 
   const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
   const wallet = await WalletHelper.getWallet(id);
+  const isBanned = await BanHelper.isUserBanned(id);
 
   const contributorRank =
     ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
@@ -74,7 +77,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
   return new MessageBuilder()
     .addEmbed(
       new EmbedBuilder()
-        .setTitle(`${nick}'s Contributions`)
+        .setTitle(`${isBanned ? CHEATER_CLOWN_EMOJI : ""}${nick}'s Contributions`)
         .setDescription(
           `${ctx.user.id === id ? `You have` : `This user has`} ${
             contributor

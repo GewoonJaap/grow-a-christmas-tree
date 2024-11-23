@@ -126,7 +126,7 @@ if (keys.some((key) => !(key in process.env))) {
       if (ctx instanceof AutocompleteContext) {
         await ctx.reply([]);
       } else {
-        await ctx.reply(BanHelper.getBanEmbed());
+        await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
       }
       return true;
     }

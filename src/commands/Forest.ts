@@ -90,9 +90,7 @@ async function buildLeaderboardMessage(
     const premiumText = `${tree.hasAiAccess ? " | " + PREMIUM_EMOJI : ""}`;
     const treeSize = `${tree.size}ft`;
     const bannedContributors = await BanHelper.areUsersBanned(tree.contributors.map((c) => c.userId));
-    const hasCheaters = tree.isCheating ?? bannedContributors.length > 0;
-
-    console.log(hasCheaters, tree.id, bannedContributors);
+    const hasCheaters = tree.isCheating || bannedContributors.length > 0;
 
     description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
       hasCheaters ? CHEATER_CLOWN_EMOJI : ""
