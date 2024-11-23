@@ -90,7 +90,6 @@ export class BanHelper {
   }
 
   static getBanEmbed(username: string): MessageBuilder {
-    const actionBuilder = new ActionRowBuilder().setComponents([]);
     const embed = new EmbedBuilder()
       .setImage(getRandomElement(BAN_IMAGES) ?? BAN_IMAGES[0])
       .setTitle(`${CHEATER_CLOWN_EMOJI} Oops! ${username} you're on Santa's Naughty List!`)
@@ -100,6 +99,6 @@ export class BanHelper {
       .setURL(SUPPORT_SERVER_INVITE)
       .setColor(0xff0000)
       .setFooter({ text: "If you believe this is a mistake, please join our support server." });
-    return new MessageBuilder().addEmbed(embed).setEphemeral(true).addComponents(actionBuilder);
+    return new MessageBuilder().addEmbed(embed).setEphemeral(true).setComponents([]);
   }
 }
