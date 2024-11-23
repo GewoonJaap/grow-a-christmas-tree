@@ -4,6 +4,7 @@ import { SlashCommandContext, ButtonContext } from "interactions.ts";
 import { countExcessiveWateringEvents } from "./wateringEventHelper";
 import { countFailedAttempts } from "./failedAttemptsHelper";
 import { AUTOBAN_TIME, AUTOCLICKER_REFLAG_TIMEFRAME, AUTOCLICKER_THRESHOLD } from "./antiBotHelper";
+import { UNLEASH_FEATURES, UnleashHelper } from "../unleash/UnleashHelper";
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 3; //Number of flags last day to ban
 export const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
@@ -11,9 +12,8 @@ export const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
 export async function banAutoClicker(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<void> {
   const userId = ctx.user.id;
   const guildId = ctx.game?.id;
-  const flaggedUser = await countFlagsForUserLastDay(userId);
 
-  if (flaggedUser >= AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD && !(await BanHelper.isUserBanned(userId))) {
+  if (!(await BanHelper.isUserBanned(userId))) {
     console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
     BanHelper.banUser(userId, "Auto-clicking", AUTOBAN_TIME);
   }
@@ -38,7 +38,14 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
   const guildId = ctx.game?.id;
   const failedAttempts = await countFailedAttempts(ctx);
   const excessiveWatering = await countExcessiveWateringEvents(userId, guildId);
-  if (failedAttempts >= AUTOCLICKER_THRESHOLD) {
+  if (
+    failedAttempts >= AUTOCLICKER_THRESHOLD &&
+    UnleashHelper.isEnabled(
+      UNLEASH_FEATURES.antiAutoClickerLogging.name,
+      ctx,
+      UNLEASH_FEATURES.antiAutoClickerLogging.fallbackValue
+    )
+  ) {
     const isFlagged = await isUserFlagged(ctx);
     if (!isFlagged) {
       console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
@@ -52,7 +59,14 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     }
   }
 
-  if (excessiveWatering) {
+  if (
+    excessiveWatering &&
+    UnleashHelper.isEnabled(
+      UNLEASH_FEATURES.antiAutoClickerLogging.name,
+      ctx,
+      UNLEASH_FEATURES.antiAutoClickerLogging.fallbackValue
+    )
+  ) {
     const isFlagged = await isUserFlagged(ctx);
     if (!isFlagged) {
       console.log(`User ${userId} in guild ${guildId} flagged as potential auto-clicker.`);
@@ -66,8 +80,17 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     }
   }
 
+  console.log(
+    `User ${userId} in guild ${guildId} has ${failedAttempts} failed attempts and ${excessiveWatering} excessive watering events. Banning: ${
+      failedAttempts >= AUTOCLICKER_THRESHOLD
+    }`
+  );
+
   const flaggedTimes = await countFlagsForUserLastDay(userId);
-  if (flaggedTimes >= AUTOCLICKER_THRESHOLD) {
+  if (
+    flaggedTimes >= AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD &&
+    UnleashHelper.isEnabled(UNLEASH_FEATURES.autoBan.name, ctx, UNLEASH_FEATURES.autoBan.fallbackValue)
+  ) {
     console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
     banAutoClicker(ctx);
   }

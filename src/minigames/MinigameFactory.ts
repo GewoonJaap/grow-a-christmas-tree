@@ -18,7 +18,7 @@ import { EarthDayCleanupMinigame } from "./specialDays/EarthDayCleanupMinigame";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 
 import { WalletHelper } from "../util/wallet/WalletHelper";
-import { UnleashHelper } from "../util/unleash/UnleashHelper";
+import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
 
 export interface MinigameEndedType {
@@ -139,7 +139,13 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
 }
 
 export async function startPenaltyMinigame(ctx: ButtonContext): Promise<boolean> {
-  if (UnleashHelper.isEnabled("anti-autoclicker-penalty", ctx)) {
+  if (
+    UnleashHelper.isEnabled(
+      UNLEASH_FEATURES.antiAutoClickerPenalty.name,
+      ctx,
+      UNLEASH_FEATURES.antiAutoClickerPenalty.fallbackValue
+    )
+  ) {
     try {
       console.log(`Starting penalty minigame for user ${ctx.user.id}`);
       const minigame = new GrinchHeistMinigame();

@@ -38,7 +38,7 @@ import { Feedback } from "./commands/Feedback";
 import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
-import { unleash, UnleashHelper } from "./util/unleash/UnleashHelper";
+import { unleash, UNLEASH_FEATURES, UnleashHelper } from "./util/unleash/UnleashHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { BanHelper } from "./util/bans/BanHelper";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
@@ -116,7 +116,11 @@ if (keys.some((key) => !(key in process.env))) {
 
   async function checkAndHandleBan(ctx: SlashCommandContext): Promise<boolean> {
     if (
-      UnleashHelper.isEnabled("ban-enforcing", ctx as SlashCommandContext) &&
+      UnleashHelper.isEnabled(
+        UNLEASH_FEATURES.banEnforcement.name,
+        ctx as SlashCommandContext,
+        UNLEASH_FEATURES.banEnforcement.fallbackValue
+      ) &&
       (await BanHelper.isUserBanned(ctx.user.id))
     ) {
       if (ctx instanceof AutocompleteContext) {

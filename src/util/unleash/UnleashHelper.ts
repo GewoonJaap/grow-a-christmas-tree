@@ -7,6 +7,25 @@ export const unleash = initialize({
   customHeaders: { Authorization: process.env.UNLEASH_TOKEN ?? "" }
 });
 
+export const UNLEASH_FEATURES = {
+  autoBan: {
+    name: "auto-ban",
+    fallbackValue: false
+  },
+  banEnforcement: {
+    name: "ban-enforcing",
+    fallbackValue: false
+  },
+  antiAutoClickerPenalty: {
+    name: "anti-autoclicker-penalty",
+    fallbackValue: false
+  },
+  antiAutoClickerLogging: {
+    name: "anti-auto-clicker-logging",
+    fallbackValue: false
+  }
+};
+
 export class UnleashHelper {
   static getUnleashContext(
     ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>

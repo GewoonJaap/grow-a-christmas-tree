@@ -2,8 +2,6 @@ export const AUTOCLICKER_THRESHOLD = 15;
 export const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
 export const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
 export const AUTOCLICKER_REFLAG_TIMEFRAME = 1000 * 60 * 60 * 1; // 1 hour to reflag after being flagged
-export const UNLEASH_AUTOCLICKER_FLAGGING = "anti-auto-clicker-logging";
-export const UNLEASH_AUTOCLICKER_AUTOBAN = "auto-ban";
 export const AUTOBAN_TIME = 1000 * 60 * 60 * 24 * 7; // 7 day
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 3; //Number of flags last day to ban
