@@ -42,7 +42,7 @@ import { unleash, UnleashHelper } from "./util/unleash/UnleashHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { BanHelper } from "./util/bans/BanHelper";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
-const VERSION = "1.7";
+const VERSION = "1.8";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
