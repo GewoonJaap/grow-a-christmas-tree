@@ -308,9 +308,9 @@ export async function buildTreeDisplayMessage(
     embed.setDescription(
       `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${
         ctx.game.lastWateredBy
-      }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.\nCan be watered at: ${new Date(
+      }>\n**Your tree is growing**, come back <t:${canBeWateredAt}:R>.\nCan be watered at: **${new Date(
         canBeWateredAt * 1000
-      ).toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), { timeZone: ctx.game.timeZone })} *${
+      ).toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), { timeZone: ctx.game.timeZone })} **${
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
