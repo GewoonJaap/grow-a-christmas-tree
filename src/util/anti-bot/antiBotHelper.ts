@@ -6,5 +6,5 @@ export const AUTOBAN_TIME = 1000 * 60 * 60 * 24 * 7; // 7 day
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 3; //Number of flags last day to ban
 
-export const EXCESSIVE_WATERING_THRESHOLD = 16; // Threshold for excessive watering events in a day, if you water more than 16 different hours in a day you get flagged
+export const EXCESSIVE_WATERING_THRESHOLD = 20; // Threshold for excessive watering events in a day, if you water more than 20 different hours in a day you get flagged
 export const WATERING_EVENT_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
