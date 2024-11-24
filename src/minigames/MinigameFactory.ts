@@ -139,13 +139,7 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
 }
 
 export async function startPenaltyMinigame(ctx: ButtonContext): Promise<boolean> {
-  if (
-    UnleashHelper.isEnabled(
-      UNLEASH_FEATURES.antiAutoClickerPenalty.name,
-      ctx,
-      UNLEASH_FEATURES.antiAutoClickerPenalty.fallbackValue
-    )
-  ) {
+  if (UnleashHelper.isEnabled(UNLEASH_FEATURES.antiAutoClickerPenalty, ctx)) {
     try {
       console.log(`Starting penalty minigame for user ${ctx.user.id}`);
       const minigame = new GrinchHeistMinigame();

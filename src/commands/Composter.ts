@@ -40,14 +40,7 @@ export class Composter implements ISlashCommand {
   public builder = new SlashCommandBuilder("composter", "View and upgrade Santa's Magic Composter.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (
-      UnleashHelper.isEnabled(
-        UNLEASH_FEATURES.banEnforcement.name,
-        ctx,
-        UNLEASH_FEATURES.banEnforcement.fallbackValue
-      ) &&
-      (await BanHelper.isUserBanned(ctx.user.id))
-    ) {
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
       return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
     }
     return await ctx.reply(await buildComposterMessage(ctx));
@@ -59,11 +52,7 @@ export class Composter implements ISlashCommand {
       new ButtonBuilder().setEmoji({ name: "🧝" }).setStyle(1).setLabel("Elf-Powered Efficiency"),
       async (ctx: ButtonContext): Promise<void> => {
         if (
-          UnleashHelper.isEnabled(
-            UNLEASH_FEATURES.banEnforcement.name,
-            ctx,
-            UNLEASH_FEATURES.banEnforcement.fallbackValue
-          ) &&
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
           await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
@@ -78,11 +67,7 @@ export class Composter implements ISlashCommand {
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Sparkling Spirit"),
       async (ctx: ButtonContext): Promise<void> => {
         if (
-          UnleashHelper.isEnabled(
-            UNLEASH_FEATURES.banEnforcement.name,
-            ctx,
-            UNLEASH_FEATURES.banEnforcement.fallbackValue
-          ) &&
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
           return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
@@ -95,11 +80,7 @@ export class Composter implements ISlashCommand {
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
         if (
-          UnleashHelper.isEnabled(
-            UNLEASH_FEATURES.banEnforcement.name,
-            ctx,
-            UNLEASH_FEATURES.banEnforcement.fallbackValue
-          ) &&
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
           return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));

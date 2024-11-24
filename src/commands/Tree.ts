@@ -39,14 +39,7 @@ export class Tree implements ISlashCommand {
     if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
     if (ctx.game === null || !ctx.game) return await ctx.reply("Use /plant to plant a tree for your server first.");
 
-    if (
-      UnleashHelper.isEnabled(
-        UNLEASH_FEATURES.banEnforcement.name,
-        ctx,
-        UNLEASH_FEATURES.banEnforcement.fallbackValue
-      ) &&
-      (await BanHelper.isUserBanned(ctx.user.id))
-    ) {
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
       return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
     }
 
@@ -66,11 +59,7 @@ export class Tree implements ISlashCommand {
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
         if (
-          UnleashHelper.isEnabled(
-            UNLEASH_FEATURES.banEnforcement.name,
-            ctx,
-            UNLEASH_FEATURES.banEnforcement.fallbackValue
-          ) &&
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
           await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
@@ -86,10 +75,7 @@ export class Tree implements ISlashCommand {
 
 async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
-  if (
-    UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement.name, ctx, UNLEASH_FEATURES.banEnforcement.fallbackValue) &&
-    (await BanHelper.isUserBanned(ctx.user.id))
-  ) {
+  if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
     await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
     transitionToDefaultTreeView(ctx);
     return;

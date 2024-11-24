@@ -14,6 +14,7 @@ import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 type State = {
   id: string;
@@ -69,7 +70,8 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
 
   const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
   const wallet = await WalletHelper.getWallet(id);
-  const isBanned = await BanHelper.isUserBanned(id);
+  const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
+  const isBanned = cheaterClownEnabled && (await BanHelper.isUserBanned(id));
 
   const contributorRank =
     ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
