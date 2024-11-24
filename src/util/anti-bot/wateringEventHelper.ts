@@ -16,7 +16,7 @@ export async function countWateringEvents(userId: string, guildId: string): Prom
   return wateringEvents;
 }
 
-export async function countExcessiveWateringEvents(userId: string, guildId: string): Promise<boolean> {
+export async function countExcessiveWateringEvents(userId: string, guildId: string): Promise<number> {
   const now = new Date();
   const startTime = new Date(now.getTime() - WATERING_EVENT_TIMEFRAME);
 
@@ -33,5 +33,5 @@ export async function countExcessiveWateringEvents(userId: string, guildId: stri
     hours.add(eventHour);
   });
 
-  return hours.size >= EXCESSIVE_WATERING_THRESHOLD;
+  return hours.size;
 }
