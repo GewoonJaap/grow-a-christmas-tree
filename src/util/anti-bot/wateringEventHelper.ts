@@ -1,7 +1,6 @@
 import { WateringEvent } from "../../models/WateringEvent";
 
 export const WATERING_EVENT_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
-export const EXCESSIVE_WATERING_THRESHOLD = 16; // Threshold for excessive watering events in a day
 
 export async function countWateringEvents(userId: string, guildId: string): Promise<number> {
   const now = new Date();

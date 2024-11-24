@@ -1,9 +1,9 @@
 import { FlaggedUser } from "../../models/FlaggedUser";
 import { BanHelper } from "../bans/BanHelper";
 import { SlashCommandContext, ButtonContext } from "interactions.ts";
-import { countExcessiveWateringEvents, EXCESSIVE_WATERING_THRESHOLD } from "./wateringEventHelper";
+import { countExcessiveWateringEvents } from "./wateringEventHelper";
 import { countFailedAttempts } from "./failedAttemptsHelper";
-import { AUTOBAN_TIME, AUTOCLICKER_REFLAG_TIMEFRAME, AUTOCLICKER_THRESHOLD } from "./antiBotHelper";
+import { AUTOBAN_TIME, AUTOCLICKER_REFLAG_TIMEFRAME, AUTOCLICKER_THRESHOLD, EXCESSIVE_WATERING_THRESHOLD } from "./antiBotHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../unleash/UnleashHelper";
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 5; //Number of flags last day to ban
