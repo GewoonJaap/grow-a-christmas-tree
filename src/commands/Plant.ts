@@ -27,14 +27,7 @@ export class Plant implements ISlashCommand {
       return await ctx.reply(
         `A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`
       );
-    if (
-      UnleashHelper.isEnabled(
-        UNLEASH_FEATURES.banEnforcement.name,
-        ctx,
-        UNLEASH_FEATURES.banEnforcement.fallbackValue
-      ) &&
-      (await BanHelper.isUserBanned(ctx.user.id))
-    ) {
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
       return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
     }
     if (ctx.interaction.guild_id === undefined) return await ctx.reply(SimpleError("Guild ID missing."));

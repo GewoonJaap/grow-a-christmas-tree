@@ -1,4 +1,4 @@
-export const AUTOCLICKER_THRESHOLD = 15;
+export const AUTOCLICKER_THRESHOLD = 60; // Number of failed attempts in an hour to flag
 export const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
 export const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
 export const AUTOCLICKER_REFLAG_TIMEFRAME = 1000 * 60 * 60 * 1; // 1 hour to reflag after being flagged

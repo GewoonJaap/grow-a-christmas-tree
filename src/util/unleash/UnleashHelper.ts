@@ -6,6 +6,10 @@ export const unleash = initialize({
   appName: "christmas-tree-bot",
   customHeaders: { Authorization: process.env.UNLEASH_TOKEN ?? "" }
 });
+export interface UnleashFeatureType {
+  name: string;
+  fallbackValue: boolean;
+}
 
 export const UNLEASH_FEATURES = {
   autoBan: {
@@ -22,6 +26,18 @@ export const UNLEASH_FEATURES = {
   },
   antiAutoClickerLogging: {
     name: "anti-auto-clicker-logging",
+    fallbackValue: false
+  },
+  autoFailedAttemptsBan: {
+    name: "auto-failed-attempts-ban",
+    fallbackValue: false
+  },
+  autoExcessiveWateringBan: {
+    name: "auto-excessive-watering-ban",
+    fallbackValue: false
+  },
+  showCheaterClown: {
+    name: "show-cheater-clown",
     fallbackValue: false
   }
 };
@@ -41,10 +57,9 @@ export class UnleashHelper {
     };
   }
   static isEnabled(
-    name: string,
-    ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>,
-    fallbackValue = false
+    feature: UnleashFeatureType,
+    ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>
   ): boolean {
-    return unleash.isEnabled(name, this.getUnleashContext(ctx), fallbackValue);
+    return unleash.isEnabled(feature.name, this.getUnleashContext(ctx), feature.fallbackValue);
   }
 }

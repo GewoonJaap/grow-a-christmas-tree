@@ -14,6 +14,7 @@ import {
 import { Guild } from "../models/Guild";
 import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
+import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 
 type LeaderboardButtonState = {
   page: number;
@@ -65,6 +66,7 @@ export class Forest implements ISlashCommand {
 async function buildLeaderboardMessage(
   ctx: SlashCommandContext | ButtonContext<LeaderboardButtonState>
 ): Promise<MessageBuilder> {
+  const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
   const state: LeaderboardButtonState =
     ctx instanceof SlashCommandContext
       ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
@@ -90,7 +92,7 @@ async function buildLeaderboardMessage(
     const premiumText = `${tree.hasAiAccess ? " | " + PREMIUM_EMOJI : ""}`;
     const treeSize = `${tree.size}ft`;
     const bannedContributors = await BanHelper.areUsersBanned(tree.contributors.map((c) => c.userId));
-    const hasCheaters = tree.isCheating || bannedContributors.length > 0;
+    const hasCheaters = cheaterClownEnabled && (tree.isCheating || bannedContributors.length > 0);
 
     description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
       hasCheaters ? CHEATER_CLOWN_EMOJI : ""

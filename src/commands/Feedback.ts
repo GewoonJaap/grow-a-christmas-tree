@@ -22,14 +22,7 @@ export class Feedback implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (
-      UnleashHelper.isEnabled(
-        UNLEASH_FEATURES.banEnforcement.name,
-        ctx,
-        UNLEASH_FEATURES.banEnforcement.fallbackValue
-      ) &&
-      (await BanHelper.isUserBanned(ctx.user.id))
-    ) {
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
       return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
     }
     const feedback: FeedbackPost = {
