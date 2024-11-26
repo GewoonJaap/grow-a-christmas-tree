@@ -3,7 +3,13 @@ import { BanHelper } from "../bans/BanHelper";
 import { SlashCommandContext, ButtonContext } from "interactions.ts";
 import { countExcessiveWateringEvents } from "./wateringEventHelper";
 import { countFailedAttempts } from "./failedAttemptsHelper";
-import { AUTOBAN_TIME, AUTOCLICKER_REFLAG_TIMEFRAME, AUTOCLICKER_THRESHOLD, EXCESSIVE_WATERING_THRESHOLD } from "./antiBotHelper";
+import {
+  AUTOBAN_TIME,
+  AUTOCLICKER_REFLAG_TIMEFRAME,
+  AUTOCLICKER_THRESHOLD,
+  EXCESSIVE_WATERING_REFLAG_TIMEFRAME,
+  EXCESSIVE_WATERING_THRESHOLD
+} from "./antiBotHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../unleash/UnleashHelper";
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 5; //Number of flags last day to ban
@@ -51,9 +57,12 @@ export async function getFlagReasons(ctx: SlashCommandContext | ButtonContext<un
   return flaggedReasons.length > 0 ? flaggedReasons[0].reasons : [];
 }
 
-export async function isUserFlagged(ctx: SlashCommandContext | ButtonContext<unknown>): Promise<boolean> {
+export async function isUserFlagged(
+  ctx: SlashCommandContext | ButtonContext<unknown>,
+  reflagTime = AUTOCLICKER_REFLAG_TIMEFRAME
+): Promise<boolean> {
   const now = new Date();
-  const startTime = new Date(now.getTime() - AUTOCLICKER_REFLAG_TIMEFRAME);
+  const startTime = new Date(now.getTime() - reflagTime);
   const userId = ctx.user.id;
   const guildId = ctx.game?.id;
   const flaggedUser = await FlaggedUser.findOne({
@@ -95,7 +104,7 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     UnleashHelper.isEnabled(UNLEASH_FEATURES.antiAutoClickerLogging, ctx) &&
     UnleashHelper.isEnabled(UNLEASH_FEATURES.autoExcessiveWateringBan, ctx)
   ) {
-    const isFlagged = await isUserFlagged(ctx);
+    const isFlagged = await isUserFlagged(ctx, EXCESSIVE_WATERING_REFLAG_TIMEFRAME);
     if (!isFlagged) {
       console.log(
         `User ${userId} in guild ${guildId} flagged as potential auto-clicker. User has ${excessiveWatering} excessive watering events, while only ${EXCESSIVE_WATERING_THRESHOLD} are allowed.`

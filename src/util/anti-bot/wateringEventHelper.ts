@@ -1,6 +1,5 @@
 import { WateringEvent } from "../../models/WateringEvent";
-
-export const WATERING_EVENT_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
+import { WATERING_EVENT_TIMEFRAME } from "./antiBotHelper";
 
 export async function countWateringEvents(userId: string, guildId: string): Promise<number> {
   const now = new Date();
