@@ -1,7 +1,8 @@
 import {
   FESTIVE_ENTITLEMENT_SKU_ID,
   PremiumButtonBuilder,
-  SMALL_POUCH_OF_COINS_SKU_ID
+  SMALL_POUCH_OF_COINS_SKU_ID,
+  SUPER_THIRSTY_ENTITLEMENT_SKU_ID
 } from "../discord/DiscordApiExtensions";
 
 export class PremiumButtons {
@@ -14,4 +15,9 @@ export class PremiumButtons {
    * A button that allows users to purschage a small pouch of coins
    */
   static SmallPouchOfCoinsButton = new PremiumButtonBuilder().setSkuId(SMALL_POUCH_OF_COINS_SKU_ID);
+
+  /**
+   * A button that allows users to purschage the Super Thirsty entitlement
+   */
+  static SuperThirstyButton = new PremiumButtonBuilder().setSkuId(SUPER_THIRSTY_ENTITLEMENT_SKU_ID);
 }
