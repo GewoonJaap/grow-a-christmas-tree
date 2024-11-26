@@ -27,7 +27,8 @@ export class ServerInfo implements ISlashCommand {
       "serverinfo.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        await ctx.reply(this.buildServerInfoEmbed(ctx));
+        const message = await this.buildServerInfoEmbed(ctx);
+        await ctx.reply(message);
       }
     )
   ];
@@ -45,12 +46,14 @@ export class ServerInfo implements ISlashCommand {
       return await ctx.reply("No game data found for this server.");
     }
 
-    const embed = this.buildServerInfoEmbed(ctx);
+    const embed = await this.buildServerInfoEmbed(ctx);
 
     return await ctx.reply(embed);
   };
 
-  private buildServerInfoEmbed(ctx: SlashCommandContext | ButtonContext<unknown> | ButtonContext): MessageBuilder {
+  private async buildServerInfoEmbed(
+    ctx: SlashCommandContext | ButtonContext<unknown> | ButtonContext
+  ): Promise<MessageBuilder> {
     if (!ctx.game) {
       return new MessageBuilder().addEmbed(new EmbedBuilder().setTitle("No game data found for this server."));
     }
@@ -71,19 +74,19 @@ export class ServerInfo implements ISlashCommand {
       .setColor(0x00ff00)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       .setFooter({ text: "Let it grow, let it glow! 🌟❄️" });
-
+    const actionRow = new ActionRowBuilder();
     if (!process.env.DEV_MODE) {
-      const actionRow = new ActionRowBuilder();
       if (!ctx.game.hasAiAccess) {
         actionRow.addComponents(PremiumButtons.FestiveForestButton);
       }
       if (!ctx.game.superThirsty) {
         actionRow.addComponents(PremiumButtons.SuperThirstyButton);
       }
-      if (actionRow.components.length > 0) {
-        messageBuilder.addComponents(actionRow);
-      }
     }
+
+    actionRow.addComponents(await ctx.manager.components.createInstance("serverinfo.refresh"));
+
+    messageBuilder.addComponents(actionRow);
 
     return messageBuilder.addEmbed(embed);
   }
