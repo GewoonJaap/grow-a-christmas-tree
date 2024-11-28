@@ -1,5 +1,5 @@
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
-import { Context, initialize } from "unleash-client";
+import { Context, initialize, Variant } from "unleash-client";
 
 export const unleash = initialize({
   url: process.env.UNLEASH_URL ?? "http://unleash-web:4242/api",
@@ -39,6 +39,10 @@ export const UNLEASH_FEATURES = {
   showCheaterClown: {
     name: "show-cheater-clown",
     fallbackValue: false
+  },
+  premiumServerEmoji: {
+    name: "premium-server-emoji",
+    fallbackValue: false
   }
 };
 
@@ -61,5 +65,17 @@ export class UnleashHelper {
     ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>
   ): boolean {
     return unleash.isEnabled(feature.name, this.getUnleashContext(ctx), feature.fallbackValue);
+  }
+
+  static getVariant(
+    feature: UnleashFeatureType,
+    ctx: SlashCommandContext | ButtonContext | ButtonContext<never> | ButtonContext<unknown>,
+    defaultVariant: Variant = { name: "disabled", enabled: false }
+  ): Variant {
+    const variant = unleash.getVariant(feature.name, this.getUnleashContext(ctx), defaultVariant);
+    if (!variant.enabled || !variant.feature_enabled) {
+      return defaultVariant;
+    }
+    return variant;
   }
 }

@@ -13,7 +13,7 @@ import {
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
 import { BanHelper } from "../util/bans/BanHelper";
-import { CHEATER_CLOWN_EMOJI } from "../util/const";
+import { CHEATER_CLOWN_EMOJI, PREMIUM_SANTA_EMOJI, PREMIUM_SANTA_EMOJI_2 } from "../util/const";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 
 type LeaderboardButtonState = {
@@ -80,6 +80,12 @@ async function buildLeaderboardMessage(
 
   const trees = await Guild.find().sort({ size: -1 }).skip(start).limit(11);
 
+  const premiumEmojiVariant = UnleashHelper.getVariant(UNLEASH_FEATURES.premiumServerEmoji, ctx);
+
+  const premiumEmoji = premiumEmojiVariant.enabled
+    ? premiumEmojiVariant.payload?.value ?? PREMIUM_EMOJI
+    : PREMIUM_EMOJI;
+
   if (trees.length === 0) return SimpleError("This page is empty.");
 
   for (let i = 0; i < 10; i++) {
@@ -89,7 +95,7 @@ async function buildLeaderboardMessage(
     const tree = trees[i];
     const isOwnTree = ctx.game?.id === tree.id;
     const treeName = `${tree.name}`;
-    const premiumText = `${tree.hasAiAccess ? " | " + PREMIUM_EMOJI : ""}`;
+    const premiumText = `${tree.hasAiAccess ? " | " + premiumEmoji : ""}`;
     const treeSize = `${tree.size}ft`;
     const bannedContributors = await BanHelper.areUsersBanned(tree.contributors.map((c) => c.userId));
     const hasCheaters = cheaterClownEnabled && (tree.isCheating || bannedContributors.length > 0);
@@ -113,9 +119,12 @@ async function buildLeaderboardMessage(
 
   return new MessageBuilder()
     .addEmbed(
-      new EmbedBuilder().setTitle("Forest").setDescription(description).setFooter({
-        text: "🌟 = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar."
-      })
+      new EmbedBuilder()
+        .setTitle("Forest")
+        .setDescription(description)
+        .setFooter({
+          text: `${premiumEmoji} = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar.`
+        })
     )
     .addComponents(actionRow);
 }
