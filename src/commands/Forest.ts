@@ -86,6 +86,9 @@ async function buildLeaderboardMessage(
     ? premiumEmojiVariant.payload?.value ?? PREMIUM_EMOJI
     : PREMIUM_EMOJI;
 
+  const footerText = premiumEmojiVariant.payload?.value
+    ? "🌟 Trees with an emoji are enjoying premium! If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar."
+    : "🌟 = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar.";
   if (trees.length === 0) return SimpleError("This page is empty.");
 
   for (let i = 0; i < 10; i++) {
@@ -119,12 +122,9 @@ async function buildLeaderboardMessage(
 
   return new MessageBuilder()
     .addEmbed(
-      new EmbedBuilder()
-        .setTitle("Forest")
-        .setDescription(description)
-        .setFooter({
-          text: `${premiumEmoji} = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar.`
-        })
+      new EmbedBuilder().setTitle("Forest").setDescription(description).setFooter({
+        text: footerText
+      })
     )
     .addComponents(actionRow);
 }
