@@ -66,7 +66,7 @@ async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Prom
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
     .setDescription(
-      `🎁 **Spin Santa's Wheel of Fortune!** 🎄 Use your ${wheelState.tickets} ticket${
+      `🎁 **Spin Santa's Wheel of Fortune!** 🎄\nUse your ${wheelState.tickets} ticket${
         wheelState.tickets === 1 ? "" : "s"
       } to win coins, tickets, and festive composter upgrades! 🎅✨`
     )
