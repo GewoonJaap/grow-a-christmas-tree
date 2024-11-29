@@ -9,29 +9,20 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import { WheelState } from "../models/WheelState";
 import { WalletHelper } from "../util/wallet/WalletHelper";
-import { getRandomElement } from "../util/helpers/arrayHelper";
-import { PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
+import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 
-const REWARD_PROBABILITIES = {
-  tickets: 0.3,
-  coins: 0.5,
-  composterUpgrade: 0.15,
-  other: 0.05
+const REWARDS = {
+  tickets: { displayName: "Tickets", probability: 0.3 },
+  coins: { displayName: "Coins", probability: 0.5 },
+  composterUpgrade: { displayName: "Composter Upgrade", probability: 0.15 },
+  nothing: { displayName: "Nothing", probability: 0.05 }
 };
 
 export class Wheel implements ISlashCommand {
-  public builder = new SlashCommandBuilder("wheel", "Spin the wheel of fortune for rewards.");
+  public builder = new SlashCommandBuilder("wheel", "Give it a whirl and unwrap festive rewards! 🎅✨");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    const userId = ctx.user.id;
-    const wheelState = await WheelState.findOne({ userId });
-
-    if (!wheelState) {
-      await WheelState.create({ userId, tickets: 1, lastSpinDate: new Date(0), theme: "default" });
-    }
-
     return await ctx.reply(await buildWheelMessage(ctx));
   };
 
@@ -55,23 +46,16 @@ export class Wheel implements ISlashCommand {
 
 async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
-  const wheelState = await WheelState.findOne({ userId });
-
-  if (!wheelState) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("Wheel of Fortune")
-        .setDescription("You need to have at least one ticket to spin the wheel.")
-        .setColor(0xff0000)
-    );
-  }
+  const wheelState = await WheelStateHelper.getWheelState(userId);
 
   const embed = new EmbedBuilder()
-    .setTitle("Wheel of Fortune")
+    .setTitle("🎅 Santa's Lucky Spin! 🎁")
     .setDescription(
-      `🎡 **Spin the Wheel of Fortune!** 🎡\n\nYou have ${wheelState.tickets} ticket(s) available.\n\nSpin the wheel to win exciting rewards like tickets, coins, and composter upgrades!`
+      `🎁 **Spin Santa's Wheel of Fortune!** 🎄 Use your ${wheelState.tickets} ticket${
+        wheelState.tickets === 1 ? "" : "s"
+      } to win coins, tickets, and festive composter upgrades! 🎅✨`
     )
-    .setImage("https://example.com/wheel-image.jpg");
+    .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
@@ -82,30 +66,49 @@ async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Prom
 }
 
 async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
-  const userId = ctx.user.id;
-  const wheelState = await WheelState.findOne({ userId });
+  if (!ctx.game || ctx.isDM) {
+    return new MessageBuilder().setContent("This command can only be used in a server with a tree.");
+  }
 
-  if (!wheelState || wheelState.tickets <= 0) {
+  const userId = ctx.user.id;
+  const wheelState = await WheelStateHelper.getWheelState(userId);
+
+  if (wheelState.tickets <= 0) {
     return new MessageBuilder().addEmbed(
       new EmbedBuilder()
-        .setTitle("Wheel of Fortune")
-        .setDescription("You need to have at least one ticket to spin the wheel.")
+        .setTitle("🎅 Santa's Lucky Spin! 🎁")
+        .setDescription("🎟️ **You need at least one ticket to give the wheel a spin!** 🎄")
         .setColor(0xff0000)
+        .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png")
     );
   }
 
-  wheelState.tickets--;
-  wheelState.lastSpinDate = new Date();
+  const hasSpinnedWheel = await WheelStateHelper.spinWheel(userId);
 
-  const reward = determineReward();
+  if (!hasSpinnedWheel) {
+    const embed = new EmbedBuilder()
+      .setTitle("🎅 Santa's Lucky Spin! 🎁")
+      .setDescription("🎟️ **You need at least one ticket to give the wheel a spin!** 🎄")
+      .setColor(0xff0000)
+      .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+    return new MessageBuilder().addEmbed(embed);
+  }
+
+  const reward = determineReward(ctx.game.hasAiAccess ?? false);
   await applyReward(ctx, reward);
 
   await wheelState.save();
 
+  const rewardDescription =
+    reward.amount != undefined
+      ? `${reward.amount} ${REWARDS[reward.type].displayName}`
+      : REWARDS[reward.type].displayName;
   const embed = new EmbedBuilder()
-    .setTitle("Wheel of Fortune")
-    .setDescription(`You spun the wheel and won ${reward}!`)
-    .setColor(0x00ff00);
+    .setTitle("🎅 Santa's Lucky Spin! 🎁")
+    .setDescription(`🎉 **You spun the wheel and won ${rewardDescription}!** 🎁`)
+    .setColor(0x00ff00)
+    .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
@@ -115,33 +118,34 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
 }
 
-function determineReward(): string {
+function determineReward(isPremium: boolean): { type: string; amount?: number } {
   const random = Math.random();
   let cumulativeProbability = 0;
 
-  for (const [reward, probability] of Object.entries(REWARD_PROBABILITIES)) {
+  for (const [reward, { probability }] of Object.entries(REWARDS)) {
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
-      return reward;
+      if (reward === "coins") {
+        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) }; // Specify the amount of coins
+      }
+      return { type: reward };
     }
   }
 
-  return "other";
+  return { type: "nothing" };
 }
 
-async function applyReward(ctx: ButtonContext, reward: string): Promise<void> {
+async function applyReward(ctx: ButtonContext, reward: { type: string; amount?: number }): Promise<void> {
   const userId = ctx.user.id;
 
-  switch (reward) {
+  switch (reward.type) {
     case "tickets":
-      const wheelState = await WheelState.findOne({ userId });
-      if (wheelState) {
-        wheelState.tickets += 1;
-        await wheelState.save();
-      }
+      await WheelStateHelper.addTickets(userId, 1);
       break;
     case "coins":
-      await WalletHelper.addCoins(userId, 100);
+      if (reward.amount) {
+        await WalletHelper.addCoins(userId, reward.amount);
+      }
       break;
     case "composterUpgrade":
       const guild = ctx.game;

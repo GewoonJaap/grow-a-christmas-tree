@@ -13,3 +13,4 @@ export * from "./DailyReward";
 export * from "./Composter";
 export * from "./SetTimezone";
 export * from "./ServerInfo";
+export * from "./Wheel";
