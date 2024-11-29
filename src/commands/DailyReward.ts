@@ -14,6 +14,7 @@ import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { WheelState } from "../models/WheelState";
 
 const GRACE_PERIOD_DAYS = 1;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
@@ -108,6 +109,15 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
   wallet.coins += reward;
   wallet.lastClaimDate = currentDate;
   await wallet.save();
+
+  // Add tickets when the user claims their daily reward
+  const wheelState = await WheelState.findOne({ userId });
+  if (wheelState) {
+    wheelState.tickets += isPremium ? 2 : 1;
+    await wheelState.save();
+  } else {
+    await WheelState.create({ userId, tickets: isPremium ? 2 : 1, lastSpinDate: new Date(0), theme: "default" });
+  }
 
   const embed = new EmbedBuilder()
     .setTitle("Daily Reward")
