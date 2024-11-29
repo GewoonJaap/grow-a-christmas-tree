@@ -10,7 +10,7 @@ export class WheelStateHelper {
   }
 
   static getDefaultWheelState(userId: string): IWheelState {
-    return { userId: userId, tickets: 0, lastSpinDate: new Date("1999-01-01T00:00:00Z"), theme: "default" };
+    return { userId: userId, tickets: 0, lastSpinDate: new Date("1999-01-01T00:00:00Z") };
   }
 
   static async addTickets(userId: string, amount: number) {

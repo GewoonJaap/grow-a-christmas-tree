@@ -11,6 +11,9 @@ export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
 export const GOLDEN_COIN_STASH_SKU_ID = "1304819461366480946";
 export const LUCKY_COIN_BAG_SKU_ID = "1304819131543195738";
 export const TREASURE_CHEST_OF_COINS_SKU_ID = "1304819358442192936";
+export const HOLIDAY_LUCKY_TICKET = "1312106259608244287";
+export const LUCKY_TICKET_25 = "1312108891076690011";
+export const LUCKY_TICKET_50 = "1312108952905056316";
 
 export function getEntitlements(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
@@ -139,6 +142,19 @@ export function skuIdToCoins(skuId: string): number {
       return 1500;
     case TREASURE_CHEST_OF_COINS_SKU_ID:
       return 3000;
+    default:
+      return 0;
+  }
+}
+
+export function skuIdToLuckyTickets(skuId: string): number {
+  switch (skuId) {
+    case HOLIDAY_LUCKY_TICKET:
+      return 10;
+    case LUCKY_TICKET_25:
+      return 25;
+    case LUCKY_TICKET_50:
+      return 50;
     default:
       return 0;
   }

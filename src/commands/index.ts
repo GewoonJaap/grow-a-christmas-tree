@@ -8,7 +8,7 @@ export * from "./Tree";
 export * from "./Recycle";
 export * from "./NotificationSettings";
 export * from "./SendCoins";
-export * from "./RedeemCoins";
+export * from "./RedeemPurschages";
 export * from "./DailyReward";
 export * from "./Composter";
 export * from "./SetTimezone";

@@ -47,6 +47,13 @@ export class Wheel implements ISlashCommand {
       async (ctx: ButtonContext): Promise<void> => {
         return await ctx.reply(await buildWheelMessage(ctx));
       }
+    ),
+    new Button(
+      "wheel.chances",
+      new ButtonBuilder().setEmoji({ name: "📊" }).setStyle(2).setLabel("Win Chances"),
+      async (ctx: ButtonContext): Promise<void> => {
+        return await ctx.reply(await showWinChances(ctx));
+      }
     )
   ];
 }
@@ -66,7 +73,8 @@ async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Prom
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
-    await ctx.manager.components.createInstance("wheel.refresh")
+    await ctx.manager.components.createInstance("wheel.refresh"),
+    await ctx.manager.components.createInstance("wheel.chances")
   );
 
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
@@ -113,16 +121,27 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       : REWARDS[reward.type].displayName;
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
-    .setDescription(`🎉 **You spun the wheel and won ${rewardDescription}!** 🎁`)
+    .setDescription(`🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁`)
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
-    await ctx.manager.components.createInstance("wheel.refresh")
+    await ctx.manager.components.createInstance("wheel.refresh"),
+    await ctx.manager.components.createInstance("wheel.chances")
   );
 
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+}
+
+async function showWinChances(ctx: ButtonContext): Promise<MessageBuilder> {
+  const chancesDescription = Object.entries(REWARDS)
+    .map(([key, { displayName, probability }]) => `**${displayName}:** ${(probability * 100).toFixed(2)}%`)
+    .join("\n");
+
+  const embed = new EmbedBuilder().setTitle("🎰 Win Chances").setDescription(chancesDescription).setColor(0x00ff00);
+
+  return new MessageBuilder().addEmbed(embed);
 }
 
 function determineReward(isPremium: boolean): { type: RewardType; amount?: number } {
@@ -133,7 +152,7 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
-        return { type: reward as RewardType, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) }; // Specify the amount of coins
+        return { type: reward as RewardType, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) };
       }
       return { type: reward as RewardType };
     }
