@@ -12,7 +12,14 @@ import {
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 
-const REWARDS = {
+type RewardType = "tickets" | "coins" | "composterUpgrade" | "nothing";
+
+interface Reward {
+  displayName: string;
+  probability: number;
+}
+
+const REWARDS: Record<RewardType, Reward> = {
   tickets: { displayName: "Tickets", probability: 0.3 },
   coins: { displayName: "Coins", probability: 0.5 },
   composterUpgrade: { displayName: "Composter Upgrade", probability: 0.15 },
@@ -118,7 +125,7 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
 }
 
-function determineReward(isPremium: boolean): { type: string; amount?: number } {
+function determineReward(isPremium: boolean): { type: RewardType; amount?: number } {
   const random = Math.random();
   let cumulativeProbability = 0;
 
@@ -126,16 +133,16 @@ function determineReward(isPremium: boolean): { type: string; amount?: number } 
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
-        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) }; // Specify the amount of coins
+        return { type: reward as RewardType, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) }; // Specify the amount of coins
       }
-      return { type: reward };
+      return { type: reward as RewardType };
     }
   }
 
   return { type: "nothing" };
 }
 
-async function applyReward(ctx: ButtonContext, reward: { type: string; amount?: number }): Promise<void> {
+async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amount?: number }): Promise<void> {
   const userId = ctx.user.id;
 
   switch (reward.type) {
