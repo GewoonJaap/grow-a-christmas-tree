@@ -32,7 +32,8 @@ import {
   DailyReward,
   Composter,
   SetTimezone,
-  ServerInfo
+  ServerInfo,
+  Wheel
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -130,7 +131,8 @@ if (keys.some((key) => !(key in process.env))) {
       new DailyReward(),
       new Composter(),
       new SetTimezone(),
-      new ServerInfo()
+      new ServerInfo(),
+      new Wheel()
     ],
     false
   );
