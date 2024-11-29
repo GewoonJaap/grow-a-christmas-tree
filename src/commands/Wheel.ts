@@ -11,8 +11,9 @@ import {
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
+import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
-type RewardType = "tickets" | "coins" | "composterUpgrade" | "nothing";
+type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "nothing";
 
 interface Reward {
   displayName: string;
@@ -22,7 +23,7 @@ interface Reward {
 const REWARDS: Record<RewardType, Reward> = {
   tickets: { displayName: "Tickets", probability: 0.3 },
   coins: { displayName: "Coins", probability: 0.5 },
-  composterUpgrade: { displayName: "Composter Upgrade", probability: 0.15 },
+  composterEfficiencyUpgrade: { displayName: "Composter Efficiency Upgrade", probability: 0.15 },
   nothing: { displayName: "Nothing", probability: 0.05 }
 };
 
@@ -89,13 +90,21 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
   const wheelState = await WheelStateHelper.getWheelState(userId);
 
   if (wheelState.tickets <= 0) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("🎅 Santa's Lucky Spin! 🎁")
-        .setDescription("🎟️ **You need at least one ticket to give the wheel a spin!** 🎄")
-        .setColor(0xff0000)
-        .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png")
-    );
+    const embed = new EmbedBuilder()
+      .setTitle("🎅 Santa's Lucky Spin! 🎁")
+      .setDescription("🎟️ **You need at least one ticket to give the wheel a spin!** 🎄")
+      .setColor(0xff0000)
+      .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+    const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("wheel.refresh"));
+
+    if (!process.env.DEV_MODE) {
+      actions.addComponents(PremiumButtons.HolidayLuckyTicketButton);
+    }
+
+    const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
+
+    return message;
   }
 
   const hasSpinnedWheel = await WheelStateHelper.spinWheel(userId);
@@ -153,6 +162,10 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
     if (random < cumulativeProbability) {
       if (reward === "coins") {
         return { type: reward as RewardType, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) };
+      } else if (reward === "tickets") {
+        return { type: reward as RewardType, amount: Math.floor(Math.random() * 1) + 1 }; // Random amount of tickets between 1 and 2
+      } else if (reward === "composterUpgrade") {
+        return { type: reward as RewardType, amount: 1 }; // Always 1 level upgrade
       }
       return { type: reward as RewardType };
     }
@@ -166,17 +179,19 @@ async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amoun
 
   switch (reward.type) {
     case "tickets":
-      await WheelStateHelper.addTickets(userId, 1);
+      if (reward.amount) {
+        await WheelStateHelper.addTickets(userId, reward.amount);
+      }
       break;
     case "coins":
       if (reward.amount) {
         await WalletHelper.addCoins(userId, reward.amount);
       }
       break;
-    case "composterUpgrade":
+    case "composterEfficiencyUpgrade":
       const guild = ctx.game;
-      if (guild) {
-        guild.composter.efficiencyLevel += 1;
+      if (guild && reward.amount) {
+        guild.composter.efficiencyLevel += reward.amount;
         await guild.save();
       }
       break;

@@ -69,7 +69,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
       .setTitle("Purchases Redeemed")
       .setColor(0xff0000)
       .setDescription("You have no purchases to redeem.")
-      .setFooter({ text: `You can purchase coins from the store by clicking on the bot avatar or the button.` });
+      .setFooter({ text: `You can purchase items from the store by clicking on the bot avatar or the button.` });
 
     const message = new MessageBuilder().addEmbed(embed);
     const actions = new ActionRowBuilder();
