@@ -28,11 +28,12 @@ import {
   Recycle,
   NotificationSettings,
   SendCoinsCommand,
-  RedeemCoinsCommand,
   DailyReward,
   Composter,
   SetTimezone,
-  ServerInfo
+  ServerInfo,
+  Wheel,
+  RedeemPurschagesCommand
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -126,11 +127,12 @@ if (keys.some((key) => !(key in process.env))) {
       new Feedback(),
       new NotificationSettings(),
       new SendCoinsCommand(),
-      new RedeemCoinsCommand(),
+      new RedeemPurschagesCommand(),
       new DailyReward(),
       new Composter(),
       new SetTimezone(),
-      new ServerInfo()
+      new ServerInfo(),
+      new Wheel()
     ],
     false
   );

@@ -14,6 +14,7 @@ import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 
 const GRACE_PERIOD_DAYS = 1;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
@@ -109,12 +110,18 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
   wallet.lastClaimDate = currentDate;
   await wallet.save();
 
+  // Add tickets when the user claims their daily reward
+  const claimedTickets = isPremium ? 2 : 1;
+  await WheelStateHelper.addTickets(userId, claimedTickets);
+
   const embed = new EmbedBuilder()
     .setTitle("Daily Reward")
     .setDescription(
-      `<@${ctx.user.id}> You have claimed your daily reward of ${reward} coins.\n\nCurrent Streak: ${
-        wallet.streak
-      } day${wallet.streak === 1 ? "" : "s"}.\n\n${
+      `<@${
+        ctx.user.id
+      }> You have claimed your daily reward of ${reward} coins.\n<:wheeloffortune:1312084380922937397>You also gained ${claimedTickets} ticket${
+        claimedTickets === 1 ? "" : "s"
+      } for the wheel of fortune!\n\nCurrent Streak: ${wallet.streak} day${wallet.streak === 1 ? "" : "s"}.\n\n${
         isPremium
           ? `As a premium user, you receive more coins and have a ${PREMIUM_GRACE_PERIOD_DAYS} day grace period!`
           : `Subscribe to Festive Forest to receive more coins and a ${PREMIUM_GRACE_PERIOD_DAYS} day grace period! Click on the bot avatar to open the [store](https://discord.com/application-directory/1050722873569968128/store).`
