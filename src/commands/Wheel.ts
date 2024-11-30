@@ -13,7 +13,7 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
-type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "nothing";
+type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade";
 
 interface Reward {
   displayName: string;
@@ -21,10 +21,10 @@ interface Reward {
 }
 
 const REWARDS: Record<RewardType, Reward> = {
-  tickets: { displayName: "Tickets", probability: 0.3 },
-  coins: { displayName: "Coins", probability: 0.5 },
-  composterEfficiencyUpgrade: { displayName: "Composter Efficiency Upgrade", probability: 0.15 },
-  nothing: { displayName: "Nothing", probability: 0.05 }
+  tickets: { displayName: "Tickets", probability: 0.2 },
+  coins: { displayName: "Coins", probability: 0.7 },
+  composterEfficiencyUpgrade: { displayName: "Composter Efficiency Upgrade", probability: 0.05 },
+  composterQualityUpgrade: { displayName: "Composter Quality Upgrade", probability: 0.05 }
 };
 
 export class Wheel implements ISlashCommand {
@@ -157,21 +157,22 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
   const random = Math.random();
   let cumulativeProbability = 0;
 
-  for (const [reward, { probability }] of Object.entries(REWARDS)) {
+  for (const [reward, { probability }] of Object.entries(REWARDS) as [RewardType, Reward][]) {
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
-        return { type: reward as RewardType, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) };
+        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) };
       } else if (reward === "tickets") {
-        return { type: reward as RewardType, amount: Math.floor(Math.random() * 1) + 1 }; // Random amount of tickets between 1 and 2
+        return { type: reward, amount: Math.floor(Math.random() * 1) + 1 }; // Random amount of tickets between 1 and 2
       } else if (reward === "composterEfficiencyUpgrade") {
-        return { type: reward as RewardType, amount: 1 }; // Always 1 level upgrade
+        return { type: reward, amount: 1 }; // Always 1 level upgrade
+      } else if (reward === "composterQualityUpgrade") {
+        return { type: reward, amount: 1 }; // Always 1 level upgrade
       }
-      return { type: reward as RewardType };
+      return { type: reward };
     }
   }
-
-  return { type: "nothing" };
+  return { type: "coins", amount: 25 };
 }
 
 async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amount?: number }): Promise<void> {
@@ -189,10 +190,15 @@ async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amoun
       }
       break;
     case "composterEfficiencyUpgrade":
-      const guild = ctx.game;
-      if (guild && reward.amount) {
-        guild.composter.efficiencyLevel += reward.amount;
-        await guild.save();
+      if (ctx.game && reward.amount) {
+        ctx.game.composter.efficiencyLevel += reward.amount;
+        await ctx.game.save();
+      }
+      break;
+    case "composterQualityUpgrade":
+      if (ctx.game && reward.amount) {
+        ctx.game.composter.qualityLevel += reward.amount;
+        await ctx.game.save();
       }
       break;
     default:
