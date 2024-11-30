@@ -170,7 +170,7 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
       } else if (reward === "composterQualityUpgrade") {
         return { type: reward, amount: 1 }; // Always 1 level upgrade
       } else if (reward === "treeSize") {
-        return { type: reward, amount: Math.floor(Math.random() * 2) + 1 }; // Random 1 or 2 ft
+        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 25 : 10)) + 1 }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
       }
       return { type: reward };
     }
