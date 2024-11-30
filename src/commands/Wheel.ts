@@ -164,7 +164,7 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
         return { type: reward as RewardType, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) };
       } else if (reward === "tickets") {
         return { type: reward as RewardType, amount: Math.floor(Math.random() * 1) + 1 }; // Random amount of tickets between 1 and 2
-      } else if (reward === "composterUpgrade") {
+      } else if (reward === "composterEfficiencyUpgrade") {
         return { type: reward as RewardType, amount: 1 }; // Always 1 level upgrade
       }
       return { type: reward as RewardType };
