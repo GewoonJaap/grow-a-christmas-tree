@@ -119,7 +119,7 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
     .setDescription(
       `<@${
         ctx.user.id
-      }> You have claimed your daily reward of ${reward} coins.\n<:wheeloffortune:1312084380922937397>You also gained ${claimedTickets} ticket${
+      }> You have claimed your daily reward of ${reward} coins.\n🎟️ You also gained ${claimedTickets} ticket${
         claimedTickets === 1 ? "" : "s"
       } for the wheel of fortune!\n\nCurrent Streak: ${wallet.streak} day${wallet.streak === 1 ? "" : "s"}.\n\n${
         isPremium

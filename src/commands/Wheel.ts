@@ -13,7 +13,7 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
-type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade";
+type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade" | "treeSize";
 
 interface Reward {
   displayName: string;
@@ -22,9 +22,10 @@ interface Reward {
 
 const REWARDS: Record<RewardType, Reward> = {
   tickets: { displayName: "Tickets", probability: 0.2 },
-  coins: { displayName: "Coins", probability: 0.7 },
+  coins: { displayName: "Coins", probability: 0.65 },
   composterEfficiencyUpgrade: { displayName: "Composter Efficiency Upgrade", probability: 0.05 },
-  composterQualityUpgrade: { displayName: "Composter Quality Upgrade", probability: 0.05 }
+  composterQualityUpgrade: { displayName: "Composter Quality Upgrade", probability: 0.05 },
+  treeSize: { displayName: "Tree Size Increase", probability: 0.05 }
 };
 
 export class Wheel implements ISlashCommand {
@@ -161,18 +162,21 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
-        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) };
+        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 75 : 25)) };
       } else if (reward === "tickets") {
-        return { type: reward, amount: Math.floor(Math.random() * 1) + 1 }; // Random amount of tickets between 1 and 2
+        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 3 : 1)) + 1 };
       } else if (reward === "composterEfficiencyUpgrade") {
         return { type: reward, amount: 1 }; // Always 1 level upgrade
       } else if (reward === "composterQualityUpgrade") {
         return { type: reward, amount: 1 }; // Always 1 level upgrade
+      } else if (reward === "treeSize") {
+        return { type: reward, amount: Math.floor(Math.random() * 2) + 1 }; // Random 1 or 2 ft
       }
       return { type: reward };
     }
   }
-  return { type: "coins", amount: 25 };
+
+  return { type: "coins", amount: 10 };
 }
 
 async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amount?: number }): Promise<void> {
@@ -198,6 +202,12 @@ async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amoun
     case "composterQualityUpgrade":
       if (ctx.game && reward.amount) {
         ctx.game.composter.qualityLevel += reward.amount;
+        await ctx.game.save();
+      }
+      break;
+    case "treeSize":
+      if (ctx.game && reward.amount) {
+        ctx.game.size += reward.amount;
         await ctx.game.save();
       }
       break;
