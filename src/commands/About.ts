@@ -27,6 +27,7 @@ export class About implements ISlashCommand {
           **Profile and Rewards**
           👤 **/profile** - View your profile and the amount of coins you have.
           📖 **/dailyreward** - Claim your daily supply of free coins.
+          🎁 **/adventcalendar** - Open your daily advent calendar present.
           🪙 **/redeemcoins** - Redeem any outstanding purchases from the shop.
           💸 **/sendcoins** - Transfer coins to another player.
 

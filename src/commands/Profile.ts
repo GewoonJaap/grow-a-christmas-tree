@@ -15,6 +15,7 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { Achievement } from "../models/Achievement";
 
 type State = {
   id: string;
@@ -76,6 +77,15 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
   const contributorRank =
     ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
 
+  const achievements = await Achievement.find({ userId: id });
+
+  const achievementsDescription = achievements
+    .map(
+      (achievement) =>
+        `🏅 **${achievement.achievementName}**\n${achievement.description}\nEarned on: ${achievement.dateEarned.toDateString()}\n`
+    )
+    .join("\n");
+
   return new MessageBuilder()
     .addEmbed(
       new EmbedBuilder()
@@ -89,7 +99,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
               : "not yet watered the christmas tree."
           }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
             wallet ? wallet.streak : 0
-          } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.`
+          } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`
         )
     )
     .addComponents(
