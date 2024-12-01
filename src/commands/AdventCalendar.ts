@@ -14,7 +14,10 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { AdventCalendarHelper } from "../util/adventCalendar/AdventCalendarHelper";
 
 export class AdventCalendar implements ISlashCommand {
-  public builder = new SlashCommandBuilder("adventcalendar", "Open your daily advent calendar present!");
+  public builder = new SlashCommandBuilder(
+    "adventcalendar",
+    "🎅 Unwrap your daily gift from Santa's Advent Calendar! 🎁"
+  );
 
   public handler = async (ctx: SlashCommandContext | ButtonContext): Promise<void> => {
     return await ctx.reply(await buildAdventCalendarMessage(ctx));
@@ -74,7 +77,7 @@ async function buildAdventCalendarUnavailableMessage(
   nextChristmas: Date
 ): Promise<MessageBuilder> {
   const embed = new EmbedBuilder()
-    .setTitle("Advent Calendar")
+    .setTitle("🎁 Santa's Advent Calendar 🎄")
     .setDescription(
       `🎄 The advent calendar is only available from December 1st until Christmas. Please come back on December 1st. 🎅\n\nNext advent calendar starts in <t:${Math.floor(
         nextChristmas.getTime() / 1000
@@ -95,11 +98,11 @@ async function buildAlreadyOpenedMessage(
   nextOpenDate: Date
 ): Promise<MessageBuilder> {
   const embed = new EmbedBuilder()
-    .setTitle("Advent Calendar")
+    .setTitle("🎁 Santa's Advent Calendar 🎄")
     .setDescription(
       `🎁 <@${
         ctx.user.id
-      }>, You have already opened your present for today. You can open your next present <t:${Math.floor(
+      }>, You've already unwrapped today's gift! Come back tomorrow to open the next one. 🎁 <t:${Math.floor(
         nextOpenDate.getTime() / 1000
       )}:R>.`
     )
@@ -118,9 +121,9 @@ async function buildPresentOpenedMessage(
   present: { type: string; amount?: number }
 ): Promise<MessageBuilder> {
   const embed = new EmbedBuilder()
-    .setTitle("Advent Calendar")
+    .setTitle("🎁 Santa's Advent Calendar 🎄")
     .setDescription(
-      `🎉 <@${ctx.user.id}>, You have opened your advent calendar present and received ${present.amount} ${present.type}! Come back tomorrow for another present.`
+      `🎉 <@${ctx.user.id}>, You've unwrapped your advent calendar gift and received ${present.amount} ${present.type}! Check back tomorrow for more festive surprises. 🎄`
     )
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg");
