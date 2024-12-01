@@ -117,7 +117,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
     )
     .join("\n");
 
-    console.log(achievementsDescription);
+  console.log(achievementsDescription);
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("profile.refresh", { id, nick, page })

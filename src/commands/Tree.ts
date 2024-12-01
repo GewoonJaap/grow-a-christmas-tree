@@ -24,6 +24,7 @@ import { isUserFlagged } from "../util/anti-bot/flaggingHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { getLocaleFromTimezone } from "../util/timezones";
+import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -302,7 +303,7 @@ export async function buildTreeDisplayMessage(
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
+      }\n${getNewsMessages()}`
     );
   } else {
     embed.setDescription(
@@ -314,7 +315,7 @@ export async function buildTreeDisplayMessage(
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}`
+      }\n${getNewsMessages()}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
@@ -333,6 +334,11 @@ export async function buildTreeDisplayMessage(
   message.addEmbed(embed);
 
   return message;
+}
+
+function getNewsMessages(): string {
+  const newsMessages = NewsMessageHelper.getMessages(1);
+  return newsMessages.join("\n");
 }
 
 function removeWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): void {
