@@ -5,7 +5,7 @@ interface IAchievement {
   achievementName: string;
   description: string;
   dateEarned: Date;
-  badgeUrl: string;
+  emoji: string;
 }
 
 const AchievementSchema = new Schema<IAchievement>({
@@ -13,7 +13,7 @@ const AchievementSchema = new Schema<IAchievement>({
   achievementName: { type: String, required: true },
   description: { type: String, required: true },
   dateEarned: { type: Date, required: true, default: Date.now },
-  badgeUrl: { type: String, required: true }
+  emoji: { type: String, required: true }
 });
 
 const Achievement = model<IAchievement>("Achievement", AchievementSchema);

@@ -82,7 +82,9 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
   const achievementsDescription = achievements
     .map(
       (achievement) =>
-        `🏅 **${achievement.achievementName}**\n${achievement.description}\nEarned on: ${achievement.dateEarned.toDateString()}\n`
+        `🏅 **${achievement.achievementName}**\n${
+          achievement.description
+        }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
     )
     .join("\n");
 

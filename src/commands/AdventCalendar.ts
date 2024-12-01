@@ -1,17 +1,7 @@
-import {
-  EmbedBuilder,
-  ISlashCommand,
-  MessageBuilder,
-  SlashCommandBuilder,
-  SlashCommandContext
-} from "interactions.ts";
-import { WalletHelper } from "../util/wallet/WalletHelper";
-import { AdventCalendarHelper } from "../util/adventCalendar/AdventCalendarHelper";
+import { EmbedBuilder, ISlashCommand, MessageBuilder, SlashCommandBuilder, SlashCommandContext } from "interactions.ts";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
-import { getLocaleFromTimezone } from "../util/timezones";
-import { AdventCalendar } from "../models/AdventCalendar";
-import { Achievement } from "../models/Achievement";
+import { AdventCalendarHelper } from "../util/adventCalendar/AdventCalendarHelper";
 
 export class AdventCalendar implements ISlashCommand {
   public builder = new SlashCommandBuilder("adventcalendar", "Open your daily advent calendar present!");
@@ -21,16 +11,40 @@ export class AdventCalendar implements ISlashCommand {
       return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
     }
 
-    const userId = ctx.user.id;
-    const guildId = ctx.interaction.guild_id;
-    const currentDate = new Date();
-    const userTimeZone = await AdventCalendarHelper.getUserTimeZone(userId, guildId);
-    const userLocale = getLocaleFromTimezone(userTimeZone);
+    if (!ctx.game || ctx.isDM) {
+      return await ctx.reply("This command can only be used in a server with a tree planted.");
+    }
 
-    const hasOpenedPresent = await AdventCalendarHelper.hasOpenedPresent(userId, currentDate, userTimeZone);
+    const userId = ctx.user.id;
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const startOfAdvent = new Date(currentYear, 11, 1); // December 1st
+    const endOfAdvent = new Date(currentYear, 11, 25, 23, 59, 59); // December 25th
+
+    if (currentDate < startOfAdvent || currentDate > endOfAdvent) {
+      const nextChristmas = currentDate > endOfAdvent ? new Date(currentYear + 1, 11, 1) : new Date(currentYear, 11, 1); // December 1st of next year if after December 25th, otherwise this year
+
+      const embed = new EmbedBuilder()
+        .setTitle("Advent Calendar")
+        .setDescription(
+          `🎄 The advent calendar is only available from December 1st until Christmas. Please come back on December 1st. 🎅\n\nNext advent calendar starts in <t:${Math.floor(
+            nextChristmas.getTime() / 1000
+          )}:R>.`
+        )
+        .setColor(0xff0000)
+        .setImage(
+          "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg"
+        );
+
+      return await ctx.reply(new MessageBuilder().addEmbed(embed));
+    }
+
+    const hasOpenedPresent = await AdventCalendarHelper.hasClaimedToday(userId);
 
     if (hasOpenedPresent) {
-      const nextOpenDate = AdventCalendarHelper.getNextOpenDate(currentDate, userTimeZone);
+      const nextOpenDate = AdventCalendarHelper.getNextClaimDay(
+        (await AdventCalendarHelper.getLastClaimDay(userId)) ?? new Date()
+      );
       const embed = new EmbedBuilder()
         .setTitle("Advent Calendar")
         .setDescription(
@@ -43,34 +57,18 @@ export class AdventCalendar implements ISlashCommand {
       return await ctx.reply(new MessageBuilder().addEmbed(embed));
     }
 
-    const present = AdventCalendarHelper.getDailyPresent();
-    await AdventCalendarHelper.saveUserPresent(userId, currentDate, present);
+    const present = await AdventCalendarHelper.addClaimedDay(ctx);
 
-    const wallet = await WalletHelper.getWallet(userId);
-    wallet.coins += present.coins;
-    await wallet.save();
+    if (!present) {
+      return await ctx.reply("An error occurred while opening your present. Please try again later.");
+    }
 
     const embed = new EmbedBuilder()
       .setTitle("Advent Calendar")
       .setDescription(
-        `🎉 You have opened your advent calendar present and received ${present.coins} coins! Come back tomorrow for another present.`
+        `🎉 You have opened your advent calendar present and received ${present.amount} ${present.type}! Come back tomorrow for another present.`
       )
       .setColor(0x00ff00);
-
-    // Check for achievements
-    const achievements = await Achievement.find({ userId });
-    const streakAchievement = achievements.find((achievement) => achievement.achievementName === "Daily Streak");
-
-    if (!streakAchievement) {
-      const newAchievement = new Achievement({
-        userId,
-        achievementName: "Daily Streak",
-        description: "Opened a present for the first time",
-        dateEarned: new Date(),
-        badgeUrl: "https://example.com/badge.png"
-      });
-      await newAchievement.save();
-    }
 
     return await ctx.reply(new MessageBuilder().addEmbed(embed));
   };
