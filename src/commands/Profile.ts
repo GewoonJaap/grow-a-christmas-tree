@@ -16,10 +16,12 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { Achievement } from "../models/Achievement";
+import { AchievementHelper } from "../util/achievement/AchievementHelper";
 
 type State = {
   id: string;
   nick: string;
+  page: number;
 };
 
 const builder = new SlashCommandBuilder("profile", "View a user's contributions to the christmas tree.").addUserOption(
@@ -44,6 +46,26 @@ export class Profile implements ISlashCommand {
       async (ctx: ButtonContext<State>): Promise<void> => {
         return await ctx.reply(await buildProfileMessage(ctx));
       }
+    ),
+    new Button(
+      "profile.back",
+      new ButtonBuilder().setEmoji({ name: "◀️" }).setStyle(2),
+      async (ctx: ButtonContext<State>): Promise<void> => {
+        if (!ctx.state) return;
+
+        ctx.state.page--;
+        return await ctx.reply(await buildProfileMessage(ctx));
+      }
+    ),
+    new Button(
+      "profile.next",
+      new ButtonBuilder().setEmoji({ name: "▶️" }).setStyle(2),
+      async (ctx: ButtonContext<State>): Promise<void> => {
+        if (!ctx.state) return;
+
+        ctx.state.page++;
+        return await ctx.reply(await buildProfileMessage(ctx));
+      }
     )
   ];
 }
@@ -51,7 +73,7 @@ export class Profile implements ISlashCommand {
 async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<State>): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
-  let nick: string, id: string;
+  let nick: string, id: string, page: number;
 
   if (ctx instanceof SlashCommandContext || !ctx.state) {
     const target =
@@ -64,9 +86,11 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
       ctx instanceof SlashCommandContext && target
         ? ctx.interaction.data?.resolved?.members?.[id]?.nick ?? target.username
         : ctx.interaction.member?.nick ?? ctx.user.username;
+    page = 1;
   } else {
     id = ctx.state.id;
     nick = ctx.state.nick;
+    page = ctx.state.page;
   }
 
   const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
@@ -77,9 +101,14 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
   const contributorRank =
     ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
 
-  const achievements = await Achievement.find({ userId: id });
+  const achievements = await AchievementHelper.getAchievements(id);
+  console.log(achievements);
 
-  const achievementsDescription = achievements
+  const achievementsPerPage = 5;
+  const start = (page - 1) * achievementsPerPage;
+  const paginatedAchievements = achievements.slice(start ?? 0, start + achievementsPerPage);
+
+  const achievementsDescription = paginatedAchievements
     .map(
       (achievement) =>
         `🏅 **${achievement.achievementName}**\n${
@@ -87,6 +116,20 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
         }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
     )
     .join("\n");
+
+    console.log(achievementsDescription);
+
+  const actionRow = new ActionRowBuilder().addComponents(
+    await ctx.manager.components.createInstance("profile.refresh", { id, nick, page })
+  );
+
+  if (page > 1) {
+    actionRow.addComponents(await ctx.manager.components.createInstance("profile.back", { id, nick, page }));
+  }
+
+  if (achievements.length > start + achievementsPerPage) {
+    actionRow.addComponents(await ctx.manager.components.createInstance("profile.next", { id, nick, page }));
+  }
 
   return new MessageBuilder()
     .addEmbed(
@@ -104,7 +147,5 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
           } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`
         )
     )
-    .addComponents(
-      new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("profile.refresh", { id, nick }))
-    );
+    .addComponents(actionRow);
 }
