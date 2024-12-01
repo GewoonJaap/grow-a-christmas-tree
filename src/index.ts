@@ -33,7 +33,8 @@ import {
   SetTimezone,
   ServerInfo,
   Wheel,
-  RedeemPurschagesCommand
+  RedeemPurschagesCommand,
+  AdventCalendar
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -132,7 +133,8 @@ if (keys.some((key) => !(key in process.env))) {
       new Composter(),
       new SetTimezone(),
       new ServerInfo(),
-      new Wheel()
+      new Wheel(),
+      new AdventCalendar()
     ],
     false
   );
