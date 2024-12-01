@@ -28,7 +28,8 @@ export class PumpkinHuntMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.pumpkinhunt.pumpkin"),
       await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-1"),
       await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-2"),
-      await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-3")
+      await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-3"),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));
@@ -106,6 +107,21 @@ export class PumpkinHuntMinigame implements Minigame {
       "minigame.pumpkinhunt.empty-3",
       new ButtonBuilder().setEmoji({ name: "🕸️" }).setStyle(getRandomButtonStyle()),
       PumpkinHuntMinigame.handleEmptyButton
+    ),
+    new Button(
+      "tree.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
+      async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transitionToDefaultTreeView(ctx);
+          return;
+        }
+        return await ctx.reply(await buildTreeDisplayMessage(ctx));
+      }
     )
   ];
 }

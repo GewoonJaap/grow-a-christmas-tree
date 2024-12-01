@@ -43,7 +43,8 @@ export const minigameButtons = [
   ...HeartCollectionMinigame.buttons,
   ...PumpkinHuntMinigame.buttons,
   ...StPatricksDayTreasureHuntMinigame.buttons,
-  ...ThanksgivingFeastMinigame.buttons
+  ...ThanksgivingFeastMinigame.buttons,
+  await ctx.manager.components.createInstance("tree.refresh")
 ];
 
 const minigames: Minigame[] = [

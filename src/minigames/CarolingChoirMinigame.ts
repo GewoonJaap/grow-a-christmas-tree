@@ -52,7 +52,8 @@ export class CarolingChoirMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.carolingchoir.note", { currentStage }),
       await ctx.manager.components.createInstance("minigame.carolingchoir.wrongnote-1", { currentStage }),
       await ctx.manager.components.createInstance("minigame.carolingchoir.wrongnote-2", { currentStage }),
-      await ctx.manager.components.createInstance("minigame.carolingchoir.wrongnote-3", { currentStage })
+      await ctx.manager.components.createInstance("minigame.carolingchoir.wrongnote-3", { currentStage }),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     shuffleArray(buttons);

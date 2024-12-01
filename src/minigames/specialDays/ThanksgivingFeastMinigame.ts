@@ -30,7 +30,8 @@ export class ThanksgivingFeastMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.thanksgivingfeast.feast"),
       await ctx.manager.components.createInstance("minigame.thanksgivingfeast.empty-1"),
       await ctx.manager.components.createInstance("minigame.thanksgivingfeast.empty-2"),
-      await ctx.manager.components.createInstance("minigame.thanksgivingfeast.empty-3")
+      await ctx.manager.components.createInstance("minigame.thanksgivingfeast.empty-3"),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));
@@ -114,6 +115,21 @@ export class ThanksgivingFeastMinigame implements Minigame {
       "minigame.thanksgivingfeast.empty-3",
       new ButtonBuilder().setEmoji({ name: "🥄" }).setStyle(getRandomButtonStyle()),
       ThanksgivingFeastMinigame.handleEmptyButton
+    ),
+    new Button(
+      "tree.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
+      async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transitionToDefaultTreeView(ctx);
+          return;
+        }
+        return await ctx.reply(await buildTreeDisplayMessage(ctx));
+      }
     )
   ];
 }

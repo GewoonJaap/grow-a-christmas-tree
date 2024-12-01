@@ -65,7 +65,8 @@ export class GrinchHeistMinigame implements Minigame {
       await ctx.manager.components.createInstance(GRINCH_BUTTON_NAMES[0], { isPenalty }),
       await ctx.manager.components.createInstance(GRINCH_BUTTON_NAMES[1], { isPenalty }),
       await ctx.manager.components.createInstance(GRINCH_BUTTON_NAMES[2], { isPenalty }),
-      await ctx.manager.components.createInstance(GRINCH_BUTTON_NAMES[3], { isPenalty })
+      await ctx.manager.components.createInstance(GRINCH_BUTTON_NAMES[3], { isPenalty }),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     shuffleArray(buttons);

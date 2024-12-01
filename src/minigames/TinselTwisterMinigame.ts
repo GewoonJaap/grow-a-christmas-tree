@@ -50,7 +50,8 @@ export class TinselTwisterMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.tinseltwister.tinsel", { currentStage }),
       await ctx.manager.components.createInstance("minigame.tinseltwister.empty-1", { currentStage }),
       await ctx.manager.components.createInstance("minigame.tinseltwister.empty-2", { currentStage }),
-      await ctx.manager.components.createInstance("minigame.tinseltwister.empty-3", { currentStage })
+      await ctx.manager.components.createInstance("minigame.tinseltwister.empty-3", { currentStage }),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     shuffleArray(buttons);
@@ -144,6 +145,21 @@ export class TinselTwisterMinigame implements Minigame {
       "minigame.tinseltwister.empty-3",
       new ButtonBuilder().setEmoji({ name: "🌲" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
+    ),
+    new Button(
+      "tree.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
+      async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transitionToDefaultTreeView(ctx);
+          return;
+        }
+        return await ctx.reply(await buildTreeDisplayMessage(ctx));
+      }
     )
   ];
 }

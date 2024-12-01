@@ -28,7 +28,8 @@ export class GiftUnwrappingMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.giftunwrapping.gift"),
       await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-1"),
       await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-2"),
-      await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-3")
+      await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-3"),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     shuffleArray(buttons);

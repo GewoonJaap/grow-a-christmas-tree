@@ -29,7 +29,8 @@ export class HotCocoaMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.hotcocoa.hotcocoa"),
       await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-1"),
       await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-2"),
-      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-3")
+      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-3"),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     shuffleArray(buttons);
@@ -112,6 +113,21 @@ export class HotCocoaMinigame implements Minigame {
       "minigame.hotcocoa.spilledcocoa-3",
       new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
+    ),
+    new Button(
+      "tree.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
+      async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transitionToDefaultTreeView(ctx);
+          return;
+        }
+        return await ctx.reply(await buildTreeDisplayMessage(ctx));
+      }
     )
   ];
 }

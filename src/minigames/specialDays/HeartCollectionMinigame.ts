@@ -28,7 +28,8 @@ export class HeartCollectionMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.heartcollection.heart"),
       await ctx.manager.components.createInstance("minigame.heartcollection.empty-1"),
       await ctx.manager.components.createInstance("minigame.heartcollection.empty-2"),
-      await ctx.manager.components.createInstance("minigame.heartcollection.empty-3")
+      await ctx.manager.components.createInstance("minigame.heartcollection.empty-3"),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));

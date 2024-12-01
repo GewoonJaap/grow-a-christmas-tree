@@ -1,6 +1,6 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
+import { disposeActiveTimeouts, transitionToDefaultTreeView, buildTreeDisplayMessage } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
@@ -29,7 +29,8 @@ export class SnowballFightMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.snowballfight.snowball"),
       await ctx.manager.components.createInstance("minigame.snowballfight.miss-1"),
       await ctx.manager.components.createInstance("minigame.snowballfight.miss-2"),
-      await ctx.manager.components.createInstance("minigame.snowballfight.miss-3")
+      await ctx.manager.components.createInstance("minigame.snowballfight.miss-3"),
+      await ctx.manager.components.createInstance("tree.refresh")
     ];
 
     shuffleArray(buttons);
