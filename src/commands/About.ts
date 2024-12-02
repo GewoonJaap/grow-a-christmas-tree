@@ -30,6 +30,7 @@ export class About implements ISlashCommand {
           🎁 **/adventcalendar** - Open your daily advent calendar present.
           🪙 **/redeemcoins** - Redeem any outstanding purchases from the shop.
           💸 **/sendcoins** - Transfer coins to another player.
+          🛒 **/shop** - Browse and grab magical items from the shop to power up your tree!
 
           **Leaderboards**
           🏆 **/forest** - See the leaderboard of all the Christmas trees.
