@@ -74,11 +74,15 @@ export class HolidayCookieCountdownMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You collected all the cookies! Your tree has grown 1ft!");
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     await minigameFinished(ctx, {
       success: true,
@@ -104,6 +108,9 @@ export class HolidayCookieCountdownMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the cookie. Better luck next time!");
@@ -117,7 +124,9 @@ export class HolidayCookieCountdownMinigame implements Minigame {
         failureReason: "Timeout"
       });
     } else {
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
       await minigameFinished(ctx, {
         success: false,
         difficulty: 1,

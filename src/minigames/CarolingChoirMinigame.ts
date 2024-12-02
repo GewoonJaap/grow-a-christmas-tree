@@ -82,11 +82,15 @@ export class CarolingChoirMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You led the carolers perfectly! Your tree has grown 1ft!");
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
@@ -109,11 +113,16 @@ export class CarolingChoirMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You hit a wrong note. Better luck next time!");
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 

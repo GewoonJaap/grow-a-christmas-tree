@@ -142,7 +142,6 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
 
 function getNextClaimDayEpoch(claimDate: Date): number {
   const nextDay = new Date(claimDate.getTime() + SECONDS_IN_A_DAY * MILLISECONDS_IN_A_SECOND);
-  console.log(nextDay, nextDay.getTime());
   return Math.floor(
     new Date(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate(), 0, 0, 0).getTime() / MILLISECONDS_IN_A_SECOND
   );

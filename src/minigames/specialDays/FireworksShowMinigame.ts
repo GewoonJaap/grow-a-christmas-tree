@@ -58,6 +58,8 @@ export class FireworksShowMinigame implements Minigame {
     ctx.game.size += 2;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You launched a spectacular fireworks show! Your tree grew 2ft taller!")
@@ -65,7 +67,7 @@ export class FireworksShowMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/newyears-eve/newyears-eve-2.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: FIREWORKS_SHOW_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
@@ -74,11 +76,14 @@ export class FireworksShowMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the fireworks. Better luck next time!");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, {
       success: false,
       difficulty: 1,

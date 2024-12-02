@@ -97,6 +97,8 @@ export class GrinchHeistMinigame implements Minigame {
     ctx.game.size = toFixed(Math.max(0, ctx.game.size - randomLoss), 2);
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`The Grinch stole part of your tree! You lost ${randomLoss}ft.`)
@@ -111,7 +113,9 @@ export class GrinchHeistMinigame implements Minigame {
         maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.edit(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     } else {
       await minigameFinished(ctx, {
         success: false,
@@ -119,7 +123,9 @@ export class GrinchHeistMinigame implements Minigame {
         maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
         failureReason: "Wrong button"
       });
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     }
 
     transitionToDefaultTreeView(ctx);
@@ -139,6 +145,8 @@ export class GrinchHeistMinigame implements Minigame {
           await ctx.game.save();
         }
 
+        const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
           .setDescription(`You saved the tree!${ctx.state?.isPenalty ? "" : " Your tree grew 1ft taller!"}`)
@@ -146,7 +154,9 @@ export class GrinchHeistMinigame implements Minigame {
             "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-tree-saved-1.jpg"
           );
 
-        await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+        await ctx.reply(
+          new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+        );
 
         transitionToDefaultTreeView(ctx);
 

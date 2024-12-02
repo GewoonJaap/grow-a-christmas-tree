@@ -1,4 +1,4 @@
-import { ButtonContext } from "interactions.ts";
+import { Button, ButtonBuilder, ButtonContext } from "interactions.ts";
 import { SantaPresentMinigame } from "./SantaPresentMinigame";
 import { Minigame } from "../util/types/minigame/MinigameType";
 import { HotCocoaMinigame } from "./HotCocoaMinigame";
@@ -20,6 +20,7 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
+import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -43,7 +44,15 @@ export const minigameButtons = [
   ...HeartCollectionMinigame.buttons,
   ...PumpkinHuntMinigame.buttons,
   ...StPatricksDayTreasureHuntMinigame.buttons,
-  ...ThanksgivingFeastMinigame.buttons
+  ...ThanksgivingFeastMinigame.buttons,
+  new Button(
+    "minigame.refresh",
+    new ButtonBuilder().setEmoji({ name: "🔄" }).setLabel("Refresh").setStyle(2),
+    async (ctx) => {
+      disposeActiveTimeouts(ctx);
+      return ctx.reply(await buildTreeDisplayMessage(ctx));
+    }
+  )
 ];
 
 const minigames: Minigame[] = [

@@ -58,6 +58,8 @@ export class SantaPresentMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft!`)
@@ -65,7 +67,7 @@ export class SantaPresentMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SANTA_MINIGAME_MAX_DURATION });
 
@@ -77,9 +79,11 @@ export class SantaPresentMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(`Whoops! The witch stole your present!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, {
       success: false,

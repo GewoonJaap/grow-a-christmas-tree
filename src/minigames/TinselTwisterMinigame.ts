@@ -80,11 +80,15 @@ export class TinselTwisterMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You completed the Tinsel Twister! Your tree has grown 1ft!`);
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
@@ -105,14 +109,20 @@ export class TinselTwisterMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You missed the tinsel. Better luck next time!`);
 
     if (isTimeout) {
-      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.edit(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     } else {
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     }
 
     await minigameFinished(ctx, {
