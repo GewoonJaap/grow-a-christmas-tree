@@ -141,8 +141,6 @@ if (keys.some((key) => !(key in process.env))) {
     false
   );
 
-  app.commands.deleteUnregistered();
-
   const server = fastify();
   server.register(rawBody);
 
