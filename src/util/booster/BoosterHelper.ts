@@ -21,7 +21,7 @@ export class BoosterHelper {
       name: "Growth Booster",
       emoji: "🌱",
       effect: "Increases the base tree growth rate by 50%",
-      cost: 150,
+      cost: 1500,
       duration: 3600, // 1 hour
       chance: 1,
       description: "🎄 Boost your tree's growth with a sprinkle of holiday magic!",
@@ -31,7 +31,7 @@ export class BoosterHelper {
       name: "Watering Booster",
       emoji: "💧",
       effect: "Reduces watering cooldown by 50%",
-      cost: 120,
+      cost: 750,
       duration: 1800, // 30 minutes
       chance: 1,
       description: "💦 Keep your tree hydrated with this refreshing booster!",
@@ -41,7 +41,7 @@ export class BoosterHelper {
       name: "Minigame Booster",
       emoji: "🎮",
       effect: "Increases minigame chances by 50%",
-      cost: 200,
+      cost: 400,
       duration: 5400, // 1.5 hours
       chance: 0.5, // 50% chance
       description: "🎮 Enjoy more festive fun with increased minigame chances!"
@@ -50,7 +50,7 @@ export class BoosterHelper {
       name: "Coin Booster",
       emoji: "🪙",
       effect: "Increases coin earnings by 50%",
-      cost: 180,
+      cost: 800,
       duration: 7200, // 2 hours
       chance: 1,
       description: "🪙 Earn more coins to spend on festive goodies!",
