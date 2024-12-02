@@ -28,8 +28,7 @@ export class EarthDayCleanupMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.earthdaycleanup.trash"),
       await ctx.manager.components.createInstance("minigame.earthdaycleanup.empty-1"),
       await ctx.manager.components.createInstance("minigame.earthdaycleanup.empty-2"),
-      await ctx.manager.components.createInstance("minigame.earthdaycleanup.empty-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.earthdaycleanup.empty-3")
     ];
 
     const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));
@@ -59,6 +58,8 @@ export class EarthDayCleanupMinigame implements Minigame {
     ctx.game.size += 2;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You cleaned up the environment and your tree grew 2ft taller!")
@@ -66,7 +67,7 @@ export class EarthDayCleanupMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/earthday-cleanup/earthday-cleanup-1.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION });
 
@@ -77,11 +78,14 @@ export class EarthDayCleanupMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the trash. Better luck next time!");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, {
       success: false,
@@ -113,21 +117,6 @@ export class EarthDayCleanupMinigame implements Minigame {
       "minigame.earthdaycleanup.empty-3",
       new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
-    ),
-    new Button(
-      "tree.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
-      async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transitionToDefaultTreeView(ctx);
-          return;
-        }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
     )
   ];
 }

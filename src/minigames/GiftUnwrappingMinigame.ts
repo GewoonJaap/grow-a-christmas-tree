@@ -28,8 +28,7 @@ export class GiftUnwrappingMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.giftunwrapping.gift"),
       await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-1"),
       await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-2"),
-      await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.giftunwrapping.emptybox-3")
     ];
 
     shuffleArray(buttons);
@@ -74,13 +73,15 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(message)
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-unwrapping-1.png"
       );
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     transitionToDefaultTreeView(ctx);
 
@@ -92,10 +93,12 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You unwrapped an empty box. Better luck next time!");
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     transitionToDefaultTreeView(ctx);
 

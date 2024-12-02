@@ -28,8 +28,7 @@ export class FireworksShowMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.fireworksshow.firework"),
       await ctx.manager.components.createInstance("minigame.fireworksshow.empty-1"),
       await ctx.manager.components.createInstance("minigame.fireworksshow.empty-2"),
-      await ctx.manager.components.createInstance("minigame.fireworksshow.empty-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.fireworksshow.empty-3")
     ];
 
     const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));
@@ -59,6 +58,8 @@ export class FireworksShowMinigame implements Minigame {
     ctx.game.size += 2;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You launched a spectacular fireworks show! Your tree grew 2ft taller!")
@@ -66,7 +67,7 @@ export class FireworksShowMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/newyears-eve/newyears-eve-2.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: FIREWORKS_SHOW_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
@@ -75,11 +76,14 @@ export class FireworksShowMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the fireworks. Better luck next time!");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, {
       success: false,
       difficulty: 1,
@@ -109,21 +113,6 @@ export class FireworksShowMinigame implements Minigame {
       "minigame.fireworksshow.empty-3",
       new ButtonBuilder().setEmoji({ name: "🎉" }).setStyle(getRandomButtonStyle()),
       FireworksShowMinigame.handleEmptyButton
-    ),
-    new Button(
-      "tree.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
-      async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transitionToDefaultTreeView(ctx);
-          return;
-        }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
     )
   ];
 }

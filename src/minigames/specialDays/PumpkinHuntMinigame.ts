@@ -28,8 +28,7 @@ export class PumpkinHuntMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.pumpkinhunt.pumpkin"),
       await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-1"),
       await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-2"),
-      await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.pumpkinhunt.empty-3")
     ];
 
     const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));
@@ -59,12 +58,14 @@ export class PumpkinHuntMinigame implements Minigame {
     ctx.game.size += 2;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You found a hidden pumpkin and your tree grew 2ft taller!")
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-2.jpg");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
@@ -73,11 +74,14 @@ export class PumpkinHuntMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the pumpkins. Better luck next time!");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, {
       success: false,
       difficulty: 1,
@@ -107,21 +111,6 @@ export class PumpkinHuntMinigame implements Minigame {
       "minigame.pumpkinhunt.empty-3",
       new ButtonBuilder().setEmoji({ name: "🕸️" }).setStyle(getRandomButtonStyle()),
       PumpkinHuntMinigame.handleEmptyButton
-    ),
-    new Button(
-      "tree.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
-      async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transitionToDefaultTreeView(ctx);
-          return;
-        }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
     )
   ];
 }

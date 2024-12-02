@@ -1,4 +1,4 @@
-import { ButtonContext } from "interactions.ts";
+import { Button, ButtonBuilder, ButtonContext } from "interactions.ts";
 import { SantaPresentMinigame } from "./SantaPresentMinigame";
 import { Minigame } from "../util/types/minigame/MinigameType";
 import { HotCocoaMinigame } from "./HotCocoaMinigame";
@@ -20,6 +20,7 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
+import { transitionToDefaultTreeView } from "../commands";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -44,7 +45,11 @@ export const minigameButtons = [
   ...PumpkinHuntMinigame.buttons,
   ...StPatricksDayTreasureHuntMinigame.buttons,
   ...ThanksgivingFeastMinigame.buttons,
-  await ctx.manager.components.createInstance("tree.refresh")
+  new Button(
+    "minigame.refresh",
+    new ButtonBuilder().setEmoji({ name: "🔄" }).setLabel("Refresh").setStyle(2),
+    async (ctx) => transitionToDefaultTreeView(ctx, 0)
+  )
 ];
 
 const minigames: Minigame[] = [

@@ -29,8 +29,7 @@ export class SnowballFightMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.snowballfight.snowball"),
       await ctx.manager.components.createInstance("minigame.snowballfight.miss-1"),
       await ctx.manager.components.createInstance("minigame.snowballfight.miss-2"),
-      await ctx.manager.components.createInstance("minigame.snowballfight.miss-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.snowballfight.miss-3")
     ];
 
     shuffleArray(buttons);
@@ -66,8 +65,12 @@ export class SnowballFightMinigame implements Minigame {
 
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION });
 
@@ -78,6 +81,8 @@ export class SnowballFightMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
@@ -90,7 +95,9 @@ export class SnowballFightMinigame implements Minigame {
         maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.edit(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     } else {
       await minigameFinished(ctx, {
         success: true,
@@ -98,7 +105,9 @@ export class SnowballFightMinigame implements Minigame {
         maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
         failureReason: "Wrong button"
       });
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     }
 
     transitionToDefaultTreeView(ctx);

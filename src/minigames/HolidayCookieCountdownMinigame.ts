@@ -50,8 +50,7 @@ export class HolidayCookieCountdownMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.holidaycookiecountdown.cookie", { currentStage }),
       await ctx.manager.components.createInstance("minigame.holidaycookiecountdown.emptyplate-1", { currentStage }),
       await ctx.manager.components.createInstance("minigame.holidaycookiecountdown.emptyplate-2", { currentStage }),
-      await ctx.manager.components.createInstance("minigame.holidaycookiecountdown.emptyplate-3", { currentStage }),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.holidaycookiecountdown.emptyplate-3", { currentStage })
     ];
 
     shuffleArray(buttons);
@@ -75,11 +74,15 @@ export class HolidayCookieCountdownMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You collected all the cookies! Your tree has grown 1ft!");
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     await minigameFinished(ctx, {
       success: true,
@@ -105,6 +108,9 @@ export class HolidayCookieCountdownMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the cookie. Better luck next time!");
@@ -118,7 +124,9 @@ export class HolidayCookieCountdownMinigame implements Minigame {
         failureReason: "Timeout"
       });
     } else {
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
       await minigameFinished(ctx, {
         success: false,
         difficulty: 1,
@@ -150,21 +158,6 @@ export class HolidayCookieCountdownMinigame implements Minigame {
       "minigame.holidaycookiecountdown.emptyplate-3",
       new ButtonBuilder().setEmoji({ name: "🥠" }).setStyle(getRandomButtonStyle()),
       HolidayCookieCountdownMinigame.handleEmptyPlateButton
-    ),
-    new Button(
-      "tree.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
-      async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transitionToDefaultTreeView(ctx);
-          return;
-        }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
     )
   ];
 }

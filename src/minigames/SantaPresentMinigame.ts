@@ -26,8 +26,7 @@ export class SantaPresentMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.santapresent.present"),
       await ctx.manager.components.createInstance("minigame.santapresent.witch-1"),
       await ctx.manager.components.createInstance("minigame.santapresent.witch-2"),
-      await ctx.manager.components.createInstance("minigame.santapresent.witch-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.santapresent.witch-3")
     ];
 
     shuffleArray(buttons);
@@ -59,6 +58,8 @@ export class SantaPresentMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft!`)
@@ -66,7 +67,7 @@ export class SantaPresentMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SANTA_MINIGAME_MAX_DURATION });
 
@@ -78,9 +79,11 @@ export class SantaPresentMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(`Whoops! The witch stole your present!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, {
       success: false,
@@ -112,21 +115,6 @@ export class SantaPresentMinigame implements Minigame {
       "minigame.santapresent.witch-3",
       new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
-    ),
-    new Button(
-      "tree.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
-      async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transitionToDefaultTreeView(ctx);
-          return;
-        }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
     )
   ];
 }

@@ -29,8 +29,7 @@ export class HotCocoaMinigame implements Minigame {
       await ctx.manager.components.createInstance("minigame.hotcocoa.hotcocoa"),
       await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-1"),
       await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-2"),
-      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-3"),
-      await ctx.manager.components.createInstance("tree.refresh")
+      await ctx.manager.components.createInstance("minigame.hotcocoa.spilledcocoa-3")
     ];
 
     shuffleArray(buttons);
@@ -61,11 +60,13 @@ export class HotCocoaMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You spilled the cocoa! Better luck next time!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     await minigameFinished(ctx, {
       success: false,
@@ -88,12 +89,14 @@ export class HotCocoaMinigame implements Minigame {
         ctx.game.size++;
         await ctx.game.save();
 
+        const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
           .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft!`);
 
-        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+        ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
         await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION });
 
         transitionToDefaultTreeView(ctx);
@@ -113,21 +116,6 @@ export class HotCocoaMinigame implements Minigame {
       "minigame.hotcocoa.spilledcocoa-3",
       new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
-    ),
-    new Button(
-      "tree.refresh",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
-      async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transitionToDefaultTreeView(ctx);
-          return;
-        }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
-      }
     )
   ];
 }
