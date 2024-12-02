@@ -20,7 +20,8 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
-import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands";
+import { buildTreeDisplayMessage, disposeActiveTimeouts } from "../commands";
+import { BoosterHelper } from "../util/booster/BoosterHelper";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -176,9 +177,10 @@ export async function handleMinigameCoins(
   const premiumBonus = ctx.game.hasAiAccess ? 15 : 0;
   const ramdomBonus = Math.floor(Math.random() * 10);
 
-  const totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus + ramdomBonus);
+  let totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus + ramdomBonus);
 
   if (totalCoins > 0) {
+    totalCoins = BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Coin Booster", totalCoins);
     await WalletHelper.addCoins(ctx.user.id, totalCoins);
   } else {
     await WalletHelper.removeCoins(ctx.user.id, totalCoins * -1);

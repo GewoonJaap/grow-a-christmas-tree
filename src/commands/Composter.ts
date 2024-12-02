@@ -56,7 +56,7 @@ export class Composter implements ISlashCommand {
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
           await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
-          transistionBackToDefaultComposterViewWithTimeout(ctx);
+          transitionBackToDefaultComposterViewWithTimeout(ctx);
           return;
         }
         return await ctx.reply(await handleUpgrade(ctx, "efficiency"));
@@ -215,7 +215,7 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
 
     const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 
-    transistionBackToDefaultComposterViewWithTimeout(ctx);
+    transitionBackToDefaultComposterViewWithTimeout(ctx);
 
     return message;
   }
@@ -233,7 +233,7 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
   return await buildComposterMessage(ctx);
 }
 
-function transistionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
+function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
   disposeActiveTimeouts(ctx);
   ctx.timeouts.set(
     ctx.interaction.message.id,

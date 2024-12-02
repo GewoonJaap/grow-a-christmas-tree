@@ -13,6 +13,8 @@ import {
 } from "interactions.ts";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { getRandomElement } from "../util/helpers/arrayHelper";
+import { BoosterHelper } from "../util/booster/BoosterHelper";
+import humanizeDuration = require("humanize-duration");
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/server-info/server-info-1.jpg",
@@ -35,7 +37,7 @@ export class ServerInfo implements ISlashCommand {
 
   public builder = new SlashCommandBuilder(
     "serverinfo",
-    "See Santa's magic status, tree thirst, and composter upgrades at a glance! 🎅✨"
+    "See Santa's magic status, tree thirst, composter upgrades and active boosters at a glance! 🎅✨"
   );
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
@@ -51,6 +53,17 @@ export class ServerInfo implements ISlashCommand {
     return await ctx.reply(embed);
   };
 
+  private getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
+    if (ctx.game?.activeBoosters && ctx.game.activeBoosters.length > 0) {
+      const activeBoosters = ctx.game.activeBoosters.map((booster) => {
+        const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
+        return `${booster.type} (${humanizeDuration(remainingTime * 1000, { largest: 1 })} remaining)`;
+      });
+      return `${activeBoosters.join(", ")}`;
+    }
+    return "No active boosters";
+  }
+
   private async buildServerInfoEmbed(
     ctx: SlashCommandContext | ButtonContext<unknown> | ButtonContext
   ): Promise<MessageBuilder> {
@@ -62,6 +75,8 @@ export class ServerInfo implements ISlashCommand {
     const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
     const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
 
+    const activeBoosters = BoosterHelper.getActiveBoosters(ctx);
+
     const messageBuilder = new MessageBuilder();
     const embed = new EmbedBuilder()
       .setTitle("🎇 The Sparkling Christmas Tree")
@@ -69,7 +84,8 @@ export class ServerInfo implements ISlashCommand {
         `**🎅Festive Forest access:** ${hasAiAccess ? "Yes 🎁" : "No ❄️"}\n` +
           `**💧 Elf's Thirsty Boost access:** ${superThirsty ? "Active 🌊" : "Inactive 🎄"}\n` +
           `**🧝 Composter Efficiency Level:** ${efficiencyLevel} 🛠️\n` +
-          `**✨ Composter Quality Level:** ${qualityLevel} 🌟`
+          `**✨ Composter Quality Level:** ${qualityLevel} 🌟\n\n` +
+          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}`
       )
       .setColor(0x00ff00)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
