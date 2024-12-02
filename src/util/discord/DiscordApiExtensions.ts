@@ -3,6 +3,7 @@ import { Entitlement, EntitlementType } from "../types/discord/DiscordTypeExtens
 import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
 import { ButtonStyle } from "discord-api-types/v10";
 import axios from "axios";
+import { BoosterName } from "../booster/BoosterHelper";
 
 export const FESTIVE_ENTITLEMENT_SKU_ID = "1298016263687110697";
 export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
@@ -14,6 +15,9 @@ export const TREASURE_CHEST_OF_COINS_SKU_ID = "1304819358442192936";
 export const HOLIDAY_LUCKY_TICKET = "1312106259608244287";
 export const LUCKY_TICKET_25 = "1312108891076690011";
 export const LUCKY_TICKET_50 = "1312108952905056316";
+
+export const GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID = "1313226625738997872";
+export const TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID = "1313225955480698982";
 
 export function getEntitlements(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
@@ -132,16 +136,31 @@ export async function consumeEntitlement(entitlementId: string): Promise<boolean
   return true;
 }
 
+export function skuIdToBooster(skuId: string): BoosterName | undefined {
+  switch (skuId) {
+    case GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID:
+      return "Watering Booster";
+    case TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID:
+      return "Watering Booster";
+    default:
+      return undefined;
+  }
+}
+
 export function skuIdToCoins(skuId: string): number {
   switch (skuId) {
     case SMALL_POUCH_OF_COINS_SKU_ID:
       return 500;
-    case GOLDEN_COIN_STASH_SKU_ID:
-      return 5000;
     case LUCKY_COIN_BAG_SKU_ID:
       return 1500;
     case TREASURE_CHEST_OF_COINS_SKU_ID:
       return 3000;
+    case TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID:
+      return 3000;
+    case GOLDEN_COIN_STASH_SKU_ID:
+      return 5000;
+    case GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID:
+      return 5000;
     default:
       return 0;
   }
