@@ -102,7 +102,6 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
     ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
 
   const achievements = await AchievementHelper.getAchievements(id);
-  console.log(achievements);
 
   const achievementsPerPage = 5;
   const start = (page - 1) * achievementsPerPage;
@@ -116,8 +115,6 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
         }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
     )
     .join("\n");
-
-  console.log(achievementsDescription);
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("profile.refresh", { id, nick, page })

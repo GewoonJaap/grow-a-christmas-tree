@@ -37,6 +37,7 @@ export class Tree implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    disposeActiveTimeouts(ctx);
     if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
     if (ctx.game === null || !ctx.game) return await ctx.reply("Use /plant to plant a tree for your server first.");
 
@@ -52,6 +53,7 @@ export class Tree implements ISlashCommand {
       "tree.grow",
       new ButtonBuilder().setEmoji({ name: "💧" }).setStyle(1),
       async (ctx: ButtonContext): Promise<void> => {
+        disposeActiveTimeouts(ctx);
         await handleTreeGrow(ctx);
       }
     ),
@@ -59,6 +61,7 @@ export class Tree implements ISlashCommand {
       "tree.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
+        disposeActiveTimeouts(ctx);
         if (
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
