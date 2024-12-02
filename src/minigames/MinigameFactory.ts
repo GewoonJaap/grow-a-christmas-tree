@@ -20,7 +20,7 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
-import { transitionToDefaultTreeView } from "../commands";
+import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -48,7 +48,10 @@ export const minigameButtons = [
   new Button(
     "minigame.refresh",
     new ButtonBuilder().setEmoji({ name: "🔄" }).setLabel("Refresh").setStyle(2),
-    async (ctx) => transitionToDefaultTreeView(ctx, 0)
+    async (ctx) => {
+      disposeActiveTimeouts(ctx);
+      return ctx.reply(await buildTreeDisplayMessage(ctx));
+    }
   )
 ];
 
