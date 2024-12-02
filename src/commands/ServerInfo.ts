@@ -13,7 +13,6 @@ import {
 } from "interactions.ts";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { getRandomElement } from "../util/helpers/arrayHelper";
-import { BoosterHelper } from "../util/booster/BoosterHelper";
 import humanizeDuration = require("humanize-duration");
 
 const IMAGES = [
