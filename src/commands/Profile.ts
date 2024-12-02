@@ -15,7 +15,6 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
-import { Achievement } from "../models/Achievement";
 import { AchievementHelper } from "../util/achievement/AchievementHelper";
 
 type State = {

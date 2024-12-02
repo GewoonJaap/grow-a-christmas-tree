@@ -13,7 +13,7 @@ import {
 } from "interactions.ts";
 import { Guild } from "../models/Guild";
 import { BanHelper } from "../util/bans/BanHelper";
-import { CHEATER_CLOWN_EMOJI, PREMIUM_SANTA_EMOJI, PREMIUM_SANTA_EMOJI_2 } from "../util/const";
+import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 
 type LeaderboardButtonState = {
