@@ -1,4 +1,5 @@
 import { EmbedBuilder, ISlashCommand, MessageBuilder, SlashCommandBuilder, SlashCommandContext } from "interactions.ts";
+import { SUPPORT_SERVER_INVITE } from "../util/const";
 
 export class About implements ISlashCommand {
   public builder = new SlashCommandBuilder("about", "Learn about all the magical commands!");
@@ -26,6 +27,7 @@ export class About implements ISlashCommand {
           **Profile and Rewards**
           👤 **/profile** - View your profile and the amount of coins you have.
           📖 **/dailyreward** - Claim your daily supply of free coins.
+          🎁 **/adventcalendar** - Open your daily advent calendar present.
           🪙 **/redeemcoins** - Redeem any outstanding purchases from the shop.
           💸 **/sendcoins** - Transfer coins to another player.
 
@@ -41,9 +43,10 @@ export class About implements ISlashCommand {
           These require the Manage Server permission.
 
           🔔 **/notifications** - Setup tree watering notifications.
+          ⏲️ **/settimezone** - Set the timezone for your tree, so that dates en times are correctly shown.       
 
           **Support**
-          🎅 **[Join the support server](https://discord.gg/KEJwtK5Z8k)** for help and updates.
+          🎅 **[Join the support server](${SUPPORT_SERVER_INVITE})** for help and updates.
           `
           )
       )

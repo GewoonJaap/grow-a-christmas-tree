@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
+import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
 
 const HEART_COLLECTION_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -38,6 +39,12 @@ export class HeartCollectionMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, HEART_COLLECTION_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -51,6 +58,8 @@ export class HeartCollectionMinigame implements Minigame {
     ctx.game.size += 2;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You collected hearts and your tree grew 2ft taller!")
@@ -58,8 +67,8 @@ export class HeartCollectionMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/valentine-day/valentine-day-3.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, true, 1, HEART_COLLECTION_MINIGAME_MAX_DURATION);
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
 
@@ -67,34 +76,42 @@ export class HeartCollectionMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the hearts. Better luck next time!");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    minigameFinished(ctx as ButtonContext, false, 1, HEART_COLLECTION_MINIGAME_MAX_DURATION);
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
     transitionToDefaultTreeView(ctx);
   }
 
   public static buttons = [
     new Button(
       "minigame.heartcollection.heart",
-      new ButtonBuilder().setEmoji({ name: "❤️" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "❤️" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleHeartButton
     ),
     new Button(
       "minigame.heartcollection.empty-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.heartcollection.empty-2",
-      new ButtonBuilder().setEmoji({ name: "💔" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "💔" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.heartcollection.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🖤" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🖤" }).setStyle(getRandomButtonStyle()),
       HeartCollectionMinigame.handleEmptyButton
     )
   ];

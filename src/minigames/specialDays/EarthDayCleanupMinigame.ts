@@ -2,6 +2,7 @@ import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, 
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../../commands/Tree";
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
+import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
 
 const EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -38,6 +39,12 @@ export class EarthDayCleanupMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -51,6 +58,8 @@ export class EarthDayCleanupMinigame implements Minigame {
     ctx.game.size += 2;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You cleaned up the environment and your tree grew 2ft taller!")
@@ -58,9 +67,9 @@ export class EarthDayCleanupMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/earthday-cleanup/earthday-cleanup-1.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
-    minigameFinished(ctx as ButtonContext, true, 1, EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -69,13 +78,21 @@ export class EarthDayCleanupMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You missed the trash. Better luck next time!");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
-    minigameFinished(ctx as ButtonContext, false, 1, EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -83,22 +100,22 @@ export class EarthDayCleanupMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.earthdaycleanup.trash",
-      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleTrashButton
     ),
     new Button(
       "minigame.earthdaycleanup.empty-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.earthdaycleanup.empty-2",
-      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.earthdaycleanup.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🗑️" }).setStyle(getRandomButtonStyle()),
       EarthDayCleanupMinigame.handleEmptyButton
     )
   ];

@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const TINSEL_TWISTER_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -62,6 +63,12 @@ export class TinselTwisterMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
     }, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -73,12 +80,16 @@ export class TinselTwisterMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You completed the Tinsel Twister! Your tree has grown 1ft!`);
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-    await minigameFinished(ctx as ButtonContext, true, 1, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 
@@ -98,39 +109,50 @@ export class TinselTwisterMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You missed the tinsel. Better luck next time!`);
 
     if (isTimeout) {
-      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.edit(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     } else {
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     }
 
-    await minigameFinished(ctx as ButtonContext, false, 1, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 
   public static buttons = [
     new Button(
       "minigame.tinseltwister.tinsel",
-      new ButtonBuilder().setEmoji({ name: "🎀" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎀" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleTinselButton
     ),
     new Button(
       "minigame.tinseltwister.empty-1",
-      new ButtonBuilder().setEmoji({ name: "🦊" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🦊" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.tinseltwister.empty-2",
-      new ButtonBuilder().setEmoji({ name: "🦉" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🦉" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
     ),
     new Button(
       "minigame.tinseltwister.empty-3",
-      new ButtonBuilder().setEmoji({ name: "🌲" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🌲" }).setStyle(getRandomButtonStyle()),
       TinselTwisterMinigame.handleEmptyButton
     )
   ];

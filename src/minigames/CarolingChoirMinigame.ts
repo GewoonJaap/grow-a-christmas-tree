@@ -1,10 +1,14 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { shuffleArray } from "../util/helpers/arrayHelper";
+import { getRandomElements, shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { SPOOKY_EMOJIS, getRandomEmojiWithExclusion } from "../util/emoji";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const CAROLING_CHOIR_MINIGAME_MAX_DURATION = 10 * 1000;
+const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
+const BUTTON_SUCCESS_EMOJI = getRandomEmojiWithExclusion(BUTTON_FAIL_EMOJIS);
 
 type CarolingChoirButtonState = {
   currentStage: number;
@@ -37,7 +41,7 @@ export class CarolingChoirMinigame implements Minigame {
       .setDescription(
         `Stage ${
           currentStage + 1
-        }: Click the 🎶 to lead the carolers. Follow the correct sequence!${getPremiumUpsellMessage(
+        }: Click the ${BUTTON_SUCCESS_EMOJI} to lead the carolers. Follow the correct sequence!${getPremiumUpsellMessage(
           ctx as ButtonContext
         )}`
       )
@@ -61,6 +65,12 @@ export class CarolingChoirMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx as ButtonContext, {
+        success: false,
+        difficulty: 1,
+        maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
     }, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -72,15 +82,23 @@ export class CarolingChoirMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You led the carolers perfectly! Your tree has grown 1ft!");
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
-    await minigameFinished(ctx as ButtonContext, true, this.maxStages, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx as ButtonContext, {
+      success: true,
+      difficulty: 1,
+      maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION
+    });
   }
 
   private static async handleNoteButton(ctx: ButtonContext<CarolingChoirButtonState>): Promise<void> {
@@ -95,36 +113,46 @@ export class CarolingChoirMinigame implements Minigame {
     disposeActiveTimeouts(ctx);
 
     if (!ctx.game) throw new Error("Game data missing.");
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You hit a wrong note. Better luck next time!");
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     transitionToDefaultTreeView(ctx as ButtonContext);
 
-    await minigameFinished(ctx as ButtonContext, false, 0, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx as ButtonContext, {
+      success: false,
+      difficulty: 1,
+      maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
   }
 
   public static buttons = [
     new Button(
       "minigame.carolingchoir.note",
-      new ButtonBuilder().setEmoji({ name: "🎶" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: BUTTON_SUCCESS_EMOJI }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleNoteButton
     ),
     new Button(
       "minigame.carolingchoir.wrongnote-1",
-      new ButtonBuilder().setEmoji({ name: "🪘" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[0] }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleWrongNoteButton
     ),
     new Button(
       "minigame.carolingchoir.wrongnote-2",
-      new ButtonBuilder().setEmoji({ name: "🐈" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[1] }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleWrongNoteButton
     ),
     new Button(
       "minigame.carolingchoir.wrongnote-3",
-      new ButtonBuilder().setEmoji({ name: "😼" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[2] }).setStyle(getRandomButtonStyle()),
       CarolingChoirMinigame.handleWrongNoteButton
     )
   ];

@@ -22,6 +22,8 @@ import {
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { toFixed } from "../util/helpers/numberHelper";
 import { disposeActiveTimeouts } from "./Tree";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -38,6 +40,9 @@ export class Composter implements ISlashCommand {
   public builder = new SlashCommandBuilder("composter", "View and upgrade Santa's Magic Composter.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
     return await ctx.reply(await buildComposterMessage(ctx));
   };
 
@@ -46,6 +51,14 @@ export class Composter implements ISlashCommand {
       "composter.upgrade.efficiency",
       new ButtonBuilder().setEmoji({ name: "🧝" }).setStyle(1).setLabel("Elf-Powered Efficiency"),
       async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transistionBackToDefaultComposterViewWithTimeout(ctx);
+          return;
+        }
         return await ctx.reply(await handleUpgrade(ctx, "efficiency"));
       }
     ),
@@ -53,6 +66,12 @@ export class Composter implements ISlashCommand {
       "composter.upgrade.quality",
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Sparkling Spirit"),
       async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+        }
         return await ctx.reply(await handleUpgrade(ctx, "quality"));
       }
     ),
@@ -60,6 +79,12 @@ export class Composter implements ISlashCommand {
       "composter.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+        }
         return await ctx.reply(await buildComposterMessage(ctx));
       }
     )

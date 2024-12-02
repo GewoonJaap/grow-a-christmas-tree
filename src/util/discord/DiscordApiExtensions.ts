@@ -11,8 +11,14 @@ export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
 export const GOLDEN_COIN_STASH_SKU_ID = "1304819461366480946";
 export const LUCKY_COIN_BAG_SKU_ID = "1304819131543195738";
 export const TREASURE_CHEST_OF_COINS_SKU_ID = "1304819358442192936";
+export const HOLIDAY_LUCKY_TICKET = "1312106259608244287";
+export const LUCKY_TICKET_25 = "1312108891076690011";
+export const LUCKY_TICKET_50 = "1312108952905056316";
 
-export function getEntitlements(ctx: SlashCommandContext | ButtonContext, withoutExpired = false): Entitlement[] {
+export function getEntitlements(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
+  withoutExpired = false
+): Entitlement[] {
   const interaction = ctx.interaction;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const entitlements: Entitlement[] = (interaction as any).entitlements;
@@ -42,7 +48,9 @@ export function hasEntitlementExpired(entitlement: Entitlement): boolean {
   return new Date(entitlement.ends_at) < new Date();
 }
 
-export async function updateEntitlementsToGame(ctx: SlashCommandContext | ButtonContext): Promise<void> {
+export async function updateEntitlementsToGame(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
+): Promise<void> {
   try {
     if (ctx.game == null) return;
 
@@ -102,6 +110,10 @@ export async function fetchEntitlementsFromApi(
   }
 }
 
+export function getRandomButtonStyle(): ButtonStyle {
+  return (Math.floor(Math.random() * 4) + 1) as ButtonStyle;
+}
+
 export async function consumeEntitlement(entitlementId: string): Promise<boolean> {
   const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
   const response = await axios.post(
@@ -130,6 +142,19 @@ export function skuIdToCoins(skuId: string): number {
       return 1500;
     case TREASURE_CHEST_OF_COINS_SKU_ID:
       return 3000;
+    default:
+      return 0;
+  }
+}
+
+export function skuIdToLuckyTickets(skuId: string): number {
+  switch (skuId) {
+    case HOLIDAY_LUCKY_TICKET:
+      return 10;
+    case LUCKY_TICKET_25:
+      return 25;
+    case LUCKY_TICKET_50:
+      return 50;
     default:
       return 0;
   }

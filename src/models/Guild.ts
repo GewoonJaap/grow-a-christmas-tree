@@ -12,6 +12,7 @@ interface IGuild {
   currentImageUrl?: string;
   hasAiAccess: boolean;
   superThirsty: boolean;
+  isCheating: boolean;
 
   lastEventAt: number;
 
@@ -22,6 +23,8 @@ interface IGuild {
   notificationRoleId?: string;
   webhookId?: string;
   webhookToken?: string;
+
+  timeZone: string;
 
   composter: {
     efficiencyLevel: number;
@@ -64,6 +67,7 @@ const GuildSchema = new Schema<IGuild>({
   currentImageUrl: { type: String, required: false },
   hasAiAccess: { type: Boolean, required: true, default: false },
   superThirsty: { type: Boolean, required: true, default: false },
+  isCheating: { type: Boolean, required: true, default: false },
 
   lastEventAt: { type: Number, required: true, default: Math.floor(Date.now() / 1000) },
 
@@ -77,6 +81,8 @@ const GuildSchema = new Schema<IGuild>({
   notificationRoleId: { type: String, required: false },
   webhookId: { type: String, required: false },
   webhookToken: { type: String, required: false },
+
+  timeZone: { type: String, required: true, default: "Europe/Amsterdam" },
 
   composter: {
     efficiencyLevel: { type: Number, required: true, default: 0 },

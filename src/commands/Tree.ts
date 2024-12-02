@@ -14,10 +14,17 @@ import { calculateTreeTierImage, getCurrentTreeTier } from "../util/tree-tier-ca
 import { getTreeAge, getWateringInterval } from "../util/watering-inteval";
 import humanizeDuration = require("humanize-duration");
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
-import { minigameButtons, startRandomMinigame } from "../minigames/MinigameFactory";
+import { minigameButtons, startPenaltyMinigame, startRandomMinigame } from "../minigames/MinigameFactory";
 import { sendAndDeleteWebhookMessage } from "../util/TreeWateringNotification";
 import { calculateGrowthChance, calculateGrowthAmount } from "./Composter";
 import { toFixed } from "../util/helpers/numberHelper";
+import { WateringEvent } from "../models/WateringEvent";
+import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
+import { isUserFlagged } from "../util/anti-bot/flaggingHelper";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { getLocaleFromTimezone } from "../util/timezones";
+import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -30,8 +37,13 @@ export class Tree implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
+    disposeActiveTimeouts(ctx);
     if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
     if (ctx.game === null || !ctx.game) return await ctx.reply("Use /plant to plant a tree for your server first.");
+
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
 
     return await ctx.reply(await buildTreeDisplayMessage(ctx));
   };
@@ -41,6 +53,7 @@ export class Tree implements ISlashCommand {
       "tree.grow",
       new ButtonBuilder().setEmoji({ name: "💧" }).setStyle(1),
       async (ctx: ButtonContext): Promise<void> => {
+        disposeActiveTimeouts(ctx);
         await handleTreeGrow(ctx);
       }
     ),
@@ -48,6 +61,15 @@ export class Tree implements ISlashCommand {
       "tree.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
+        disposeActiveTimeouts(ctx);
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          transitionToDefaultTreeView(ctx);
+          return;
+        }
         return await ctx.reply(await buildTreeDisplayMessage(ctx));
       }
     ),
@@ -57,9 +79,19 @@ export class Tree implements ISlashCommand {
 
 async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
+  if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+    await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    transitionToDefaultTreeView(ctx);
+    return;
+  }
 
   if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
     disposeActiveTimeouts(ctx);
+    await logFailedWateringAttempt(ctx, "user watered last");
+    if (await isUserFlagged(ctx)) {
+      const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+      if (penaltyMinigameStarted) return;
+    }
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
       SimpleError("You watered this tree last, you must let someone else water it first.")
@@ -76,6 +108,12 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     time = Math.floor(Date.now() / 1000);
   if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
     disposeActiveTimeouts(ctx);
+    await logFailedWateringAttempt(ctx, "tree not ready");
+    if (await isUserFlagged(ctx)) {
+      const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+      if (penaltyMinigameStarted) return;
+    }
+
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
     await ctx.reply(
       new MessageBuilder()
@@ -110,7 +148,15 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
   }
 
+  // Log the watering event
+  await logWateringEvent(ctx);
+
   await ctx.game.save();
+
+  if (await isUserFlagged(ctx)) {
+    const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+    if (penaltyMinigameStarted) return;
+  }
 
   if (
     process.env.DEV_MODE === "true" ||
@@ -123,6 +169,22 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   }
 
   return await ctx.reply(await buildTreeDisplayMessage(ctx));
+}
+
+async function logWateringEvent(ctx: ButtonContext): Promise<void> {
+  if (!ctx.game) return;
+  const wateringEvent = new WateringEvent({
+    userId: ctx.user.id,
+    guildId: ctx.game.id,
+    timestamp: new Date()
+  });
+  await wateringEvent.save();
+}
+
+async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
+  if (!ctx.game) throw new Error("Game data missing.");
+
+  await saveFailedAttempt(ctx, "watering", failureReason);
 }
 
 function applyGrowthBoost(ctx: ButtonContext): void {
@@ -149,7 +211,7 @@ export function disposeActiveTimeouts(
   ctx.timeouts.delete(ctx.interaction?.message?.id ?? "broken");
 }
 
-export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
+export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<unknown>, delay = 4000) {
   if (!ctx.game) throw new Error("Game data missing.");
   disposeActiveTimeouts(ctx);
   ctx.timeouts.set(
@@ -171,14 +233,14 @@ export function transitionToDefaultTreeView(ctx: ButtonContext, delay = 4000) {
   );
 }
 
-function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext): string {
+function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
   if (ctx.game?.superThirsty) {
     return "\n💨This tree is growing faster thanks to the super thirsty upgrade!";
   }
   return "";
 }
 
-function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext): string {
+function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
   if (ctx.game?.composter) {
     const efficiencyLevel = ctx.game.composter.efficiencyLevel;
     const qualityLevel = ctx.game.composter.qualityLevel;
@@ -207,7 +269,9 @@ function getActiveBoostersText(ctx: SlashCommandContext | ButtonContext): string
   return "";
 }
 
-export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+export async function buildTreeDisplayMessage(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
+): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
 
   await updateEntitlementsToGame(ctx);
@@ -253,27 +317,30 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}${getActiveBoostersText(ctx)}`
+      }\n${getNewsMessages()}`
     );
   } else {
     embed.setDescription(
       `**Your tree is ${ctx.game.size}ft tall.**\n\nLast watered by: <@${
         ctx.game.lastWateredBy
-      }>\n*Your tree is growing, come back <t:${canBeWateredAt}:R>.*${
+      }>\n**Your tree is growing**, come back <t:${canBeWateredAt}:R>.\nCan be watered at: **${new Date(
+        canBeWateredAt * 1000
+      ).toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), { timeZone: ctx.game.timeZone })} **${
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }${getSuperThirstyText(ctx)}${getComposterEffectsText(ctx)}${getActiveBoostersText(ctx)}`
+      }\n${getNewsMessages()}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
+      const canBeWateredAtTimeoutTime = canBeWateredAt * 1000 - Date.now();
+      setWateringReadyTimeout(ctx, canBeWateredAtTimeoutTime);
       ctx.timeouts.set(
         ctx.interaction.message.id,
         setTimeout(async () => {
           disposeActiveTimeouts(ctx);
-          sendWebhookOnWateringReady(ctx);
           await ctx.edit(await buildTreeDisplayMessage(ctx));
-        }, canBeWateredAt * 1000 - Date.now())
+        }, canBeWateredAtTimeoutTime)
       );
     }
   }
@@ -283,7 +350,35 @@ export async function buildTreeDisplayMessage(ctx: SlashCommandContext | ButtonC
   return message;
 }
 
-async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext) {
+function getNewsMessages(): string {
+  const newsMessages = NewsMessageHelper.getMessages(1);
+  return newsMessages.join("\n");
+}
+
+function removeWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): void {
+  if (!ctx.game) return;
+  const timeout = ctx.timeouts.get(ctx.game.id);
+  if (timeout) clearTimeout(timeout);
+  ctx.timeouts.delete(ctx.game.id);
+}
+
+function setWateringReadyTimeout(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
+  timeoutTime: number
+): void {
+  if (!ctx.game) return;
+  removeWateringReadyTimeout(ctx);
+
+  ctx.timeouts.set(
+    ctx.game.id,
+    setTimeout(async () => {
+      removeWateringReadyTimeout(ctx);
+      sendWebhookOnWateringReady(ctx);
+    }, timeoutTime)
+  );
+}
+
+async function sendWebhookOnWateringReady(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>) {
   if (
     ctx.game &&
     (ctx.game.hasAiAccess || process.env.DEV_MODE) &&

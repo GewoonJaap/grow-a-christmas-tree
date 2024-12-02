@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const HOT_COCOA_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -41,6 +42,13 @@ export class HotCocoaMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
+
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, HOT_COCOA_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -52,13 +60,20 @@ export class HotCocoaMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You spilled the cocoa! Better luck next time!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
-    await minigameFinished(ctx as ButtonContext, false, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -66,7 +81,7 @@ export class HotCocoaMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.hotcocoa.hotcocoa",
-      new ButtonBuilder().setEmoji({ name: "☕" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "☕" }).setStyle(getRandomButtonStyle()),
       async (ctx: ButtonContext): Promise<void> => {
         disposeActiveTimeouts(ctx);
 
@@ -74,29 +89,32 @@ export class HotCocoaMinigame implements Minigame {
         ctx.game.size++;
         await ctx.game.save();
 
+        const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
         const embed = new EmbedBuilder()
           .setTitle(ctx.game.name)
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
           .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft!`);
 
-        ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
-        await minigameFinished(ctx as ButtonContext, true, 1, HOT_COCOA_MINIGAME_MAX_DURATION);
+        ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+        await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION });
+
         transitionToDefaultTreeView(ctx);
       }
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-1",
-      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🍫" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-2",
-      new ButtonBuilder().setEmoji({ name: "🍲" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🍲" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
     ),
     new Button(
       "minigame.hotcocoa.spilledcocoa-3",
-      new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥤" }).setStyle(getRandomButtonStyle()),
       HotCocoaMinigame.handleSpilledCocoaButton
     )
   ];

@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
 
 export class SantaPresentMinigame implements Minigame {
@@ -38,6 +39,12 @@ export class SantaPresentMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: SANTA_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, SANTA_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -51,6 +58,8 @@ export class SantaPresentMinigame implements Minigame {
     ctx.game.size++;
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft!`)
@@ -58,9 +67,9 @@ export class SantaPresentMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
-    await minigameFinished(ctx as ButtonContext, true, 1, SANTA_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SANTA_MINIGAME_MAX_DURATION });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -70,11 +79,18 @@ export class SantaPresentMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(`Whoops! The witch stole your present!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
-    await minigameFinished(ctx as ButtonContext, false, 1, SANTA_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: SANTA_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -82,22 +98,22 @@ export class SantaPresentMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.santapresent.present",
-      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handlePresentButton
     ),
     new Button(
       "minigame.santapresent.witch-1",
-      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧙" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
     ),
     new Button(
       "minigame.santapresent.witch-2",
-      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
     ),
     new Button(
       "minigame.santapresent.witch-3",
-      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🥶" }).setStyle(getRandomButtonStyle()),
       SantaPresentMinigame.handleWitchButton
     )
   ];

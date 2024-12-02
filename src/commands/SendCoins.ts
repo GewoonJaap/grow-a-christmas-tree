@@ -11,6 +11,8 @@ import {
   SlashCommandUserOption
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { BanHelper } from "../util/bans/BanHelper";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
@@ -30,7 +32,9 @@ export class SendCoinsCommand implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM || !ctx.game) return await ctx.reply("This command can only be used in a server.");
-
+    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    }
     return this.handleTransfer(ctx);
   };
 

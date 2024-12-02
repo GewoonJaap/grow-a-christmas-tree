@@ -1,8 +1,9 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
 import { shuffleArray } from "../util/helpers/arrayHelper";
-import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
+import { disposeActiveTimeouts, transitionToDefaultTreeView, buildTreeDisplayMessage } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const SNOWBALL_FIGHT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -41,7 +42,7 @@ export class SnowballFightMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      SnowballFightMinigame.handleMissButton(ctx, true);
     }, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -64,10 +65,14 @@ export class SnowballFightMinigame implements Minigame {
 
     await ctx.game.save();
 
-    const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
-    await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
 
-    await minigameFinished(ctx as ButtonContext, true, 1, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
+    const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
+    await ctx.reply(
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
+
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -77,17 +82,33 @@ export class SnowballFightMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You missed the target. Better luck next time!`);
 
     if (isTimeout) {
-      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await minigameFinished(ctx, {
+        success: true,
+        difficulty: 1,
+        maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
+      await ctx.edit(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     } else {
-      await ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await minigameFinished(ctx, {
+        success: true,
+        difficulty: 1,
+        maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
+        failureReason: "Wrong button"
+      });
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
     }
-
-    await minigameFinished(ctx as ButtonContext, false, 1, SNOWBALL_FIGHT_MINIGAME_MAX_DURATION);
 
     transitionToDefaultTreeView(ctx);
   }
@@ -95,22 +116,22 @@ export class SnowballFightMinigame implements Minigame {
   public static buttons = [
     new Button(
       "minigame.snowballfight.snowball",
-      new ButtonBuilder().setEmoji({ name: "❄️" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "❄️" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleSnowballButton
     ),
     new Button(
       "minigame.snowballfight.miss-1",
-      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleMissButton
     ),
     new Button(
       "minigame.snowballfight.miss-2",
-      new ButtonBuilder().setEmoji({ name: "🎅" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🎅" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleMissButton
     ),
     new Button(
       "minigame.snowballfight.miss-3",
-      new ButtonBuilder().setEmoji({ name: "⛄" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "⛄" }).setStyle(getRandomButtonStyle()),
       SnowballFightMinigame.handleMissButton
     )
   ];

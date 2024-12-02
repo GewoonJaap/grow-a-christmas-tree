@@ -9,6 +9,7 @@ import {
   InteractionHandlerTimedOut,
   PingContext,
   SimpleError,
+  SlashCommandContext,
   UnauthorizedInteraction,
   UnknownApplicationCommandType,
   UnknownComponentType,
@@ -27,10 +28,14 @@ import {
   Recycle,
   NotificationSettings,
   SendCoinsCommand,
-  RedeemCoinsCommand,
   DailyReward,
   Composter,
   Shop
+  SetTimezone,
+  ServerInfo,
+  Wheel,
+  RedeemPurschagesCommand,
+  AdventCalendar
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -39,7 +44,9 @@ import { startBackupTimer } from "./backup/backup";
 import { WebhookEventType } from "./util/types/discord/DiscordTypeExtension";
 import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 import { unleash } from "./util/unleash/UnleashHelper";
-const VERSION = "1.6";
+import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
+import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
+const VERSION = "1.8";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
@@ -100,6 +107,11 @@ if (keys.some((key) => !(key in process.env))) {
 
         ctx.decorate("game", game);
         ctx.decorate("timeouts", timeouts);
+        try {
+          flagPotentialAutoClickers(ctx as SlashCommandContext);
+        } catch (err) {
+          console.error(err);
+        }
       }
     }
   });
@@ -117,10 +129,14 @@ if (keys.some((key) => !(key in process.env))) {
       new Feedback(),
       new NotificationSettings(),
       new SendCoinsCommand(),
-      new RedeemCoinsCommand(),
+      new RedeemPurschagesCommand(),
       new DailyReward(),
       new Composter(),
       new Shop()
+      new SetTimezone(),
+      new ServerInfo(),
+      new Wheel(),
+      new AdventCalendar()
     ],
     false
   );
@@ -258,3 +274,4 @@ if (keys.some((key) => !(key in process.env))) {
 console.log(`Grow a christmas tree - V${VERSION}`);
 
 startBackupTimer();
+startAntiBotCleanupTimer();

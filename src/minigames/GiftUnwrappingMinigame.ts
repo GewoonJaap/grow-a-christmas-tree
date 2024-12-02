@@ -3,6 +3,7 @@ import { shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 
 const GIFT_UNWRAPPING_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -40,6 +41,12 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
       await ctx.edit(await buildTreeDisplayMessage(ctx));
     }, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
@@ -66,17 +73,19 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     await ctx.game.save();
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(message)
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-unwrapping-1.png"
       );
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     transitionToDefaultTreeView(ctx);
 
-    await minigameFinished(ctx, true, 1, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION });
   }
 
   private static async handleEmptyBoxButton(ctx: ButtonContext): Promise<void> {
@@ -84,35 +93,42 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     if (!ctx.game) throw new Error("Game data missing.");
 
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription("You unwrapped an empty box. Better luck next time!");
-    ctx.reply(new MessageBuilder().addEmbed(embed).setComponents([]));
+    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     transitionToDefaultTreeView(ctx);
 
-    await minigameFinished(ctx, false, 1, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
+    await minigameFinished(ctx, {
+      success: false,
+      difficulty: 1,
+      maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION,
+      failureReason: "Wrong button"
+    });
   }
 
   public static buttons = [
     new Button(
       "minigame.giftunwrapping.gift",
-      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1),
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleGiftButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-1",
-      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "📦" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-2",
-      new ButtonBuilder().setEmoji({ name: "🧃" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧃" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     ),
     new Button(
       "minigame.giftunwrapping.emptybox-3",
-      new ButtonBuilder().setEmoji({ name: "🧰" }).setStyle(4),
+      new ButtonBuilder().setEmoji({ name: "🧰" }).setStyle(getRandomButtonStyle()),
       GiftUnwrappingMinigame.handleEmptyBoxButton
     )
   ];

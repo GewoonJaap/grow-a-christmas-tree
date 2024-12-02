@@ -12,6 +12,9 @@ import {
   SlashCommandIntegerOption
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
+import { BanHelper } from "../util/bans/BanHelper";
+import { CHEATER_CLOWN_EMOJI } from "../util/const";
+import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder(
   "leaderboard",
@@ -124,14 +127,17 @@ async function buildLeaderboardMessage(
 
   // Fetch wallets in a single batch
   const walletMap = await WalletHelper.getWallets(userIds);
+  const bannedUserId = await BanHelper.areUsersBanned(userIds);
+  const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
 
   for (let i = start; i < end; i++) {
     const contributor = contributors[i];
     const wallet = walletMap.get(contributor.userId);
+    const isBanned = cheaterClownEnabled && bannedUserId.includes(contributor.userId);
 
-    description += `${i < 3 ? `${MEDAL_EMOJIS[i]}` : `${i + 1}${i < 9 ? " " : ""}`} - 💧${contributor.count} - 🪙 ${
-      wallet?.coins ?? 0
-    } - 🔥${wallet?.streak ?? 0} <@${contributor.userId}>\n`;
+    description += `${
+      i < 3 ? `${MEDAL_EMOJIS[i]}${isBanned ? CHEATER_CLOWN_EMOJI : ""}` : `${i + 1}${i < 9 ? " " : ""}`
+    } - 💧${contributor.count} - 🪙 ${wallet?.coins ?? 0} - 🔥${wallet?.streak ?? 0} <@${contributor.userId}>\n`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(
