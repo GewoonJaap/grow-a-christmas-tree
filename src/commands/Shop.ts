@@ -57,7 +57,7 @@ async function buildShopMessage(ctx: SlashCommandContext | ButtonContext): Promi
   const embed = new EmbedBuilder()
     .setTitle("🎄 **The Christmas Shop** 🎁")
     .setDescription(
-      "🎄 Welcome to the Christmas Shop! Discover limited-time boosters to speed up tree growth, watering, minigame chances, and coin earnings. Make your tree the star of the season! 🌟"
+      "🎄 Welcome to the Christmas Shop! Discover limited-time boosters to speed up tree growth, watering, minigame chances, and coin earnings. Make your tree the star of the season! 🌟\n\nUse **`/serverinfo`** to view your active boosters."
     )
     .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
 
@@ -104,7 +104,7 @@ async function handleBoosterPurchase(
       new EmbedBuilder()
         .setTitle("🎅 Not Enough Coins! ❄️")
         .setDescription(
-          `You need ${booster.cost} coins to purchase the ${booster.name} booster. Keep earning and come back soon! 🎄`
+          `You need **${booster.cost}** coins to purchase: **${booster.name}**. Keep earning and come back soon! 🎄`
         )
         .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
     );
@@ -127,7 +127,7 @@ async function handleBoosterPurchase(
   return new MessageBuilder().addEmbed(
     new EmbedBuilder()
       .setTitle("🎁 Purchase Complete!")
-      .setDescription(`You've successfully acquired ${booster.name}! Let the magic begin! 🎄✨`)
+      .setDescription(`You've successfully acquired **${booster.name}**! Let the magic begin! 🎄✨`)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
   );
 }

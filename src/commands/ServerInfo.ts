@@ -75,8 +75,6 @@ export class ServerInfo implements ISlashCommand {
     const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
     const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
 
-    const activeBoosters = BoosterHelper.getActiveBoosters(ctx);
-
     const messageBuilder = new MessageBuilder();
     const embed = new EmbedBuilder()
       .setTitle("🎇 The Sparkling Christmas Tree")
