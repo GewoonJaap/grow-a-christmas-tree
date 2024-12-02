@@ -30,6 +30,7 @@ import {
   SendCoinsCommand,
   DailyReward,
   Composter,
+  Shop,
   SetTimezone,
   ServerInfo,
   Wheel,
@@ -131,6 +132,7 @@ if (keys.some((key) => !(key in process.env))) {
       new RedeemPurschagesCommand(),
       new DailyReward(),
       new Composter(),
+      new Shop(),
       new SetTimezone(),
       new ServerInfo(),
       new Wheel(),
@@ -138,6 +140,8 @@ if (keys.some((key) => !(key in process.env))) {
     ],
     false
   );
+
+  app.commands.deleteUnregistered();
 
   const server = fastify();
   server.register(rawBody);

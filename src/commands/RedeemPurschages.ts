@@ -20,11 +20,15 @@ import {
   TREASURE_CHEST_OF_COINS_SKU_ID,
   HOLIDAY_LUCKY_TICKET,
   LUCKY_TICKET_25,
-  LUCKY_TICKET_50
+  LUCKY_TICKET_50,
+  GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID,
+  TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID,
+  skuIdToBooster
 } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
+import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 
 const builder = new SlashCommandBuilder("redeempurschages", "Redeem all your purchases from the shop");
 
@@ -61,15 +65,19 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     TREASURE_CHEST_OF_COINS_SKU_ID,
     HOLIDAY_LUCKY_TICKET,
     LUCKY_TICKET_25,
-    LUCKY_TICKET_50
+    LUCKY_TICKET_50,
+    GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID,
+    TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID
   ]);
 
   if (entitlements.length === 0) {
     const embed = new EmbedBuilder()
-      .setTitle("Purchases Redeemed")
+      .setTitle("🎅 No Purchases to Redeem")
       .setColor(0xff0000)
-      .setDescription("You have no purchases to redeem.")
-      .setFooter({ text: `You can purchase items from the store by clicking on the bot avatar or the button.` });
+      .setDescription("It looks like you haven't made any purchases yet. Check out the shop for some festive items! 🎄")
+      .setFooter({
+        text: `Click on the bot avatar or the button to visit the store and purchase exciting items for your tree! 🎄✨`
+      });
 
     const message = new MessageBuilder().addEmbed(embed);
     const actions = new ActionRowBuilder();
@@ -83,12 +91,17 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
 
   let totalCoins = 0;
   let totalLuckyTickets = 0;
+  const boostersToApply: BoosterName[] = [];
 
   for (const entitlement of entitlements) {
     const success = await consumeEntitlement(entitlement.id);
     if (success) {
       totalCoins += skuIdToCoins(entitlement.sku_id);
       totalLuckyTickets += skuIdToLuckyTickets(entitlement.sku_id);
+      const boosterToApply = skuIdToBooster(entitlement.sku_id);
+      if (boosterToApply) {
+        boostersToApply.push(boosterToApply);
+      }
     }
   }
 
@@ -100,9 +113,22 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     await WheelStateHelper.addTickets(ctx.user.id, totalLuckyTickets);
   }
 
+  for (const booster of boostersToApply) {
+    await BoosterHelper.addBooster(ctx, booster);
+  }
+
+  const boostersDescription = boostersToApply.map((booster) => `**${booster} Booster**`).join("\n");
+
   const embed = new EmbedBuilder()
-    .setTitle("Purchases Redeemed")
-    .setDescription(`You have successfully redeemed ${totalCoins} coins and ${totalLuckyTickets} lucky tickets.`);
+    .setTitle("🎁 Purchases Redeemed! 🎄")
+    .setDescription(
+      `You have successfully redeemed:\n\n` +
+        `🪙 **${totalCoins} coins**\n` +
+        `🎟️ **${totalLuckyTickets} lucky tickets**\n` +
+        `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}`
+    )
+    .setColor(0x00ff00)
+    .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
 
   const message = new MessageBuilder().addEmbed(embed);
   const actions = new ActionRowBuilder().addComponents(

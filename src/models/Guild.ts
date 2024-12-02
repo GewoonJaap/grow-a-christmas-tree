@@ -30,6 +30,8 @@ interface IGuild {
     efficiencyLevel: number;
     qualityLevel: number;
   };
+
+  activeBoosters: IBooster[];
 }
 
 interface IContributor {
@@ -38,10 +40,22 @@ interface IContributor {
   lastWateredAt: number;
 }
 
+interface IBooster {
+  type: string;
+  startTime: number;
+  duration: number;
+}
+
 const ContributorSchema = new Schema<IContributor>({
   userId: { type: String, required: true },
   count: { type: Number, required: true, default: 1 },
   lastWateredAt: { type: Number, required: true, default: 0 }
+});
+
+const BoosterSchema = new Schema<IBooster>({
+  type: { type: String, required: true },
+  startTime: { type: Number, required: true },
+  duration: { type: Number, required: true }
 });
 
 const GuildSchema = new Schema<IGuild>({
@@ -73,10 +87,13 @@ const GuildSchema = new Schema<IGuild>({
   composter: {
     efficiencyLevel: { type: Number, required: true, default: 0 },
     qualityLevel: { type: Number, required: true, default: 0 }
-  }
+  },
+
+  activeBoosters: { type: [BoosterSchema], required: true, default: [] }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);
+const Booster = model<IBooster>("Booster", BoosterSchema);
 const Guild = model<IGuild>("Guild", GuildSchema);
 
-export { Guild, GuildSchema, Contributor, ContributorSchema, IGuild, IContributor };
+export { Guild, GuildSchema, Contributor, ContributorSchema, IGuild, IContributor, IBooster, BoosterSchema, Booster };

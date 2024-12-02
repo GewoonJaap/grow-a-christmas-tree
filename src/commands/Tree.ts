@@ -25,6 +25,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { getLocaleFromTimezone } from "../util/timezones";
 import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
+import { BoosterHelper } from "../util/booster/BoosterHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -104,7 +105,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     return;
   }
 
-  const wateringInterval = getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false),
+  const wateringInterval = getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false),
     time = Math.floor(Date.now() / 1000);
   if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
     disposeActiveTimeouts(ctx);
@@ -158,10 +159,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     if (penaltyMinigameStarted) return;
   }
 
-  if (
-    process.env.DEV_MODE === "true" ||
-    (Math.random() < MINIGAME_CHANCE && ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Math.floor(Date.now() / 1000))
-  ) {
+  if (shouldStartMinigame(ctx)) {
     ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
     await ctx.game.save();
     const minigameStarted = await startRandomMinigame(ctx);
@@ -181,6 +179,14 @@ async function logWateringEvent(ctx: ButtonContext): Promise<void> {
   await wateringEvent.save();
 }
 
+function shouldStartMinigame(ctx: ButtonContext | SlashCommandContext | ButtonContext<unknown>): boolean {
+  if (!ctx.game) return false;
+  const hasCooldownPassed = ctx.game.lastEventAt + MINIGAME_DELAY_SECONDS < Math.floor(Date.now() / 1000);
+  const hasMinigameChance =
+    BoosterHelper.shouldApplyBooster(ctx, "Minigame Booster") || Math.random() < MINIGAME_CHANCE;
+  return process.env.DEV_MODE === "true" || (hasCooldownPassed && hasMinigameChance);
+}
+
 async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
@@ -194,12 +200,12 @@ function applyGrowthBoost(ctx: ButtonContext): void {
   const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess);
   const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess);
 
+  let growthToAdd = BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Growth Booster", 1);
   // Apply growth chance and amount
   if (Math.random() * 100 < growthChance) {
-    ctx.game.size += 1 + growthAmount;
-  } else {
-    ctx.game.size += 1;
+    growthToAdd = 1 + growthAmount;
   }
+  ctx.game.size += growthToAdd;
   ctx.game.size = toFixed(ctx.game.size, 2);
 }
 
@@ -233,31 +239,6 @@ export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<u
   );
 }
 
-function getSuperThirstyText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
-  if (ctx.game?.superThirsty) {
-    return "\n💨This tree is growing faster thanks to the super thirsty upgrade!";
-  }
-  return "";
-}
-
-function getComposterEffectsText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
-  if (ctx.game?.composter) {
-    const efficiencyLevel = ctx.game.composter.efficiencyLevel;
-    const qualityLevel = ctx.game.composter.qualityLevel;
-
-    if (efficiencyLevel === 0 && qualityLevel === 0) {
-      return "\n🎅 Santa's Magic Composter is at level 0. Use /composter to upgrade it and boost your tree's growth!";
-    }
-
-    const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game.hasAiAccess ?? false);
-    const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess ?? false);
-    return `\n🎅 Santa's Magic Composter is at level ${
-      efficiencyLevel + qualityLevel
-    }, providing a ${growthChance}% chance to grow ${growthAmount}ft more!`;
-  }
-  return "\n🎅 Santa's Magic Composter is at level 0. Use /composter to upgrade it and boost your tree's growth!";
-}
-
 export async function buildTreeDisplayMessage(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
 ): Promise<MessageBuilder> {
@@ -271,7 +252,8 @@ export async function buildTreeDisplayMessage(
   );
   const message = new MessageBuilder().addComponents(actionBuilder);
 
-  const canBeWateredAt = ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false);
+  const canBeWateredAt =
+    ctx.game.lastWateredAt + getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false);
 
   const embed = new EmbedBuilder().setTitle(ctx.game.name);
   const time = Math.floor(Date.now() / 1000);
@@ -292,9 +274,9 @@ export async function buildTreeDisplayMessage(
       ctx.game.size,
       ctx.game.hasAiAccess
     )}) has spent ${humanizeDuration(
-      ctx.game.lastWateredAt + getWateringInterval(ctx.game.size, ctx.game.superThirsty ?? false) < time
-        ? getTreeAge(ctx.game.size) * 1000
-        : (getTreeAge(ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
+      ctx.game.lastWateredAt + getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false) < time
+        ? getTreeAge(ctx, ctx.game.size) * 1000
+        : (getTreeAge(ctx, ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
     )} growing. Nice!`
   });
 
