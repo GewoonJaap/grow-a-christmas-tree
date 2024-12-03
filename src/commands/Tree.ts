@@ -203,7 +203,7 @@ function applyGrowthBoost(ctx: ButtonContext): void {
   let growthToAdd = BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Growth Booster", 1);
   // Apply growth chance and amount
   if (Math.random() * 100 < growthChance) {
-    growthToAdd = 1 + growthAmount;
+    growthToAdd += growthAmount;
   }
   ctx.game.size += growthToAdd;
   ctx.game.size = toFixed(ctx.game.size, 2);
