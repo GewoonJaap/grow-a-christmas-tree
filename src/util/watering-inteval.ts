@@ -20,9 +20,9 @@ export function getWateringInterval(
 
   if (superThirsty) result = Math.floor(result / 2);
 
-  result = BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Watering Booster", result);
+  result = Math.floor(BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Watering Booster", result));
 
-  return result;
+  return Math.floor(result);
 }
 
 export function getTreeAge(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>, size: number): number {

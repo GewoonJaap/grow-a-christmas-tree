@@ -14,6 +14,7 @@ import {
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 import humanizeDuration = require("humanize-duration");
+import { BoosterHelper } from "../util/booster/BoosterHelper";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/server-info/server-info-1.jpg",
@@ -53,8 +54,9 @@ export class ServerInfo implements ISlashCommand {
   };
 
   private getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
-    if (ctx.game?.activeBoosters && ctx.game.activeBoosters.length > 0) {
-      const activeBoosters = ctx.game.activeBoosters.map((booster) => {
+    const boosters = BoosterHelper.getActiveBoosters(ctx);
+    if (ctx.game?.activeBoosters && boosters.length > 0) {
+      const activeBoosters = boosters.map((booster) => {
         const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
         return `${booster.type} (${humanizeDuration(remainingTime * 1000, { largest: 1 })} remaining)`;
       });
