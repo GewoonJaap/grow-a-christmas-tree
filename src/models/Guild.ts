@@ -32,6 +32,8 @@ interface IGuild {
   };
 
   activeBoosters: IBooster[];
+
+  unlockedTreeStyles: string[];
 }
 
 interface IContributor {
@@ -89,7 +91,9 @@ const GuildSchema = new Schema<IGuild>({
     qualityLevel: { type: Number, required: true, default: 0 }
   },
 
-  activeBoosters: { type: [BoosterSchema], required: true, default: [] }
+  activeBoosters: { type: [BoosterSchema], required: true, default: [] },
+
+  unlockedTreeStyles: { type: [String], required: true, default: [] }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);
