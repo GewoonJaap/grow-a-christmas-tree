@@ -41,6 +41,11 @@ const ACHIEVEMENTS: Record<string, AchievementConfig> = {
     name: "Advent Calendar 2024 Participation",
     description: "Participated in the 2024 advent calendar",
     emoji: "🎅"
+  },
+  "Christmas Day Celebration": {
+    name: "Christmas Day Celebration",
+    description: "Opened the advent calendar on Christmas day",
+    emoji: "🎄"
   }
 };
 

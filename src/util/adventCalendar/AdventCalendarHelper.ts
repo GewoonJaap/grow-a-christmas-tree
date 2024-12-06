@@ -3,11 +3,12 @@ import { IAdventCalendar, AdventCalendar } from "../../models/AdventCalendar";
 import { WalletHelper } from "../wallet/WalletHelper";
 import { WheelStateHelper } from "../wheel/WheelStateHelper";
 import { AchievementHelper } from "../achievement/AchievementHelper";
+import { BoosterHelper, BoosterName } from "../booster/BoosterHelper";
 
 const SECONDS_IN_A_DAY = 60 * 60 * 24;
 const MILLISECONDS_IN_A_SECOND = 1000;
 
-type PresentType = "coins" | "tickets" | "treeSize";
+type PresentType = "coins" | "tickets" | "treeSize" | "booster";
 
 export interface Present {
   displayName: string;
@@ -15,9 +16,10 @@ export interface Present {
 }
 
 const PRESENTS: Record<PresentType, Present> = {
-  coins: { displayName: "Coins", probability: 0.5 },
+  coins: { displayName: "Coins", probability: 0.4 },
   tickets: { displayName: "Tickets", probability: 0.3 },
-  treeSize: { displayName: "Tree Size Increase", probability: 0.2 }
+  treeSize: { displayName: "Tree Size Increase", probability: 0.2 },
+  booster: { displayName: "Booster", probability: 0.1 }
 };
 
 export class AdventCalendarHelper {
@@ -81,6 +83,13 @@ export class AdventCalendarHelper {
         AchievementHelper.grantAchievement(ctx.user.id, "Advent Calendar Completion");
       }
 
+      // Grant special Christmas achievement on December 25th
+      if (today.getMonth() === 11 && today.getDate() === 25) {
+        if (!(await AchievementHelper.hasAchievement(ctx.user.id, "Christmas Day Celebration"))) {
+          await AchievementHelper.grantAchievement(ctx.user.id, "Christmas Day Celebration");
+        }
+      }
+
       return present;
     }
     return null;
@@ -125,6 +134,10 @@ export class AdventCalendarHelper {
           return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random amount of tickets between 1 and 5
         } else if (present === "treeSize") {
           return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random 1 or 2 ft
+        } else if (present === "booster") {
+          const boosterNames: BoosterName[] = ["Growth Booster", "Watering Booster", "Minigame Booster", "Coin Booster"];
+          const randomBooster = boosterNames[Math.floor(Math.random() * boosterNames.length)];
+          return { type: present, amount: randomBooster };
         }
         return { type: present };
       }
@@ -152,6 +165,12 @@ export class AdventCalendarHelper {
         if (present.amount && ctx.game) {
           ctx.game.size += present.amount;
           await ctx.game.save();
+        }
+        break;
+      case "booster":
+        if (present.amount) {
+          const boosterName = present.amount as BoosterName;
+          await BoosterHelper.addBooster(ctx, boosterName);
         }
         break;
       default:

@@ -117,6 +117,11 @@ export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> 
 
   availableMinigames = [...availableMinigames, ...specialDayMinigames];
 
+  // Add logic to check date and restrict Santa minigame to Christmas day
+  if (currentDate.getMonth() === 11 && currentDate.getDate() === 25) {
+    availableMinigames.push(new SantaPresentMinigame());
+  }
+
   if (availableMinigames.length === 0) {
     return false;
   }
@@ -130,6 +135,16 @@ export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> 
       }
     }
   }
+
+  // Increase the probability of selecting the Santa minigame on Christmas day
+  if (currentDate.getMonth() === 11 && currentDate.getDate() === 25) {
+    const santaMinigame = new SantaPresentMinigame();
+    if (Math.random() < 0.7) {
+      await santaMinigame.start(ctx);
+      return true;
+    }
+  }
+
   const selectedMinigame = getRandomElement(availableMinigames);
 
   if (selectedMinigame) {
