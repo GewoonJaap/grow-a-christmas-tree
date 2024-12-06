@@ -99,10 +99,6 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("wheel.refresh"));
 
-    if (!process.env.DEV_MODE) {
-      actions.addComponents(PremiumButtons.HolidayLuckyTicketButton);
-    }
-
     const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 
     return message;
