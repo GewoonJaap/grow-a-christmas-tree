@@ -12,18 +12,7 @@ import {
 import {
   fetchEntitlementsFromApi,
   consumeEntitlement,
-  SMALL_POUCH_OF_COINS_SKU_ID,
-  skuIdToCoins,
-  skuIdToLuckyTickets,
-  GOLDEN_COIN_STASH_SKU_ID,
-  LUCKY_COIN_BAG_SKU_ID,
-  TREASURE_CHEST_OF_COINS_SKU_ID,
-  HOLIDAY_LUCKY_TICKET,
-  LUCKY_TICKET_25,
-  LUCKY_TICKET_50,
-  GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID,
-  TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID,
-  skuIdToBooster
+  SKU_REWARDS
 } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
@@ -58,17 +47,7 @@ export class RedeemPurschagesCommand implements ISlashCommand {
 
 async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
-  const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game?.id, [
-    SMALL_POUCH_OF_COINS_SKU_ID,
-    GOLDEN_COIN_STASH_SKU_ID,
-    LUCKY_COIN_BAG_SKU_ID,
-    TREASURE_CHEST_OF_COINS_SKU_ID,
-    HOLIDAY_LUCKY_TICKET,
-    LUCKY_TICKET_25,
-    LUCKY_TICKET_50,
-    GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID,
-    TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID
-  ]);
+  const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game?.id, Object.keys(SKU_REWARDS));
 
   if (entitlements.length === 0) {
     const embed = new EmbedBuilder()
@@ -96,11 +75,15 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
   for (const entitlement of entitlements) {
     const success = await consumeEntitlement(entitlement.id);
     if (success) {
-      totalCoins += skuIdToCoins(entitlement.sku_id);
-      totalLuckyTickets += skuIdToLuckyTickets(entitlement.sku_id);
-      const boosterToApply = skuIdToBooster(entitlement.sku_id);
-      if (boosterToApply) {
-        boostersToApply.push(boosterToApply);
+      const rewards = SKU_REWARDS[entitlement.sku_id];
+      if (rewards.coins) {
+        totalCoins += rewards.coins;
+      }
+      if (rewards.luckyTickets) {
+        totalLuckyTickets += rewards.luckyTickets;
+      }
+      if (rewards.booster) {
+        boostersToApply.push(rewards.booster);
       }
     }
   }
