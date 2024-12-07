@@ -184,7 +184,7 @@ export class AdventCalendarHelper {
         }
         break;
       case "booster":
-        if (present.amount) {
+        if (present.boosterName) {
           await BoosterHelper.addBooster(ctx, present.boosterName ?? "Growth Booster");
         }
         break;
