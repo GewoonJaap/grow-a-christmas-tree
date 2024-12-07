@@ -22,6 +22,14 @@ const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-4.jpg"
 ];
 
+const COSMETIC_IMAGES = [
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/cosmetic/premium-style-tree-1.png",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/cosmetic/premium-style-tree-2.png",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/cosmetic/premium-style-tree-3.png",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/cosmetic/premium-style-tree-4.png",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/cosmetic/premium-style-tree-5.png"
+];
+
 const TREE_STYLE_COST = 1500;
 
 export class Cosmetics implements PartialCommand {
@@ -92,7 +100,7 @@ export class Cosmetics implements PartialCommand {
           .setDescription(
             `Sorry, to use this feature you need the Festive Forest Subscription! 🎄 Unlock it to enjoy magical perks and more! ✨`
           )
-          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
       );
       const actionRow = new ActionRowBuilder().addComponents(
         await ctx.manager.components.createInstance("shop.cosmetics.refresh")
@@ -111,6 +119,10 @@ export class Cosmetics implements PartialCommand {
       const actionRow = new ActionRowBuilder().addComponents(
         await ctx.manager.components.createInstance("shop.cosmetics.refresh")
       );
+
+      if (!process.env.DEV_MODE) {
+        actionRow.addComponents(PremiumButtons.LuckyCoinBagButton);
+      }
       this.transitionBackToDefaultShopViewWithTimeout(ctx);
       return new MessageBuilder()
         .addEmbed(
@@ -119,7 +131,7 @@ export class Cosmetics implements PartialCommand {
             .setDescription(
               `You need **${TREE_STYLE_COST}** coins to purchase a tree style. Keep earning and come back soon! 🎄`
             )
-            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
         )
         .addComponents(actionRow);
     }
@@ -137,7 +149,7 @@ export class Cosmetics implements PartialCommand {
             .setDescription(
               `It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨`
             )
-            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
         )
         .addComponents(actionRow);
     }
@@ -162,7 +174,7 @@ export class Cosmetics implements PartialCommand {
     const imageStyleApi = new ImageStylesApi();
     const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
 
-    let imageUrl = getRandomElement(IMAGES) ?? IMAGES[0];
+    let imageUrl = getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0];
     if (hasImageResponse.exists) {
       const imageResponse = await imageStyleApi.getImageStyleImage(styleName);
       if (imageResponse.success) {

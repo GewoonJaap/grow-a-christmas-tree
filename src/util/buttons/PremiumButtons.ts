@@ -5,7 +5,8 @@ import {
   SUPER_THIRSTY_ENTITLEMENT_SKU_ID,
   HOLIDAY_LUCKY_TICKET,
   LUCKY_TICKET_25,
-  LUCKY_TICKET_50
+  LUCKY_TICKET_50,
+  LUCKY_COIN_BAG_SKU_ID
 } from "../discord/DiscordApiExtensions";
 
 export class PremiumButtons {
@@ -18,6 +19,11 @@ export class PremiumButtons {
    * A button that allows users to purchase a small pouch of coins
    */
   static SmallPouchOfCoinsButton = new PremiumButtonBuilder().setSkuId(SMALL_POUCH_OF_COINS_SKU_ID);
+
+  /**
+   * A button that allows users to purchase the Lucky Coin Bag
+   */
+  static LuckyCoinBagButton = new PremiumButtonBuilder().setSkuId(LUCKY_COIN_BAG_SKU_ID);
 
   /**
    * A button that allows users to purchase the Super Thirsty entitlement
