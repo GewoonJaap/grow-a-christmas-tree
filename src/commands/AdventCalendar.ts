@@ -11,7 +11,7 @@ import {
 } from "interactions.ts";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
-import { AdventCalendarHelper } from "../util/adventCalendar/AdventCalendarHelper";
+import { AdventCalendarHelper, WonPresent } from "../util/adventCalendar/AdventCalendarHelper";
 
 export class AdventCalendar implements ISlashCommand {
   public builder = new SlashCommandBuilder(
@@ -118,12 +118,12 @@ async function buildAlreadyOpenedMessage(
 
 async function buildPresentOpenedMessage(
   ctx: SlashCommandContext | ButtonContext,
-  present: { type: string; amount?: number }
+  present: WonPresent
 ): Promise<MessageBuilder> {
   const embed = new EmbedBuilder()
     .setTitle("🎁 Santa's Advent Calendar 🎄")
     .setDescription(
-      `🎉 <@${ctx.user.id}>, You've unwrapped your advent calendar gift and received ${present.amount} ${present.type}! Check back tomorrow for more festive surprises. 🎄`
+      `🎉 <@${ctx.user.id}>, You've unwrapped your advent calendar gift and received **${present.displayText}**! Check back tomorrow for more festive surprises. 🎄`
     )
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg");
