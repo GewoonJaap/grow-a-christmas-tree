@@ -85,7 +85,7 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You missed the treasures. Better luck next time!");
+      .setDescription(`<@${ctx.user.id}>, You missed the treasures. Better luck next time!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
     await minigameFinished(ctx, {

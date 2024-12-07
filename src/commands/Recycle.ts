@@ -16,7 +16,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder(
   "recycle",
-  "Send your christmas tree to the recycling center, so you can plant a fresh tree"
+  "Send your Christmas tree to the recycling center and make way for a brand new tree to grow! 🌟♻️"
 );
 
 builder.setDMEnabled(false);
@@ -41,10 +41,12 @@ export class Recycle implements ISlashCommand {
     if (guildToRemove === null) return await ctx.reply(`You don't have a christmas tree planted in this server.`);
 
     const embed = new EmbedBuilder()
-      .setTitle("Recycle Confirmation")
-      .setDescription("Are you sure you want to recycle your christmas tree? This action cannot be undone.")
+      .setTitle("🎄 Confirm Tree Recycling")
+      .setDescription(
+        "Are you sure you want to recycle your Christmas tree? This action is permanent and cannot be undone. 🌟♻️"
+      )
       .setFooter({
-        text: "When you recycle your christmas tree, you will lose all your progress and your tree will be removed."
+        text: "Recycling your Christmas tree will reset all progress, and your tree will be permanently removed. Proceed with care! ♻️✨"
       })
       .setColor(0xff0000);
 
@@ -60,6 +62,10 @@ export class Recycle implements ISlashCommand {
       "recycle.confirm",
       new ButtonBuilder().setLabel("Confirm Recycle").setEmoji({ name: "♻️" }).setStyle(4), // Style 4 is the danger style (red)
       async (ctx: ButtonContext<{ guildId: string }>): Promise<void> => {
+        const perms = permissionsExtractor((ctx.interaction.member?.permissions as unknown as number) ?? 0);
+        if (!perms.includes("MANAGE_GUILD"))
+          return await ctx.reply(`You need the Manage Server permission to recycle your christmas tree.`);
+
         const guildToRemove = await Guild.findOne({ id: ctx.game?.id });
 
         if (guildToRemove === null) return await ctx.reply(`You don't have a christmas tree planted in this server.`);
@@ -68,7 +74,11 @@ export class Recycle implements ISlashCommand {
 
         return await ctx.reply(
           new MessageBuilder()
-            .addEmbed(new EmbedBuilder().setTitle(`Recycled!`).setDescription(`Your christmas tree has been recycled!`))
+            .addEmbed(
+              new EmbedBuilder()
+                .setTitle(`🎄 Tree Recycled!`)
+                .setDescription(`Your Christmas tree has been recycled, making room for fresh festive growth! 🌟♻️`)
+            )
             .setComponents([])
         );
       }

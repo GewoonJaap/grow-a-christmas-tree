@@ -1,5 +1,5 @@
+import { ImageGenApi } from "./api/image-gen/ImageGenApi";
 import { TreeStageConfig, TreeStages } from "./treeStages";
-import { ImageGenApi } from "./image-gen/ImageGenApi";
 
 const AI_GEN_AFTER_TIER: TreeStageConfig = TreeStages[35];
 const AI_GEN_TIER_WATERINGS_PER_LEVEL = 30;
@@ -8,6 +8,7 @@ export async function calculateTreeTierImage(
   size: number,
   useAiGen: boolean,
   guildId: string,
+  treeStyles: string[],
   currentImageUri?: string
 ): Promise<TreeTier> {
   size = Math.floor(size);
@@ -19,12 +20,12 @@ export async function calculateTreeTierImage(
     const hasGeneratedImage = await imageGenApi.getHasGeneratedImage(guildId, level);
 
     if (hasGeneratedImage) {
-      const image = await imageGenApi.getGeneratedImage(guildId, level);
+      const image = await imageGenApi.getGeneratedImage(guildId, level, treeStyles);
       if (image.data) {
         return { tier: level, image: image.data?.url };
       }
     } else {
-      imageGenApi.getGeneratedImage(guildId, level);
+      imageGenApi.getGeneratedImage(guildId, level, treeStyles);
       if (currentImageUri && (await isCurrentImageUriStillValid(currentImageUri))) {
         return { tier: level, image: currentImageUri };
       }
