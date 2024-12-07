@@ -157,7 +157,7 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
-        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 75 : 25)) };
+        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 65 : 15)) + 10 };
       } else if (reward === "tickets") {
         return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 3 : 1)) + 1 };
       } else if (reward === "composterEfficiencyUpgrade") {
