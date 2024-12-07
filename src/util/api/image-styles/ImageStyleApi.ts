@@ -1,4 +1,6 @@
 import { CachedResponse } from "../../types/api/CachedResponseType";
+import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
+import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
 import { ImageStylesReponse } from "../../types/api/ImageStylesApi/ImageStylesReponseType";
 
 export class ImageStylesApi {
@@ -25,6 +27,42 @@ export class ImageStylesApi {
     } catch (error) {
       console.error(error);
       return { success: false, styles: [] };
+    }
+  }
+
+  public async getImageStyleImage(styleName: string): Promise<ImageReponse> {
+    try {
+      const response = await fetch(`${this.apiUrl}/api/styles/${styleName}/image`, {
+        method: "GET"
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(error);
+      return { success: false };
+    }
+  }
+
+  public async hasImageStyleImage(styleName: string): Promise<HasImageReponseType> {
+    try {
+      const response = await fetch(`${this.apiUrl}/api/styles/${styleName}/has-image`, {
+        method: "GET"
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(error);
+      return { exists: false };
+    }
+  }
+
+  public async generateImageStyles(): Promise<ImageReponse[]> {
+    try {
+      const response = await fetch(`${this.apiUrl}/api/styles/generate`, {
+        method: "GET"
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(error);
+      return [];
     }
   }
 

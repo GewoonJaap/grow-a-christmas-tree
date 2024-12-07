@@ -6,4 +6,5 @@ export interface ImageStylesReponse {
 export interface ImageStyle {
   name: string;
   description: string;
+  url?: string;
 }

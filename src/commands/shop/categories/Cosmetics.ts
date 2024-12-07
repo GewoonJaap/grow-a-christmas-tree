@@ -13,6 +13,7 @@ import { getRandomLockedTreeStyle } from "../../../util/helpers/treeStyleHelper"
 import { WalletHelper } from "../../../util/wallet/WalletHelper";
 import { disposeActiveTimeouts } from "../../Tree";
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
+import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -123,16 +124,38 @@ export class Cosmetics implements PartialCommand {
     ctx.game.unlockedTreeStyles.push(randomTreeStyle.name);
     await ctx.game.save();
 
+    const embed = await this.getTreeStyleEmbed(randomTreeStyle.name);
+
     this.transitionBackToDefaultShopViewWithTimeout(ctx);
 
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("🎁 Purchase Complete!")
-        .setDescription(
-          `You've successfully unlocked the **${randomTreeStyle.name}** tree style! It will appear randomly as you level up! 🎄✨`
-        )
-        .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
-    );
+    return new MessageBuilder().addEmbed(embed);
+  }
+
+  private async getTreeImageUrl(styleName: string): Promise<string> {
+    const imageStyleApi = new ImageStylesApi();
+    const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
+
+    let imageUrl = getRandomElement(IMAGES) ?? IMAGES[0];
+    if (hasImageResponse.exists) {
+      const imageResponse = await imageStyleApi.getImageStyleImage(styleName);
+      if (imageResponse.success) {
+        imageUrl = imageResponse.data?.url ?? imageUrl;
+      }
+    } else {
+      imageStyleApi.generateImageStyles();
+    }
+    return imageUrl;
+  }
+
+  private async getTreeStyleEmbed(styleName: string): Promise<EmbedBuilder> {
+    const imageUrl = await this.getTreeImageUrl(styleName);
+
+    return new EmbedBuilder()
+      .setTitle("🎁 Purchase Complete!")
+      .setDescription(
+        `You've successfully unlocked the **${styleName}** tree style! It will appear randomly as you level up! 🎄✨`
+      )
+      .setImage(imageUrl);
   }
 
   private transitionBackToDefaultShopViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
