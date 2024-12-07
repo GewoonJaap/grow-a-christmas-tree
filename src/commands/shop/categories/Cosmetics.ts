@@ -36,10 +36,17 @@ export class Cosmetics implements PartialCommand {
       }
     ),
     new Button(
-      "shop.buy.tree_style",
+      "shop.cosmetics.buy.tree_style",
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Buy Tree Style"),
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await this.handleTreeStylePurchase(ctx));
+      }
+    ),
+    new Button(
+      "shop.cosmetics.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
+      async (ctx: ButtonContext): Promise<void> => {
+        return ctx.reply(await this.buildCosmeticsMessage(ctx));
       }
     )
   ];
@@ -61,7 +68,7 @@ export class Cosmetics implements PartialCommand {
     embed.addFields(fields);
 
     const actionRow = new ActionRowBuilder().addComponents(
-      await ctx.manager.components.createInstance("shop.buy.tree_style"),
+      await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style"),
       await ctx.manager.components.createInstance("shop.main")
     );
 
@@ -87,38 +94,52 @@ export class Cosmetics implements PartialCommand {
           )
           .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       );
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+      );
       if (!process.env.DEV_MODE) {
-        const actionRow = new ActionRowBuilder().addComponents(PremiumButtons.FestiveForestButton);
-        message.addComponents(actionRow);
+        actionRow.addComponents(PremiumButtons.FestiveForestButton);
       }
+      message.addComponents(actionRow);
+      this.transitionBackToDefaultShopViewWithTimeout(ctx);
       return message;
     }
 
     const wallet = await WalletHelper.getWallet(ctx.user.id);
 
     if (wallet.coins < TREE_STYLE_COST) {
-      this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder().addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎅 Not Enough Coins! ❄️")
-          .setDescription(
-            `You need **${TREE_STYLE_COST}** coins to purchase a tree style. Keep earning and come back soon! 🎄`
-          )
-          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
       );
+      this.transitionBackToDefaultShopViewWithTimeout(ctx);
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle("🎅 Not Enough Coins! ❄️")
+            .setDescription(
+              `You need **${TREE_STYLE_COST}** coins to purchase a tree style. Keep earning and come back soon! 🎄`
+            )
+            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+        )
+        .addComponents(actionRow);
     }
 
     const randomTreeStyle = await getRandomLockedTreeStyle(ctx);
     if (!randomTreeStyle) {
-      this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder().addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎅 Purchase Failed! ❄️")
-          .setDescription(
-            `It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨`
-          )
-          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
       );
+      this.transitionBackToDefaultShopViewWithTimeout(ctx);
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle("🎅 Purchase Failed! ❄️")
+            .setDescription(
+              `It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨`
+            )
+            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+        )
+        .addComponents(actionRow);
     }
 
     ctx.game.unlockedTreeStyles.push(randomTreeStyle.name);
@@ -126,9 +147,13 @@ export class Cosmetics implements PartialCommand {
 
     const embed = await this.getTreeStyleEmbed(randomTreeStyle.name);
 
+    const actionRow = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+    );
+
     this.transitionBackToDefaultShopViewWithTimeout(ctx);
 
-    return new MessageBuilder().addEmbed(embed);
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
   private async getTreeImageUrl(styleName: string): Promise<string> {
