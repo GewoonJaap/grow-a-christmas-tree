@@ -90,7 +90,7 @@ export class AdventCalendarHelper {
       }
 
       // Grant special Christmas achievement on December 25th
-      if (today.getMonth() === 11 && today.getDate() === 25) {
+      if ((today.getMonth() === 11 && today.getDate() === 25) || (today.getMonth() === 11 && today.getDate() === 26)) {
         if (!(await AchievementHelper.hasAchievement(ctx.user.id, "Christmas Day Celebration"))) {
           await AchievementHelper.grantAchievement(ctx.user.id, "Christmas Day Celebration");
         }
