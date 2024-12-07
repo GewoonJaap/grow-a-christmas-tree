@@ -142,6 +142,8 @@ export class Cosmetics implements PartialCommand {
         .addComponents(actionRow);
     }
 
+    await WalletHelper.removeCoins(ctx.user.id, TREE_STYLE_COST);
+
     ctx.game.unlockedTreeStyles.push(randomTreeStyle.name);
     await ctx.game.save();
 
