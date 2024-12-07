@@ -151,7 +151,7 @@ export class Cosmetics implements PartialCommand {
       await ctx.manager.components.createInstance("shop.cosmetics.refresh")
     );
 
-    this.transitionBackToDefaultShopViewWithTimeout(ctx);
+    this.transitionBackToDefaultShopViewWithTimeout(ctx, 8 * 1000);
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
