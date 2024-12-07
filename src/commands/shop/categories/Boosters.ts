@@ -106,7 +106,6 @@ export class Boosters implements PartialCommand {
     const boostersPerPage = 2;
     const start = (state.page - 1) * boostersPerPage;
     const paginatedBoosters = Object.values(BoosterHelper.BOOSTERS).slice(start, start + boostersPerPage);
-    console.log("State:", state);
 
     const fields = paginatedBoosters.map((booster) => ({
       name: `${booster.name} ${booster.emoji}`,
