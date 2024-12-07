@@ -56,6 +56,13 @@ export class Cosmetics implements PartialCommand {
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await this.buildCosmeticsMessage(ctx));
       }
+    ),
+    new Button(
+      "shop.cosmetics.claim.limited_time_style",
+      new ButtonBuilder().setEmoji({ name: "🎁" }).setStyle(1).setLabel("Claim Limited-Time Style"),
+      async (ctx: ButtonContext): Promise<void> => {
+        return ctx.reply(await this.handleLimitedTimeStyleClaim(ctx));
+      }
     )
   ];
 
@@ -70,6 +77,11 @@ export class Cosmetics implements PartialCommand {
         name: "Tree Style 🎄",
         value: `**Effect:** Unlocks a random tree style\n**Cost:** ${TREE_STYLE_COST} coins`,
         inline: false
+      },
+      {
+        name: "Limited-Time Style 🎁",
+        value: `**Effect:** Claim a limited-time style\n**Cost:** ${TREE_STYLE_COST} coins`,
+        inline: false
       }
     ];
 
@@ -77,6 +89,7 @@ export class Cosmetics implements PartialCommand {
 
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style"),
+      await ctx.manager.components.createInstance("shop.cosmetics.claim.limited_time_style"),
       await ctx.manager.components.createInstance("shop.main")
     );
 
@@ -168,6 +181,87 @@ export class Cosmetics implements PartialCommand {
     this.transitionBackToDefaultShopViewWithTimeout(ctx, 8 * 1000);
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+  }
+
+  public async handleLimitedTimeStyleClaim(ctx: ButtonContext): Promise<MessageBuilder> {
+    if (!ctx.game || ctx.isDM) {
+      return new MessageBuilder().addEmbed(
+        new EmbedBuilder()
+          .setTitle("Error")
+          .setDescription("Please use /plant to plant a tree first.")
+          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+      );
+    }
+
+    const wallet = await WalletHelper.getWallet(ctx.user.id);
+
+    if (wallet.coins < TREE_STYLE_COST) {
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+      );
+
+      if (!process.env.DEV_MODE) {
+        actionRow.addComponents(PremiumButtons.LuckyCoinBagButton);
+      }
+      this.transitionBackToDefaultShopViewWithTimeout(ctx);
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle("🎅 Not Enough Coins! ❄️")
+            .setDescription(
+              `You need **${TREE_STYLE_COST}** coins to claim a limited-time style. Keep earning and come back soon! 🎄`
+            )
+            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+        )
+        .addComponents(actionRow);
+    }
+
+    const limitedTimeStyle = await this.getRandomLimitedTimeStyle();
+    if (!limitedTimeStyle) {
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+      );
+      this.transitionBackToDefaultShopViewWithTimeout(ctx);
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle("🎅 Claim Failed! ❄️")
+            .setDescription(
+              `It looks like there are no available limited-time styles at the moment! 🎄 Check back later for more festive styles! ✨`
+            )
+            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+        )
+        .addComponents(actionRow);
+    }
+
+    await WalletHelper.removeCoins(ctx.user.id, TREE_STYLE_COST);
+
+    ctx.game.unlockedTreeStyles.push(limitedTimeStyle.name);
+    await ctx.game.save();
+
+    const embed = await this.getTreeStyleEmbed(limitedTimeStyle.name);
+
+    const actionRow = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+    );
+
+    this.transitionBackToDefaultShopViewWithTimeout(ctx, 8 * 1000);
+
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+  }
+
+  private async getRandomLimitedTimeStyle(): Promise<{ name: string } | null> {
+    const imageStyleApi = new ImageStylesApi();
+    const response = await imageStyleApi.getImageStyles();
+    if (!response.success) {
+      return null;
+    }
+    const limitedTimeStyles = response.styles.filter((style) => style.isLimitedTime);
+    if (limitedTimeStyles.length === 0) {
+      return null;
+    }
+    const randomIndex = Math.floor(Math.random() * limitedTimeStyles.length);
+    return limitedTimeStyles[randomIndex];
   }
 
   private async getTreeImageUrl(styleName: string): Promise<string> {

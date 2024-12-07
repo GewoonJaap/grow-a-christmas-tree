@@ -66,6 +66,18 @@ export class ImageStylesApi {
     }
   }
 
+  public async getLimitedTimeStyles(): Promise<ImageStylesReponse> {
+    try {
+      const response = await fetch(`${this.apiUrl}/api/styles/limited-time`, {
+        method: "GET"
+      });
+      return await response.json();
+    } catch (error) {
+      console.error(error);
+      return { success: false, styles: [] };
+    }
+  }
+
   private isCacheValid(cachedData: CachedResponse<unknown> | undefined): boolean {
     if (!cachedData) return false;
     return cachedData.expiresAt > Date.now();

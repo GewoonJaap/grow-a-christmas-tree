@@ -18,6 +18,11 @@ export class NewsMessageHelper {
     "🎉 **Happy New Year!** 🎆 Wishing you a magical year ahead! To kick off 2024, we're gifting extra coins, boosters, and tickets today! Plus, enjoy 25% more on item purchases in the shop! 🎁🎊"
   ];
 
+  private static limitedTimeStyleMessages: string[] = [
+    "🎉 **Congratulations!** You've claimed a new limited-time style: **[Style Name]**! 🎄",
+    "🌟 Check out your new style in the cosmetics shop and make your tree even more magical! ✨"
+  ];
+
   /**
    * Get news messages, including special day messages
    * @param maxMessages The maximum number of messages to return. Note it might contain more messages if there are special day messages
@@ -50,5 +55,11 @@ export class NewsMessageHelper {
       messages.push(getRandomElement(this.newYearMessages) ?? this.newYearMessages[0]);
     }
     return messages;
+  }
+
+  public static getLimitedTimeStyleMessage(styleName: string): string {
+    return this.limitedTimeStyleMessages
+      .map((message) => message.replace("[Style Name]", styleName))
+      .join("\n");
   }
 }
