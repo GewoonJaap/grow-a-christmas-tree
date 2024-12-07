@@ -12,8 +12,8 @@ import { validateTreeName } from "../util/validate-tree-name";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
-const builder = new SlashCommandBuilder("plant", "Plant a christmas tree for your server.").addStringOption(
-  new SlashCommandStringOption("name", "A name for your server's christmas tree.").setRequired(true)
+const builder = new SlashCommandBuilder("plant", "🎄 Plant a Christmas Tree for Your Server").addStringOption(
+  new SlashCommandStringOption("name", "Give your server's tree a festive name").setRequired(true)
 );
 
 builder.setDMEnabled(false);
@@ -38,7 +38,7 @@ export class Plant implements ISlashCommand {
     if (!validateTreeName(name))
       return await ctx.reply(
         SimpleError(
-          "Your christmas tree name must be 1-36 characters, and contain only alphanumeric characters, hyphens, and apostrophes."
+          "Your Christmas tree name must be between 1-36 characters and can only contain alphanumeric characters, hyphens, and apostrophes. ✨"
         )
       );
 
@@ -59,7 +59,12 @@ export class Plant implements ISlashCommand {
     }).save();
 
     return await ctx.reply(
-      new MessageBuilder().addEmbed(new EmbedBuilder().setTitle(`You planted \`\`${name}\`\` in your server!`))
+      new MessageBuilder().addEmbed(
+        new EmbedBuilder()
+          .setTitle("🎄 Tree Planted!")
+          .setDescription(`You've planted \`\`${name}\`\` in your server! Watch it grow! ✨🌟`)
+          .setFooter({ text: `Run /tree to start growing **${name}** and watch your Christmas tree thrive! ✨🌱` })
+      )
     );
   };
 

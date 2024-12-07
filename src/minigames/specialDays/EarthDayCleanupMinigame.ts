@@ -83,7 +83,7 @@ export class EarthDayCleanupMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You missed the trash. Better luck next time!");
+      .setDescription(`<@${ctx.user.id}>, You missed the trash. Better luck next time!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 

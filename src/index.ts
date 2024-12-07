@@ -46,7 +46,7 @@ import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 import { unleash } from "./util/unleash/UnleashHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
-const VERSION = "1.8";
+const VERSION = "1.9";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
