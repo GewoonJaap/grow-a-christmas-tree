@@ -15,7 +15,6 @@ import humanizeDuration = require("humanize-duration");
 import { getRandomElement } from "../util/helpers/arrayHelper";
 import { disposeActiveTimeouts } from "./Tree";
 import { getRandomTreeStyle } from "../util/helpers/treeStyleHelper";
-import { Guild } from "../models/Guild";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
