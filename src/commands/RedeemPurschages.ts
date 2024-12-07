@@ -29,6 +29,7 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const builder = new SlashCommandBuilder("redeempurschages", "Redeem all your purchases from the shop");
 
@@ -105,6 +106,12 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     }
   }
 
+  const multiplier = SpecialDayHelper.shopPurschaseMultiplier();
+  if (multiplier !== 1) {
+    totalCoins = Math.floor(totalCoins * multiplier);
+    totalLuckyTickets = Math.floor(totalLuckyTickets * multiplier);
+  }
+
   if (totalCoins > 0) {
     await WalletHelper.addCoins(ctx.user.id, totalCoins);
   }
@@ -125,7 +132,8 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
       `You have successfully redeemed:\n\n` +
         `🪙 **${totalCoins} coins**\n` +
         `🎟️ **${totalLuckyTickets} lucky tickets**\n` +
-        `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}`
+        `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}` +
+        `${multiplier !== 1 ? `\n\n🎉 **Special Day Multiplier Applied!** You received ${multiplier}x more rewards!` : ""}`
     )
     .setColor(0x00ff00)
     .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
