@@ -101,7 +101,7 @@ export class GrinchHeistMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`The Grinch stole part of your tree! You lost ${randomLoss}ft.`)
+      .setDescription(`<@${ctx.user.id}>, The Grinch stole part of your tree! You lost ${randomLoss}ft.`)
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-stole-tree-1.jpg"
       );

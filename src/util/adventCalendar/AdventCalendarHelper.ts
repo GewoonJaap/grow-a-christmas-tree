@@ -3,21 +3,30 @@ import { IAdventCalendar, AdventCalendar } from "../../models/AdventCalendar";
 import { WalletHelper } from "../wallet/WalletHelper";
 import { WheelStateHelper } from "../wheel/WheelStateHelper";
 import { AchievementHelper } from "../achievement/AchievementHelper";
+import { BoosterHelper, BoosterName } from "../booster/BoosterHelper";
+import { SpecialDayHelper } from "../special-days/SpecialDayHelper";
 
 const SECONDS_IN_A_DAY = 60 * 60 * 24;
 const MILLISECONDS_IN_A_SECOND = 1000;
 
-type PresentType = "coins" | "tickets" | "treeSize";
+type PresentType = "coins" | "tickets" | "treeSize" | "booster";
 
 export interface Present {
   displayName: string;
   probability: number;
 }
 
+export interface WonPresent {
+  type: PresentType;
+  amount?: number;
+  boosterName?: BoosterName;
+}
+
 const PRESENTS: Record<PresentType, Present> = {
-  coins: { displayName: "Coins", probability: 0.5 },
+  coins: { displayName: "Coins", probability: 0.4 },
   tickets: { displayName: "Tickets", probability: 0.3 },
-  treeSize: { displayName: "Tree Size Increase", probability: 0.2 }
+  treeSize: { displayName: "Tree Size Increase", probability: 0.2 },
+  booster: { displayName: "Booster", probability: 0.1 }
 };
 
 export class AdventCalendarHelper {
@@ -64,7 +73,7 @@ export class AdventCalendarHelper {
   static async addClaimedDay(
     ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
     year: number = new Date().getFullYear()
-  ): Promise<{ type: PresentType; amount?: number } | null> {
+  ): Promise<WonPresent | null> {
     const adventCalendar = await AdventCalendarHelper.getAdventCalendar(ctx.user.id, year);
     const today = new Date();
     const alreadyClaimed = adventCalendar.claimDates.some((date) => date.toDateString() === today.toDateString());
@@ -79,6 +88,13 @@ export class AdventCalendarHelper {
 
       if (adventCalendar.claimDates.length === 25) {
         AchievementHelper.grantAchievement(ctx.user.id, "Advent Calendar Completion");
+      }
+
+      // Grant special Christmas achievement on December 25th
+      if (SpecialDayHelper.isChristmas()) {
+        if (!(await AchievementHelper.hasAchievement(ctx.user.id, "Christmas Day Celebration"))) {
+          await AchievementHelper.grantAchievement(ctx.user.id, "Christmas Day Celebration");
+        }
       }
 
       return present;
@@ -108,23 +124,31 @@ export class AdventCalendarHelper {
     return adventCalendar.claimDates[adventCalendar.claimDates.length - 1] || null;
   }
 
-  static determinePresent(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): {
-    type: PresentType;
-    amount?: number;
-  } {
+  static determinePresent(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): WonPresent {
     const random = Math.random();
     let cumulativeProbability = 0;
     const isPremium = ctx.game?.hasAiAccess ?? false;
+    const isChristmas = SpecialDayHelper.isChristmas();
+    const rewardMultiplier = isChristmas ? 2 : 1;
 
     for (const [present, { probability }] of Object.entries(PRESENTS) as [PresentType, Present][]) {
       cumulativeProbability += probability;
       if (random < cumulativeProbability) {
         if (present === "coins") {
-          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) + 1 }; // Random amount of coins between 1 and 100
+          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) * rewardMultiplier + 1 }; // Random amount of coins between 1 and 100
         } else if (present === "tickets") {
-          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random amount of tickets between 1 and 5
+          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) * rewardMultiplier + 1 }; // Random amount of tickets between 1 and 5
         } else if (present === "treeSize") {
-          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random 1 or 2 ft
+          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) * rewardMultiplier + 1 }; // Random 1 or 2 ft
+        } else if (present === "booster") {
+          const boosterNames: BoosterName[] = [
+            "Growth Booster",
+            "Watering Booster",
+            "Minigame Booster",
+            "Coin Booster"
+          ];
+          const randomBooster = boosterNames[Math.floor(Math.random() * boosterNames.length)];
+          return { type: present, boosterName: randomBooster };
         }
         return { type: present };
       }
@@ -135,7 +159,7 @@ export class AdventCalendarHelper {
 
   static async applyPresent(
     ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
-    present: { type: PresentType; amount?: number }
+    present: WonPresent
   ): Promise<void> {
     switch (present.type) {
       case "coins":
@@ -152,6 +176,11 @@ export class AdventCalendarHelper {
         if (present.amount && ctx.game) {
           ctx.game.size += present.amount;
           await ctx.game.save();
+        }
+        break;
+      case "booster":
+        if (present.amount) {
+          await BoosterHelper.addBooster(ctx, present.boosterName ?? "Growth Booster");
         }
         break;
       default:

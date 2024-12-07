@@ -152,15 +152,21 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
     .setImage(getRandomElement(composterImages) ?? "")
     .setFooter({ text: upsellData.message });
 
-  const actionRow = new ActionRowBuilder().addComponents(
-    await ctx.manager.components.createInstance("composter.upgrade.efficiency"),
-    await ctx.manager.components.createInstance("composter.upgrade.quality"),
-    await ctx.manager.components.createInstance("composter.refresh")
-  );
+  const actionRow = new ActionRowBuilder();
 
   if (upsellData.isUpsell && upsellData.buttonSku && !process.env.DEV_MODE) {
     actionRow.addComponents(new PremiumButtonBuilder().setSkuId(upsellData.buttonSku));
   }
+
+  if (efficiencyLevel < MAX_LEVEL) {
+    actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.efficiency"));
+  }
+
+  if (qualityLevel < MAX_LEVEL) {
+    actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.quality"));
+  }
+
+  actionRow.addComponents(await ctx.manager.components.createInstance("composter.refresh"));
 
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
 }

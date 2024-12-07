@@ -58,11 +58,22 @@ export class ServerInfo implements ISlashCommand {
     if (ctx.game?.activeBoosters && boosters.length > 0) {
       const activeBoosters = boosters.map((booster) => {
         const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
-        return `${booster.type} (${humanizeDuration(remainingTime * 1000, { largest: 1 })} remaining)`;
+        return `**${booster.type}** (${humanizeDuration(remainingTime * 1000)} remaining)`;
       });
       return `${activeBoosters.join(", ")}`;
     }
     return "No active boosters";
+  }
+
+  private getUnlockedTreeStylesText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
+    const unlockedTreeStyles = ctx.game?.unlockedTreeStyles ?? [];
+    if (unlockedTreeStyles.length) {
+      const displayedStyles = unlockedTreeStyles.slice(0, 10);
+      const remainingStylesCount = unlockedTreeStyles.length - displayedStyles.length;
+      const stylesText = displayedStyles.map((style) => `🎄 **${style}**`).join("\n");
+      return remainingStylesCount > 0 ? `${stylesText}\n...and ${remainingStylesCount} more styles` : stylesText;
+    }
+    return "No unlocked tree styles";
   }
 
   private async buildServerInfoEmbed(
@@ -84,11 +95,13 @@ export class ServerInfo implements ISlashCommand {
           `**💧 Elf's Thirsty Boost access:** ${superThirsty ? "Active 🌊" : "Inactive 🎄"}\n` +
           `**🧝 Composter Efficiency Level:** ${efficiencyLevel} 🛠️\n` +
           `**✨ Composter Quality Level:** ${qualityLevel} 🌟\n\n` +
-          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}`
+          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}\n` +
+          `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}`
       )
       .setColor(0x00ff00)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       .setFooter({ text: "Let it grow, let it glow! 🌟❄️" });
+
     const actionRow = new ActionRowBuilder();
     if (!process.env.DEV_MODE) {
       if (!ctx.game.hasAiAccess) {

@@ -97,7 +97,7 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You unwrapped an empty box. Better luck next time!");
+      .setDescription(`<@${ctx.user.id}>, You unwrapped an empty box. Better luck next time!`);
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
     transitionToDefaultTreeView(ctx);

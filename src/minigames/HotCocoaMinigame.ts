@@ -64,7 +64,7 @@ export class HotCocoaMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`You spilled the cocoa! Better luck next time!`);
+      .setDescription(`<@${ctx.user.id}>, You spilled the cocoa! Better luck next time!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 

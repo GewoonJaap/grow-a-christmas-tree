@@ -1,5 +1,5 @@
-import { HasImageReponseType } from "../types/api/ImageGenApi/HasImageResponseType";
-import { ImageReponse } from "../types/api/ImageGenApi/ImageResponseType";
+import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
+import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
 
 export class ImageGenApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
@@ -10,11 +10,17 @@ export class ImageGenApi {
     }
   }
 
-  public async getGeneratedImage(guildId: string, treeLevel: number): Promise<ImageReponse> {
+  public async getGeneratedImage(guildId: string, treeLevel: number, treeStyles: string[]): Promise<ImageReponse> {
     treeLevel = Math.floor(treeLevel);
     console.log(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
     try {
-      const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/image`);
+      const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/image`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ styles: treeStyles })
+      });
       return await response.json();
     } catch (error) {
       console.error(error);

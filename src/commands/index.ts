@@ -11,7 +11,7 @@ export * from "./SendCoins";
 export * from "./RedeemPurschages";
 export * from "./DailyReward";
 export * from "./Composter";
-export * from "./Shop";
+export * from "./shop/index";
 export * from "./SetTimezone";
 export * from "./ServerInfo";
 export * from "./Wheel";

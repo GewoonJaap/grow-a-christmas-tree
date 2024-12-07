@@ -57,7 +57,6 @@ export const minigameButtons = [
 ];
 
 const minigames: Minigame[] = [
-  new SantaPresentMinigame(),
   new HotCocoaMinigame(),
   new GiftUnwrappingMinigame(),
   new SnowballFightMinigame(),
@@ -98,6 +97,10 @@ export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> 
     {
       dateRange: [new Date(new Date().getFullYear(), 3, 22)],
       minigame: new EarthDayCleanupMinigame()
+    },
+    {
+      dateRange: [new Date(new Date().getFullYear(), 11, 25), new Date(new Date().getFullYear(), 11, 26)],
+      minigame: new SantaPresentMinigame()
     }
   ];
 
@@ -130,6 +133,7 @@ export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> 
       }
     }
   }
+
   const selectedMinigame = getRandomElement(availableMinigames);
 
   if (selectedMinigame) {

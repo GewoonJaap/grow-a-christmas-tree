@@ -118,7 +118,7 @@ export class CarolingChoirMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You hit a wrong note. Better luck next time!");
+      .setDescription(`<@${ctx.user.id}>, You hit a wrong note. Better luck next time!`);
 
     await ctx.reply(
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
