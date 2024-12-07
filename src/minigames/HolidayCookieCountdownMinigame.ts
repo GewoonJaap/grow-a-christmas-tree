@@ -113,7 +113,7 @@ export class HolidayCookieCountdownMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You missed the cookie. Better luck next time!");
+      .setDescription(`<@${ctx.user.id}>, You missed the cookie. Better luck next time!`);
 
     if (isTimeout) {
       await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));

@@ -81,7 +81,9 @@ export class SantaPresentMinigame implements Minigame {
 
     const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
 
-    const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(`Whoops! The witch stole your present!`);
+    const embed = new EmbedBuilder()
+      .setTitle(ctx.game.name)
+      .setDescription(`<@${ctx.user.id}>, Whoops! The witch stole your present!`);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 

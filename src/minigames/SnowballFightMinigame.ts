@@ -86,7 +86,7 @@ export class SnowballFightMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`You missed the target. Better luck next time!`);
+      .setDescription(`<@${ctx.user.id}>, You missed the target. Better luck next time!`);
 
     if (isTimeout) {
       await minigameFinished(ctx, {
