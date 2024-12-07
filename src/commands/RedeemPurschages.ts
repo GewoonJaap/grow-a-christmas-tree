@@ -133,7 +133,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
         `🪙 **${totalCoins} coins**\n` +
         `🎟️ **${totalLuckyTickets} lucky tickets**\n` +
         `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}` +
-        `${multiplier !== 1 ? `\n\n🎉 **Special Day Multiplier Applied!** You received ${multiplier}x more rewards!` : ""}`
+        `${
+          multiplier !== 1 ? `\n\n🎉 **Special Day Multiplier Applied!** You received ${multiplier}x more rewards!` : ""
+        }`
     )
     .setColor(0x00ff00)
     .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
