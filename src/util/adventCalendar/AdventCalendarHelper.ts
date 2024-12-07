@@ -15,6 +15,12 @@ export interface Present {
   probability: number;
 }
 
+export interface WonPresent {
+  type: PresentType;
+  amount?: number;
+  boosterName?: BoosterName;
+}
+
 const PRESENTS: Record<PresentType, Present> = {
   coins: { displayName: "Coins", probability: 0.4 },
   tickets: { displayName: "Tickets", probability: 0.3 },
@@ -66,7 +72,7 @@ export class AdventCalendarHelper {
   static async addClaimedDay(
     ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
     year: number = new Date().getFullYear()
-  ): Promise<{ type: PresentType; amount?: number } | null> {
+  ): Promise<WonPresent | null> {
     const adventCalendar = await AdventCalendarHelper.getAdventCalendar(ctx.user.id, year);
     const today = new Date();
     const alreadyClaimed = adventCalendar.claimDates.some((date) => date.toDateString() === today.toDateString());
@@ -117,10 +123,7 @@ export class AdventCalendarHelper {
     return adventCalendar.claimDates[adventCalendar.claimDates.length - 1] || null;
   }
 
-  static determinePresent(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): {
-    type: PresentType;
-    amount?: number;
-  } {
+  static determinePresent(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): WonPresent {
     const random = Math.random();
     let cumulativeProbability = 0;
     const isPremium = ctx.game?.hasAiAccess ?? false;
@@ -142,7 +145,7 @@ export class AdventCalendarHelper {
             "Coin Booster"
           ];
           const randomBooster = boosterNames[Math.floor(Math.random() * boosterNames.length)];
-          return { type: present, amount: randomBooster };
+          return { type: present, boosterName: randomBooster };
         }
         return { type: present };
       }
@@ -153,7 +156,7 @@ export class AdventCalendarHelper {
 
   static async applyPresent(
     ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
-    present: { type: PresentType; amount?: number }
+    present: WonPresent
   ): Promise<void> {
     switch (present.type) {
       case "coins":
@@ -174,8 +177,7 @@ export class AdventCalendarHelper {
         break;
       case "booster":
         if (present.amount) {
-          const boosterName = present.amount as BoosterName;
-          await BoosterHelper.addBooster(ctx, boosterName);
+          await BoosterHelper.addBooster(ctx, present.boosterName ?? "Growth Booster");
         }
         break;
       default:
