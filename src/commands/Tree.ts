@@ -255,7 +255,7 @@ export async function buildTreeDisplayMessage(
   const canBeWateredAt =
     ctx.game.lastWateredAt + getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false);
 
-  const embed = new EmbedBuilder().setTitle(ctx.game.name);
+  const embed = new EmbedBuilder().setTitle(`${ctx.game.name} ${ctx.game.hasAiAccess ? "✨" : ""}`);
   const time = Math.floor(Date.now() / 1000);
 
   const treeImage = await calculateTreeTierImage(
@@ -288,7 +288,7 @@ export async function buildTreeDisplayMessage(
       }>\n**Ready to be watered!**${
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
-          : "\nThis server has access to unlimited levels, minigames and more!"
+          : ""
       }\n${getNewsMessages()}`
     );
   } else {
@@ -301,7 +301,7 @@ export async function buildTreeDisplayMessage(
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : "\nThis server has access to unlimited levels, minigames and more!"
-      }\n${getNewsMessages()}`
+      }\n${getActiveBoostersText(ctx)}\n${getNewsMessages()}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {
@@ -320,6 +320,18 @@ export async function buildTreeDisplayMessage(
   message.addEmbed(embed);
 
   return message;
+}
+
+function getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
+  const boosters = BoosterHelper.getActiveBoosters(ctx);
+  if (ctx.game?.activeBoosters && boosters.length > 0) {
+    const activeBoosters = boosters.map((booster) => {
+      const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
+      return `**${booster.type}** (${humanizeDuration(remainingTime * 1000)} remaining)`;
+    });
+    return `**Active Boosters**:\n${activeBoosters.join(", ")}`;
+  }
+  return "**Active Boosters**:\nNo active boosters";
 }
 
 function getNewsMessages(): string {
