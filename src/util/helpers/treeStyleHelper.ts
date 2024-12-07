@@ -1,18 +1,18 @@
-const availableTreeStyles = [
-  "Classic Tree",
-  "Snowy Tree",
-  "Candy Cane Tree",
-  "Reindeer Tree",
-  "Starry Night Tree",
-  "Gingerbread Tree",
-  "Ornament Tree",
-  "Tinsel Tree",
-  "Icicle Tree",
-  "Nutcracker Tree"
-];
+import { ButtonContext, SlashCommandContext } from "interactions.ts";
+import { ImageStylesApi } from "../api/image-styles/ImageStyleApi";
+import { ImageStyle } from "../types/api/ImageStylesApi/ImageStylesReponseType";
 
-export function getRandomTreeStyle(unlockedTreeStyles: string[]): string | null {
-  const lockedTreeStyles = availableTreeStyles.filter((style) => !unlockedTreeStyles.includes(style));
+const imageStyleApi = new ImageStylesApi();
+
+export async function getRandomLockedTreeStyle(
+  ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
+): Promise<ImageStyle | null> {
+  const unlockedTreeStyles = ctx.game?.unlockedTreeStyles ?? [];
+  const apiResponse = await imageStyleApi.getImageStyles();
+  if (!apiResponse.success) {
+    return null;
+  }
+  const lockedTreeStyles = apiResponse.styles.filter((style) => !unlockedTreeStyles.includes(style.name));
   if (lockedTreeStyles.length === 0) {
     return null;
   }

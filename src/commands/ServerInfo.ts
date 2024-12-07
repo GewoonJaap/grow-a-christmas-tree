@@ -65,6 +65,14 @@ export class ServerInfo implements ISlashCommand {
     return "No active boosters";
   }
 
+  private getUnlockedTreeStylesText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
+    const unlockedTreeStyles = ctx.game?.unlockedTreeStyles ?? [];
+    if (unlockedTreeStyles.length) {
+      return unlockedTreeStyles.map((style) => `🎄 **${style}**`).join("\n");
+    }
+    return "No unlocked tree styles";
+  }
+
   private async buildServerInfoEmbed(
     ctx: SlashCommandContext | ButtonContext<unknown> | ButtonContext
   ): Promise<MessageBuilder> {
@@ -84,11 +92,13 @@ export class ServerInfo implements ISlashCommand {
           `**💧 Elf's Thirsty Boost access:** ${superThirsty ? "Active 🌊" : "Inactive 🎄"}\n` +
           `**🧝 Composter Efficiency Level:** ${efficiencyLevel} 🛠️\n` +
           `**✨ Composter Quality Level:** ${qualityLevel} 🌟\n\n` +
-          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}`
+          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}` +
+          `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}`
       )
       .setColor(0x00ff00)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       .setFooter({ text: "Let it grow, let it glow! 🌟❄️" });
+
     const actionRow = new ActionRowBuilder();
     if (!process.env.DEV_MODE) {
       if (!ctx.game.hasAiAccess) {

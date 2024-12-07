@@ -14,7 +14,8 @@ import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 import humanizeDuration = require("humanize-duration");
 import { getRandomElement } from "../util/helpers/arrayHelper";
 import { disposeActiveTimeouts } from "./Tree";
-import { getRandomTreeStyle } from "../util/helpers/treeStyleHelper";
+import { getRandomLockedTreeStyle } from "../util/helpers/treeStyleHelper";
+import { PremiumButtons } from "../util/buttons/PremiumButtons";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -22,6 +23,8 @@ const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-3.jpg",
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-4.jpg"
 ];
+
+const TREE_STYLE_COST = 1500;
 
 export class Shop implements ISlashCommand {
   public builder = new SlashCommandBuilder(
@@ -80,7 +83,7 @@ async function buildShopMessage(ctx: SlashCommandContext | ButtonContext): Promi
 
   fields.push({
     name: "Tree Style 🎄",
-    value: `**Effect:** Unlocks a random tree style\n**Cost:** 100 coins`,
+    value: `**Effect:** Unlocks a random tree style\n**Cost:** ${TREE_STYLE_COST} coins`,
     inline: false
   });
 
@@ -156,33 +159,51 @@ async function handleTreeStylePurchase(ctx: ButtonContext): Promise<MessageBuild
         .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
     );
   }
+
+  if (!ctx.game.hasAiAccess) {
+    const message = new MessageBuilder().addEmbed(
+      new EmbedBuilder()
+        .setTitle("🎅 Purchase Failed! ❄️")
+        .setDescription(
+          `Sorry, to use this feature you need the Festive Forest Subscription! 🎄 Unlock it to enjoy magical perks and more! ✨`
+        )
+        .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+    );
+    if (!process.env.DEV_MODE) {
+      const actionRow = new ActionRowBuilder().addComponents(PremiumButtons.FestiveForestButton);
+      message.addComponents(actionRow);
+    }
+    return message;
+  }
+
   const wallet = await WalletHelper.getWallet(ctx.user.id);
 
-  const treeStyleCost = 100;
-  if (wallet.coins < treeStyleCost) {
+  if (wallet.coins < TREE_STYLE_COST) {
     transitionBackToDefaultShopViewWithTimeout(ctx);
     return new MessageBuilder().addEmbed(
       new EmbedBuilder()
         .setTitle("🎅 Not Enough Coins! ❄️")
         .setDescription(
-          `You need **${treeStyleCost}** coins to purchase a tree style. Keep earning and come back soon! 🎄`
+          `You need **${TREE_STYLE_COST}** coins to purchase a tree style. Keep earning and come back soon! 🎄`
         )
         .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
     );
   }
 
-  const randomTreeStyle = getRandomTreeStyle(ctx.game.unlockedTreeStyles);
+  const randomTreeStyle = await getRandomLockedTreeStyle(ctx);
   if (!randomTreeStyle) {
     transitionBackToDefaultShopViewWithTimeout(ctx);
     return new MessageBuilder().addEmbed(
       new EmbedBuilder()
         .setTitle("🎅 Purchase Failed! ❄️")
-        .setDescription(`Sorry, something went wrong. Please try again later. 🎄`)
+        .setDescription(
+          `It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨`
+        )
         .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
     );
   }
 
-  ctx.game.unlockedTreeStyles.push(randomTreeStyle);
+  ctx.game.unlockedTreeStyles.push(randomTreeStyle.name);
   await ctx.game.save();
 
   transitionBackToDefaultShopViewWithTimeout(ctx);
@@ -190,7 +211,9 @@ async function handleTreeStylePurchase(ctx: ButtonContext): Promise<MessageBuild
   return new MessageBuilder().addEmbed(
     new EmbedBuilder()
       .setTitle("🎁 Purchase Complete!")
-      .setDescription(`You've successfully unlocked the **${randomTreeStyle}** tree style! 🎄✨`)
+      .setDescription(
+        `You've successfully unlocked the **${randomTreeStyle.name}** tree style! It will appear randomly as you level up! 🎄✨`
+      )
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
   );
 }

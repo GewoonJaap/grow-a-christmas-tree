@@ -1,5 +1,5 @@
-import { HasImageReponseType } from "../types/api/ImageGenApi/HasImageResponseType";
-import { ImageReponse } from "../types/api/ImageGenApi/ImageResponseType";
+import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
+import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
 
 export class ImageGenApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
