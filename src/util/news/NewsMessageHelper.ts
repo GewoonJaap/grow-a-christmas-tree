@@ -10,12 +10,12 @@ export class NewsMessageHelper {
   ];
 
   private static christmasMessages: string[] = [
-    "🎄 **Happy Holidays!** 🎅 Thank you for being part of our community! To celebrate, we're giving away extra coins, boosters, and tickets today! You will also enjoy 25% more on item purschages in the shop🎁",
-    "🎅 **Merry Christmas!** 🎁 Thank you for being part of our community! To celebrate, we're giving away extra coins, boosters, and tickets today! You will also enjoy 25% more on item purschages in the shop🎁"
+    "🎄 **Happy Holidays!** 🎅 Thank you for being part of our festive community! To celebrate, we're spreading some Christmas magic with extra coins, boosters, and tickets today! Plus, enjoy 25% more on item purchases in the shop! 🎁✨",
+    "🎅 **Merry Christmas!** 🎁 We're so grateful to have you in our community! As a holiday treat, enjoy extra coins, boosters, and tickets today, plus a special 25% bonus on all item purchases in the shop! 🎄🎉"
   ];
 
   private static newYearMessages: string[] = [
-    "🎉 **Happy New Year!** 🎆 Thank you for being part of our community! To celebrate, we're giving away extra coins, boosters, and tickets today! 🎁"
+    "🎉 **Happy New Year!** 🎆 Wishing you a magical year ahead! To kick off 2024, we're gifting extra coins, boosters, and tickets today! Plus, enjoy 25% more on item purchases in the shop! 🎁🎊"
   ];
 
   /**
