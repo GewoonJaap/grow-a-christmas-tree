@@ -58,7 +58,7 @@ export class ServerInfo implements ISlashCommand {
     if (ctx.game?.activeBoosters && boosters.length > 0) {
       const activeBoosters = boosters.map((booster) => {
         const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
-        return `${booster.type} (${humanizeDuration(remainingTime * 1000, { largest: 1 })} remaining)`;
+        return `${booster.type} (${humanizeDuration(remainingTime * 1000)} remaining)`;
       });
       return `${activeBoosters.join(", ")}`;
     }
