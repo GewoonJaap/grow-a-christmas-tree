@@ -135,7 +135,12 @@ export class AdventCalendarHelper {
         } else if (present === "treeSize") {
           return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random 1 or 2 ft
         } else if (present === "booster") {
-          const boosterNames: BoosterName[] = ["Growth Booster", "Watering Booster", "Minigame Booster", "Coin Booster"];
+          const boosterNames: BoosterName[] = [
+            "Growth Booster",
+            "Watering Booster",
+            "Minigame Booster",
+            "Coin Booster"
+          ];
           const randomBooster = boosterNames[Math.floor(Math.random() * boosterNames.length)];
           return { type: present, amount: randomBooster };
         }
