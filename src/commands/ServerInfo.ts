@@ -92,7 +92,7 @@ export class ServerInfo implements ISlashCommand {
           `**💧 Elf's Thirsty Boost access:** ${superThirsty ? "Active 🌊" : "Inactive 🎄"}\n` +
           `**🧝 Composter Efficiency Level:** ${efficiencyLevel} 🛠️\n` +
           `**✨ Composter Quality Level:** ${qualityLevel} 🌟\n\n` +
-          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}` +
+          `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}\n` +
           `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}`
       )
       .setColor(0x00ff00)

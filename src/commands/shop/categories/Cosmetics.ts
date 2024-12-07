@@ -24,9 +24,11 @@ const IMAGES = [
 const TREE_STYLE_COST = 1500;
 
 export class Cosmetics implements PartialCommand {
+  public entryButtonName = "shop.cosmetics";
+
   public components: Button[] = [
     new Button(
-      "shop.cosmetics",
+      this.entryButtonName,
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Cosmetics"),
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await this.buildCosmeticsMessage(ctx));
@@ -59,7 +61,6 @@ export class Cosmetics implements PartialCommand {
 
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.buy.tree_style"),
-      await ctx.manager.components.createInstance("shop.refresh"),
       await ctx.manager.components.createInstance("shop.main")
     );
 

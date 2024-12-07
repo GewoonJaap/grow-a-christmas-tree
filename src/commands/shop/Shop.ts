@@ -23,6 +23,8 @@ const IMAGES = [
 ];
 
 export class Shop implements ISlashCommand {
+  private categories = [new Boosters(), new Cosmetics()];
+
   public builder = new SlashCommandBuilder(
     "shop",
     "Browse and grab magical items from the shop to power up your tree! 🎁"
@@ -32,12 +34,8 @@ export class Shop implements ISlashCommand {
     return ctx.reply(await buildShopMessage(ctx));
   };
 
-  private boosters = new Boosters();
-  private cosmetics = new Cosmetics();
-
   public components = [
-    ...this.boosters.components,
-    ...this.cosmetics.components,
+    ...this.categories.flatMap((category) => category.components),
     new Button(
       "shop.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
