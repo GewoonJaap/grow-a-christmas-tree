@@ -1,10 +1,17 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { shuffleArray } from "../util/helpers/arrayHelper";
+import { getRandomElement, shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
+
+const IMAGES = [
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame-1.jpg",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame-2.jpg",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame-3.jpg",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame-4.jpg"
+];
 
 export class SantaPresentMinigame implements Minigame {
   config: MinigameConfig = {
@@ -13,13 +20,11 @@ export class SantaPresentMinigame implements Minigame {
 
   async start(ctx: ButtonContext): Promise<void> {
     const embed = new EmbedBuilder()
-      .setTitle("Santa is here!")
+      .setTitle("🎅 Santa is Here!")
       .setDescription(
         `Click the 🎁 to give your tree an extra boost!. But avoid the 🧙!${getPremiumUpsellMessage(ctx)}`
       )
-      .setImage(
-        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
-      )
+      .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       .setFooter({ text: "Hurry! Before you know santa will be gone!" });
 
     const buttons = [
@@ -63,9 +68,7 @@ export class SantaPresentMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft!`)
-      .setImage(
-        "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-present/santa-present-minigame.jpg"
-      );
+      .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
@@ -83,7 +86,8 @@ export class SantaPresentMinigame implements Minigame {
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription(`<@${ctx.user.id}>, Whoops! The witch stole your present!`);
+      .setDescription(`<@${ctx.user.id}>, Whoops! The witch stole your present!`)
+      .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
 
     ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
 
