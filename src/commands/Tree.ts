@@ -19,7 +19,6 @@ import { SantaPresentMinigame } from "../minigames/SantaPresentMinigame";
 import { HotCocoaMinigame } from "../minigames/HotCocoaMinigame";
 import { GiftUnwrappingMinigame } from "../minigames/GiftUnwrappingMinigame";
 import { SnowballFightMinigame } from "../minigames/SnowballFightMinigame";
-import { TreeEventFactory } from "../tree-events/TreeEventFactory";
 import { GrinchHeistMinigame } from "../minigames/GrinchHeistMinigame";
 
 const MINIGAME_CHANCE = 0.4;
@@ -107,8 +106,6 @@ export class Tree implements ISlashCommand {
           const minigameStarted = await startRandomMinigame(ctx);
           if (minigameStarted) return;
         }
-
-        TreeEventFactory.scheduleRandomTreeEvent(ctx);
 
         return ctx.reply(await buildTreeDisplayMessage(ctx));
       }
