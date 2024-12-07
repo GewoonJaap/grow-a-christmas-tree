@@ -15,6 +15,7 @@ import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discor
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const GRACE_PERIOD_DAYS = 1;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
@@ -103,8 +104,10 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
     wallet.streak = 1;
   }
 
+  const isSpecialDay = SpecialDayHelper.isChristmas() || SpecialDayHelper.isNewYearsEve();
+  const baseRewardMultiplier = isSpecialDay ? 2 : 1;
   const streakMultiplier = Math.min(wallet.streak, MAX_STREAK_DAYS);
-  const reward = baseReward * streakMultiplier;
+  const reward = baseReward * streakMultiplier * baseRewardMultiplier;
 
   wallet.coins += reward;
   wallet.lastClaimDate = currentDate;
@@ -115,7 +118,7 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
   await WheelStateHelper.addTickets(userId, claimedTickets);
 
   const embed = new EmbedBuilder()
-    .setTitle("Daily Reward")
+    .setTitle("🎁 Daily Reward")
     .setDescription(
       `<@${
         ctx.user.id

@@ -4,6 +4,7 @@ import { WalletHelper } from "../wallet/WalletHelper";
 import { WheelStateHelper } from "../wheel/WheelStateHelper";
 import { AchievementHelper } from "../achievement/AchievementHelper";
 import { BoosterHelper, BoosterName } from "../booster/BoosterHelper";
+import { SpecialDayHelper } from "../special-days/SpecialDayHelper";
 
 const SECONDS_IN_A_DAY = 60 * 60 * 24;
 const MILLISECONDS_IN_A_SECOND = 1000;
@@ -90,7 +91,7 @@ export class AdventCalendarHelper {
       }
 
       // Grant special Christmas achievement on December 25th
-      if ((today.getMonth() === 11 && today.getDate() === 25) || (today.getMonth() === 11 && today.getDate() === 26)) {
+      if (SpecialDayHelper.isChristmas()) {
         if (!(await AchievementHelper.hasAchievement(ctx.user.id, "Christmas Day Celebration"))) {
           await AchievementHelper.grantAchievement(ctx.user.id, "Christmas Day Celebration");
         }
@@ -127,16 +128,18 @@ export class AdventCalendarHelper {
     const random = Math.random();
     let cumulativeProbability = 0;
     const isPremium = ctx.game?.hasAiAccess ?? false;
+    const isChristmas = SpecialDayHelper.isChristmas();
+    const rewardMultiplier = isChristmas ? 2 : 1;
 
     for (const [present, { probability }] of Object.entries(PRESENTS) as [PresentType, Present][]) {
       cumulativeProbability += probability;
       if (random < cumulativeProbability) {
         if (present === "coins") {
-          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) + 1 }; // Random amount of coins between 1 and 100
+          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 100 : 50)) * rewardMultiplier + 1 }; // Random amount of coins between 1 and 100
         } else if (present === "tickets") {
-          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random amount of tickets between 1 and 5
+          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) * rewardMultiplier + 1 }; // Random amount of tickets between 1 and 5
         } else if (present === "treeSize") {
-          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) + 1 }; // Random 1 or 2 ft
+          return { type: present, amount: Math.floor(Math.random() * (isPremium ? 10 : 5)) * rewardMultiplier + 1 }; // Random 1 or 2 ft
         } else if (present === "booster") {
           const boosterNames: BoosterName[] = [
             "Growth Booster",

@@ -20,7 +20,7 @@ export class SantaPresentMinigame implements Minigame {
 
   async start(ctx: ButtonContext): Promise<void> {
     const embed = new EmbedBuilder()
-      .setTitle("Santa is here!")
+      .setTitle("🎅 Santa is Here!")
       .setDescription(
         `Click the 🎁 to give your tree an extra boost!. But avoid the 🧙!${getPremiumUpsellMessage(ctx)}`
       )

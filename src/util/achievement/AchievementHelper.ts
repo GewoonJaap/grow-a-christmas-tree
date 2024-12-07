@@ -45,7 +45,7 @@ const ACHIEVEMENTS: Record<string, AchievementConfig> = {
   "Christmas Day Celebration": {
     name: "Christmas Day Celebration",
     description: "Opened the advent calendar on Christmas day",
-    emoji: "🎄"
+    emoji: "🎁"
   }
 };
 
