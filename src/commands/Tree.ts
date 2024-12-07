@@ -300,7 +300,7 @@ export async function buildTreeDisplayMessage(
       ).toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), { timeZone: ctx.game.timeZone })} **${
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
-          : "\nThis server has access to unlimited levels, minigames and more!"
+          : ""
       }\n${getActiveBoostersText(ctx)}\n${getNewsMessages()}`
     );
 
@@ -329,7 +329,7 @@ function getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | Button
       const remainingTime = booster.startTime + booster.duration - Math.floor(Date.now() / 1000);
       return `**${booster.type}** (${humanizeDuration(remainingTime * 1000)} remaining)`;
     });
-    return `**Active Boosters**:\n${activeBoosters.join(", ")}`;
+    return `**Active Boosters**:\n${activeBoosters.join("\n")}`;
   }
   return "**Active Boosters**:\nNo active boosters";
 }
