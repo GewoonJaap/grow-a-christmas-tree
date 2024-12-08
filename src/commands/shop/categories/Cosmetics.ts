@@ -50,7 +50,7 @@ export class Cosmetics implements PartialCommand {
     ),
     new Button(
       "shop.cosmetics.buy.tree_style",
-      new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Buy Tree Style"),
+      new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Buy Random Tree Style"),
       async (ctx: ButtonContext): Promise<void> => {
         return ctx.reply(await this.handleTreeStylePurchase(ctx));
       }
@@ -126,7 +126,7 @@ export class Cosmetics implements PartialCommand {
 
     const fields = [
       {
-        name: "Tree Style 🎄",
+        name: "Random Tree Style 🎄",
         value: `**Effect:** Unlocks a random tree style\n**Cost:** ${TREE_STYLE_COST} coins`,
         inline: false
       }
@@ -135,8 +135,8 @@ export class Cosmetics implements PartialCommand {
     paginatedStyles.forEach((style, index) => {
       const isUnlocked = ctx.game?.unlockedTreeStyles.includes(style.name);
       fields.push({
-        name: `${style.name} 🎄`,
-        value: `${index}. **Effect:** ${style.description}\n**Cost:** ${style.cost} coins\n${
+        name: `${index + 1}. ${style.name} 🎄`,
+        value: `**Effect:** ${style.description}\n**Cost:** ${style.cost} coins\n${
           isUnlocked ? "✅ Unlocked" : ""
         }`,
         inline: false
@@ -149,7 +149,6 @@ export class Cosmetics implements PartialCommand {
       await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style"),
       ...(await Promise.all(
         paginatedStyles
-          .filter((style) => !ctx.game?.unlockedTreeStyles.includes(style.name))
           .map((style, index) => ctx.manager.components.createInstance(`shop.cosmetics.buy.festive_style_${index + 1}`))
       )),
       await ctx.manager.components.createInstance("shop.main")
@@ -239,12 +238,17 @@ export class Cosmetics implements PartialCommand {
     const festiveStyles = await this.getFestiveTreeStyles();
     if (festiveStyles.length <= index || festiveStyles[index] === undefined) {
       this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder().addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎅 Purchase Failed! ❄️")
-          .setDescription(`This style is no longer available! 🎄 Check back later for more festive styles! ✨`)
-          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
       );
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle("🎅 Purchase Failed! ❄️")
+            .setDescription(`This style is no longer available! 🎄 Check back later for more festive styles! ✨`)
+            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+        )
+        .addComponents(actionRow);
     }
     const style = festiveStyles[index];
 
