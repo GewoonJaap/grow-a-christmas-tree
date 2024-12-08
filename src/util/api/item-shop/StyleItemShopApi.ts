@@ -2,7 +2,7 @@ import { CachedResponse } from "../../types/api/CachedResponseType";
 import { DailyItemShopResponse } from "../../types/api/ItemShopApi/DailyItemShopResponseType";
 
 export class StyleItemShopApi {
-  private apiUrl: string | undefined = process.env.ITEM_SHOP_API;
+  private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
   private cachedDailyItems: CachedResponse<DailyItemShopResponse> | undefined;
 
   public constructor() {
