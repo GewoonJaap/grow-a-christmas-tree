@@ -130,13 +130,15 @@ export class Cosmetics implements PartialCommand {
     const start = (state.page - 1) * stylesPerPage;
     const paginatedStyles = festiveStyles.slice(start, start + stylesPerPage);
 
-    const fields = [
-      {
+    const fields = [];
+
+    if (state.page === 1) {
+      fields.push({
         name: "Random Tree Style 🎄",
         value: `**Effect:** Unlocks a random tree style\n**Cost:** ${TREE_STYLE_COST} coins`,
         inline: false
-      }
-    ];
+      });
+    }
 
     paginatedStyles.forEach((style, index) => {
       const isUnlocked = ctx.game?.unlockedTreeStyles.includes(style.name);
@@ -152,7 +154,7 @@ export class Cosmetics implements PartialCommand {
     await this.registerFestiveStyleButtons(ctx, festiveStyles);
 
     const actionRow = new ActionRowBuilder().addComponents(
-      await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style"),
+      ...(state.page === 1 ? [await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style")] : []),
       ...(await Promise.all(
         paginatedStyles
           .filter((style) => !ctx.game?.unlockedTreeStyles.includes(style.name))
