@@ -22,13 +22,12 @@ export class About implements ISlashCommand {
           🌳 **/tree** - Show and water your community's tree!
           ♻️ **/composter** - Show and upgrade your community's composter, speeding up your tree's growth!
           🌱 **/plant** - Plant a new tree for your server.
-          🏆 **/recycle** - Recycle your tree to start again.
 
           **Profile and Rewards**
           👤 **/profile** - View your profile and the amount of coins you have.
           📖 **/dailyreward** - Claim your daily supply of free coins.
           🎁 **/adventcalendar** - Open your daily advent calendar present.
-          🪙 **/redeemcoins** - Redeem any outstanding purchases from the shop.
+          🪙 **/redeempurschages** - Redeem any outstanding purchases from the shop.
           💸 **/sendcoins** - Transfer coins to another player.
           🛒 **/shop** - Browse and grab magical items from the shop to power up your tree!
 
@@ -44,10 +43,13 @@ export class About implements ISlashCommand {
           These require the Manage Server permission.
 
           🔔 **/notifications** - Setup tree watering notifications.
-          ⏲️ **/settimezone** - Set the timezone for your tree, so that dates en times are correctly shown.       
+          ⏲️ **/settimezone** - Set the timezone for your tree, so that dates en times are correctly shown.
+          ✏️ **/rename** - Rename your Christmas tree.
+          🏆 **/recycle** - Recycle your tree to start again.
 
           **Support**
           🎅 **[Join the support server](${SUPPORT_SERVER_INVITE})** for help and updates.
+          🛒 **[Visit the store](https://discord.com/application-directory/1050722873569968128/store)** to support the bot by purchasing items.
           `
           )
       )
