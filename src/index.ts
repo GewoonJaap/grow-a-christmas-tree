@@ -35,7 +35,8 @@ import {
   ServerInfo,
   Wheel,
   RedeemPurschagesCommand,
-  AdventCalendar
+  AdventCalendar,
+  Rename
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -136,7 +137,8 @@ if (keys.some((key) => !(key in process.env))) {
       new SetTimezone(),
       new ServerInfo(),
       new Wheel(),
-      new AdventCalendar()
+      new AdventCalendar(),
+      new Rename()
     ],
     false
   );

@@ -16,3 +16,4 @@ export * from "./SetTimezone";
 export * from "./ServerInfo";
 export * from "./Wheel";
 export * from "./AdventCalendar";
+export * from "./Rename";

@@ -1,6 +1,6 @@
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { ImageStylesApi } from "../api/image-styles/ImageStyleApi";
-import { ImageStyle } from "../types/api/ImageStylesApi/ImageStylesReponseType";
+import { ImageStyle } from "../types/api/ImageStylesApi/ImageStylesResponseType";
 
 const imageStyleApi = new ImageStylesApi();
 
