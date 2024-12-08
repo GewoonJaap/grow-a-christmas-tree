@@ -19,6 +19,18 @@ export const LUCKY_TICKET_50 = "1312108952905056316";
 export const GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID = "1313226625738997872";
 export const TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID = "1313225955480698982";
 
+export const SKU_REWARDS: Record<string, { coins?: number; luckyTickets?: number; booster?: BoosterName }> = {
+  [SMALL_POUCH_OF_COINS_SKU_ID]: { coins: 500 },
+  [LUCKY_COIN_BAG_SKU_ID]: { coins: 1500 },
+  [TREASURE_CHEST_OF_COINS_SKU_ID]: { coins: 3000 },
+  [TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID]: { coins: 3000, booster: "Watering Booster" },
+  [GOLDEN_COIN_STASH_SKU_ID]: { coins: 5000 },
+  [GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID]: { coins: 5000, booster: "Watering Booster" },
+  [HOLIDAY_LUCKY_TICKET]: { luckyTickets: 10 },
+  [LUCKY_TICKET_25]: { luckyTickets: 25 },
+  [LUCKY_TICKET_50]: { luckyTickets: 50 }
+};
+
 export function getEntitlements(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
   withoutExpired = false
@@ -134,49 +146,6 @@ export async function consumeEntitlement(entitlementId: string): Promise<boolean
     return false;
   }
   return true;
-}
-
-export function skuIdToBooster(skuId: string): BoosterName | undefined {
-  switch (skuId) {
-    case GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID:
-      return "Watering Booster";
-    case TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID:
-      return "Watering Booster";
-    default:
-      return undefined;
-  }
-}
-
-export function skuIdToCoins(skuId: string): number {
-  switch (skuId) {
-    case SMALL_POUCH_OF_COINS_SKU_ID:
-      return 500;
-    case LUCKY_COIN_BAG_SKU_ID:
-      return 1500;
-    case TREASURE_CHEST_OF_COINS_SKU_ID:
-      return 3000;
-    case TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID:
-      return 3000;
-    case GOLDEN_COIN_STASH_SKU_ID:
-      return 5000;
-    case GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID:
-      return 5000;
-    default:
-      return 0;
-  }
-}
-
-export function skuIdToLuckyTickets(skuId: string): number {
-  switch (skuId) {
-    case HOLIDAY_LUCKY_TICKET:
-      return 10;
-    case LUCKY_TICKET_25:
-      return 25;
-    case LUCKY_TICKET_50:
-      return 50;
-    default:
-      return 0;
-  }
 }
 
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
