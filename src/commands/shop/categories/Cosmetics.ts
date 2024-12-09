@@ -3,6 +3,7 @@ import {
   Button,
   ButtonBuilder,
   ButtonContext,
+  ComponentManager,
   EmbedBuilder,
   MessageBuilder,
   SlashCommandContext
@@ -13,8 +14,12 @@ import { getRandomLockedTreeStyle } from "../../../util/helpers/treeStyleHelper"
 import { WalletHelper } from "../../../util/wallet/WalletHelper";
 import { disposeActiveTimeouts } from "../../Tree";
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
+import { DynamicButtonsCommandType } from "../../../util/types/command/DynamicButtonsCommandType";
 import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/FestiveStyleResponseType";
+import { StyleItemShopApi } from "../../../util/api/item-shop/StyleItemShopApi";
+import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
+import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -32,12 +37,16 @@ const COSMETIC_IMAGES = [
 ];
 
 const TREE_STYLE_COST = 1500;
+const STYLES_PER_PAGE = 2;
+
+const imageStyleApi = new ImageStylesApi();
+const styleItemShopApi = new StyleItemShopApi();
 
 type CosmeticsButtonState = {
   page: number;
 };
 
-export class Cosmetics implements PartialCommand {
+export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
   public entryButtonName = "shop.cosmetics";
 
   public components: Button[] = [
@@ -52,7 +61,8 @@ export class Cosmetics implements PartialCommand {
       "shop.cosmetics.buy.tree_style",
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Buy Random Tree Style"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await this.handleTreeStylePurchase(ctx));
+        const style = await getRandomLockedTreeStyle(ctx);
+        return ctx.reply(await this.handleStylePurchase(ctx, style));
       }
     ),
     new Button(
@@ -85,30 +95,31 @@ export class Cosmetics implements PartialCommand {
   ];
 
   private isStateValid(state: CosmeticsButtonState | undefined): boolean {
-    if (!state) return false;
-    if (isNaN(state.page)) return false;
-    if (state.page < 0) return false;
-    return true;
+    return state !== undefined && !isNaN(state.page) && state.page >= 0;
   }
 
-  private async registerFestiveStyleButtons(
-    ctx: ButtonContext | ButtonContext<unknown> | SlashCommandContext,
-    styles: FestiveImageStyle[]
+  public async registerDynamicButtons(componentManager: ComponentManager): Promise<void> {
+    const allStyles = await this.getAllStyles();
+    await this.registerStyleButtons(componentManager, allStyles);
+  }
+
+  private async registerStyleButtons(
+    componentManager: ComponentManager,
+    styles: (FestiveImageStyle | ItemShopStyleItem)[]
   ): Promise<void> {
-    let buttons = styles.map((style, index) => {
-      const buttonId = `shop.cosmetics.buy.festive_style_${index + 1}`;
+    const buttons = styles.map((style, index) => {
+      const buttonId = `shop.cosmetics.buy.style_${index + 1}`;
       return new Button(
         buttonId,
         new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel(`Buy ${style.name}`),
         async (ctx: ButtonContext): Promise<void> => {
-          return ctx.reply(await this.handleFestiveTreeStylePurchase(ctx, style));
+          return ctx.reply(await this.handleStylePurchase(ctx, style));
         }
       );
     });
 
-    buttons = buttons.filter((button) => !ctx.manager.components.has(button.id));
-
-    ctx.manager.components.register(buttons);
+    const newButtons = buttons.filter((button) => !componentManager.has(button.id));
+    componentManager.register(newButtons);
   }
 
   public async buildCosmeticsMessage(
@@ -119,46 +130,28 @@ export class Cosmetics implements PartialCommand {
         ? { page: 1 }
         : (ctx.state as CosmeticsButtonState);
 
+    const allStyles = await this.getAllStyles();
+    const paginatedStyles = this.paginateStyles(allStyles, state.page);
+
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Cosmetics Shop** 🎁")
       .setDescription("🎄 Unlock magical tree styles to make your tree the star of the season! 🌟")
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
-      .setFooter({ text: `Page ${state.page}/${Math.ceil((await this.getFestiveTreeStyles()).length / 2)}` });
+      .setFooter({ text: `Page ${state.page}/${Math.ceil(allStyles.length / STYLES_PER_PAGE)}` });
 
-    const festiveStyles = await this.getFestiveTreeStyles();
-    const stylesPerPage = 2;
-    const start = (state.page - 1) * stylesPerPage;
-    const paginatedStyles = festiveStyles.slice(start, start + stylesPerPage);
-
-    const fields = [];
-
-    if (state.page === 1) {
-      fields.push({
-        name: "Random Tree Style 🎄",
-        value: `**Effect:** Unlocks a random tree style\n**Cost:** ${TREE_STYLE_COST} coins`,
-        inline: false
-      });
-    }
-
-    paginatedStyles.forEach((style, index) => {
-      const isUnlocked = ctx.game?.unlockedTreeStyles.includes(style.name);
-      fields.push({
-        name: `${index + 1}. ${style.name} 🎄`,
-        value: `**Effect:** ${style.description}\n**Cost:** ${style.cost} coins\n${isUnlocked ? "✅ Unlocked" : ""}`,
-        inline: false
-      });
-    });
-
+    const fields = this.buildFields(paginatedStyles, state.page, ctx);
     embed.addFields(fields);
-
-    await this.registerFestiveStyleButtons(ctx, festiveStyles);
 
     const actionRow = new ActionRowBuilder().addComponents(
       ...(state.page === 1 ? [await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style")] : []),
       ...(await Promise.all(
         paginatedStyles
           .filter((style) => !ctx.game?.unlockedTreeStyles.includes(style.name))
-          .map((style, index) => ctx.manager.components.createInstance(`shop.cosmetics.buy.festive_style_${index + 1}`))
+          .map((style, index) =>
+            ctx.manager.components.createInstance(
+              `shop.cosmetics.buy.style_${(state.page - 1) * STYLES_PER_PAGE + index + 1}`
+            )
+          )
       )),
       await ctx.manager.components.createInstance("shop.main")
     );
@@ -167,14 +160,55 @@ export class Cosmetics implements PartialCommand {
       actionRow.addComponents(await ctx.manager.components.createInstance("cosmetics.back", state));
     }
 
-    if (festiveStyles.length > start + stylesPerPage) {
+    if (allStyles.length > state.page * STYLES_PER_PAGE) {
       actionRow.addComponents(await ctx.manager.components.createInstance("cosmetics.next", state));
     }
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
-  public async handleTreeStylePurchase(ctx: ButtonContext, style?: FestiveImageStyle): Promise<MessageBuilder> {
+  private paginateStyles(
+    styles: (FestiveImageStyle | ItemShopStyleItem)[],
+    page: number
+  ): (FestiveImageStyle | ItemShopStyleItem)[] {
+    const start = (page - 1) * STYLES_PER_PAGE;
+    return styles.slice(start, start + STYLES_PER_PAGE);
+  }
+
+  private buildFields(
+    styles: (FestiveImageStyle | ItemShopStyleItem)[],
+    page: number,
+    ctx: SlashCommandContext | ButtonContext<unknown>
+  ): { name: string; value: string; inline: boolean }[] {
+    const fields = [];
+
+    if (page === 1) {
+      fields.push({
+        name: "Random Tree Style 🎄",
+        value: `**Effect:** Unlocks a random tree style\n**Cost:** ${TREE_STYLE_COST} coins`,
+        inline: false
+      });
+    }
+
+    styles.forEach((style, index) => {
+      const isUnlocked = ctx.game?.unlockedTreeStyles.includes(style.name);
+      const rarity = "rarity" in style ? `**Rarity:** ${style.rarity}\n` : "";
+      fields.push({
+        name: `${index + 1}. ${style.name} 🎄`,
+        value: `${rarity}**Effect:** ${style.description}\n**Cost:** ${style.cost} coins\n${
+          isUnlocked ? "✅ Unlocked" : ""
+        }`,
+        inline: false
+      });
+    });
+
+    return fields;
+  }
+
+  public async handleStylePurchase(
+    ctx: ButtonContext,
+    style: FestiveImageStyle | ItemShopStyleItem | ImageStyle | null
+  ): Promise<MessageBuilder> {
     if (!ctx.game || ctx.isDM) {
       return new MessageBuilder().addEmbed(
         new EmbedBuilder()
@@ -184,47 +218,29 @@ export class Cosmetics implements PartialCommand {
       );
     }
 
-    const cost = style ? style.cost : TREE_STYLE_COST;
-    const styleName = style ? style.name : (await getRandomLockedTreeStyle(ctx))?.name;
+    const allStyles = await this.getAllStyles();
 
-    if (!styleName || ctx.game.unlockedTreeStyles.includes(styleName)) {
-      const actionRow = new ActionRowBuilder().addComponents(
-        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+    if (style === null || !allStyles.some((x) => x.name === style.name)) {
+      return this.buildPurchaseFailedMessage(
+        ctx,
+        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
       );
-      this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder()
-        .addEmbed(
-          new EmbedBuilder()
-            .setTitle("🎅 Purchase Failed! ❄️")
-            .setDescription(
-              `It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨`
-            )
-            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
-        )
-        .addComponents(actionRow);
+    }
+
+    const cost = "cost" in style ? style.cost : TREE_STYLE_COST;
+    const styleName = style.name;
+
+    if (ctx.game.unlockedTreeStyles.includes(styleName)) {
+      return this.buildPurchaseFailedMessage(
+        ctx,
+        "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨"
+      );
     }
 
     const wallet = await WalletHelper.getWallet(ctx.user.id);
 
     if (wallet.coins < cost) {
-      const actionRow = new ActionRowBuilder().addComponents(
-        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
-      );
-
-      if (!process.env.DEV_MODE) {
-        actionRow.addComponents(PremiumButtons.LuckyCoinBagButton);
-      }
-      this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder()
-        .addEmbed(
-          new EmbedBuilder()
-            .setTitle("🎅 Not Enough Coins! ❄️")
-            .setDescription(
-              `You need **${cost}** coins to purchase the **${styleName}** tree style. Keep earning and come back soon! 🎄`
-            )
-            .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
-        )
-        .addComponents(actionRow);
+      return this.buildNotEnoughCoinsMessage(ctx, cost, styleName);
     }
 
     await WalletHelper.removeCoins(ctx.user.id, cost);
@@ -243,26 +259,7 @@ export class Cosmetics implements PartialCommand {
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
-  public async handleFestiveTreeStylePurchase(ctx: ButtonContext, style: FestiveImageStyle): Promise<MessageBuilder> {
-    const festiveStyles = await this.getFestiveTreeStyles();
-    const doesStyleExist = festiveStyles.some((s) => s.name === style.name);
-    if (!doesStyleExist) {
-      this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder().addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎅 Purchase Failed! ❄️")
-          .setDescription(
-            `It looks like the style, **${style.name}**, is no longer available! 🎄 Check back later for more festive styles! ✨`
-          )
-          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
-      );
-    }
-
-    return this.handleTreeStylePurchase(ctx, style);
-  }
-
   private async getTreeImageUrl(styleName: string): Promise<string> {
-    const imageStyleApi = new ImageStylesApi();
     const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
 
     let imageUrl = getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0];
@@ -289,9 +286,20 @@ export class Cosmetics implements PartialCommand {
   }
 
   private async getFestiveTreeStyles(): Promise<FestiveImageStyle[]> {
-    const imageStyleApi = new ImageStylesApi();
     const response = await imageStyleApi.getFestiveImageStyles();
     return response.success ? response.styles : [];
+  }
+
+  private async getItemShopStyles(): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
+    const response = await styleItemShopApi.getDailyItemShopStyles();
+    return response.items;
+  }
+
+  private async getAllStyles(): Promise<(FestiveImageStyle | ItemShopStyleItem)[]> {
+    const festiveStyles = await this.getFestiveTreeStyles();
+    const itemShopStyles = await this.getItemShopStyles();
+    const flatItemShop = Object.values(itemShopStyles).flat();
+    return [...festiveStyles, ...flatItemShop];
   }
 
   private transitionBackToDefaultShopViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
@@ -301,12 +309,51 @@ export class Cosmetics implements PartialCommand {
       setTimeout(async () => {
         try {
           disposeActiveTimeouts(ctx);
-
           await ctx.edit(await this.buildCosmeticsMessage(ctx));
         } catch (e) {
           console.log(e);
         }
       }, delay)
     );
+  }
+
+  private async buildPurchaseFailedMessage(ctx: ButtonContext, description: string): Promise<MessageBuilder> {
+    const actionRow = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+    );
+    this.transitionBackToDefaultShopViewWithTimeout(ctx);
+    return new MessageBuilder()
+      .addEmbed(
+        new EmbedBuilder()
+          .setTitle("🎅 Purchase Failed! ❄️")
+          .setDescription(description)
+          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+      )
+      .addComponents(actionRow);
+  }
+
+  private async buildNotEnoughCoinsMessage(
+    ctx: ButtonContext,
+    cost: number,
+    styleName: string
+  ): Promise<MessageBuilder> {
+    const actionRow = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("shop.cosmetics.refresh")
+    );
+
+    if (!process.env.DEV_MODE) {
+      actionRow.addComponents(PremiumButtons.LuckyCoinBagButton);
+    }
+    this.transitionBackToDefaultShopViewWithTimeout(ctx);
+    return new MessageBuilder()
+      .addEmbed(
+        new EmbedBuilder()
+          .setTitle("🎅 Not Enough Coins! ❄️")
+          .setDescription(
+            `You need **${cost}** coins to purchase the **${styleName}** tree style. Keep earning and come back soon! 🎄`
+          )
+          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+      )
+      .addComponents(actionRow);
   }
 }

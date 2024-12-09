@@ -47,6 +47,8 @@ import { handleEntitlementCreate } from "./util/discord/DiscordWebhookEvents";
 import { unleash } from "./util/unleash/UnleashHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
+import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
+
 const VERSION = "1.9";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
@@ -117,31 +119,36 @@ if (keys.some((key) => !(key in process.env))) {
     }
   });
 
-  app.commands.register(
-    [
-      new Ping(),
-      new Plant(),
-      new Tree(),
-      new Leaderboard(),
-      new Forest(),
-      new Profile(),
-      new About(),
-      new Recycle(),
-      new Feedback(),
-      new NotificationSettings(),
-      new SendCoinsCommand(),
-      new RedeemPurschagesCommand(),
-      new DailyReward(),
-      new Composter(),
-      new Shop(),
-      new SetTimezone(),
-      new ServerInfo(),
-      new Wheel(),
-      new AdventCalendar(),
-      new Rename()
-    ],
-    false
-  );
+  const commands = [
+    new Ping(),
+    new Plant(),
+    new Tree(),
+    new Leaderboard(),
+    new Forest(),
+    new Profile(),
+    new About(),
+    new Recycle(),
+    new Feedback(),
+    new NotificationSettings(),
+    new SendCoinsCommand(),
+    new RedeemPurschagesCommand(),
+    new DailyReward(),
+    new Composter(),
+    new Shop(),
+    new SetTimezone(),
+    new ServerInfo(),
+    new Wheel(),
+    new AdventCalendar(),
+    new Rename()
+  ];
+
+  app.commands.register(commands, false);
+
+  for (const command of commands) {
+    if ("registerDynamicButtons" in command) {
+      await (command as DynamicButtonsCommandType).registerDynamicButtons(app.components);
+    }
+  }
 
   const server = fastify();
   server.register(rawBody);
