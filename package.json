@@ -23,7 +23,7 @@
     "fastify-raw-body": "^3.2.0",
     "humanize-duration": "^3.27.3",
     "interactions.ts": "^1.0.23",
-    "mongoose": "^8.0.1",
+    "mongoose": "^8.8.4",
     "redis": "^4.1.0",
     "tweetnacl": "^1.0.3",
     "unleash-client": "^6.1.3"
