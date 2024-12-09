@@ -192,4 +192,13 @@ export class AdventCalendarHelper {
         break;
     }
   }
+
+  static isAdventCalendarActive(): boolean {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const startOfAdvent = new Date(currentYear, 11, 1); // December 1st
+    const endOfAdvent = new Date(currentYear, 11, 25, 23, 59, 59); // December 25th
+
+    return currentDate >= startOfAdvent && currentDate <= endOfAdvent;
+  }
 }

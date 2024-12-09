@@ -46,10 +46,9 @@ async function buildAdventCalendarMessage(ctx: SlashCommandContext | ButtonConte
   const userId = ctx.user.id;
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();
-  const startOfAdvent = new Date(currentYear, 11, 1); // December 1st
   const endOfAdvent = new Date(currentYear, 11, 25, 23, 59, 59); // December 25th
 
-  if (currentDate < startOfAdvent || currentDate > endOfAdvent) {
+  if (!AdventCalendarHelper.isAdventCalendarActive()) {
     const nextChristmas = currentDate > endOfAdvent ? new Date(currentYear + 1, 11, 1) : new Date(currentYear, 11, 1); // December 1st of next year if after December 25th, otherwise this year
     return await buildAdventCalendarUnavailableMessage(ctx, nextChristmas);
   }
