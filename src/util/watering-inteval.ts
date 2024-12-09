@@ -1,8 +1,9 @@
 import { BoosterHelper } from "./booster/BoosterHelper";
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
 
-const cache = new Map();
-const maxInterval = 600; // in seconds, 10 mins
+const cache = new Map()
+  
+//const maxInterval = 600; // in seconds, 10 mins
 
 export function getWateringInterval(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
@@ -10,11 +11,7 @@ export function getWateringInterval(
   superThirsty = false
 ): number {
   const cached = cache.has(size);
-  let result = cached ? cache.get(size) : Math.floor(Math.pow(size * 0.05 + 5, 1.1));
-
-  if (result > maxInterval) {
-    result = maxInterval;
-  }
+  let result = cached ? cache.get(size) : Math.floor(Math.pow(size * 0.01 + 5, 1.05));
 
   if (!cached) cache.set(size, result);
 
