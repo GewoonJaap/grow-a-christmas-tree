@@ -3,6 +3,7 @@ import {
   Button,
   ButtonBuilder,
   ButtonContext,
+  ComponentManager,
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
@@ -14,6 +15,7 @@ import { getRandomElement } from "../../util/helpers/arrayHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../../util/unleash/UnleashHelper";
 import { Boosters } from "./categories/Boosters";
 import { Cosmetics } from "./categories/Cosmetics";
+import { DynamicButtonsCommandType } from "../../util/types/command/DynamicButtonsCommandType";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -22,7 +24,7 @@ const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-4.jpg"
 ];
 
-export class Shop implements ISlashCommand {
+export class Shop implements ISlashCommand, DynamicButtonsCommandType {
   private categories = [new Boosters(), new Cosmetics()];
 
   public builder = new SlashCommandBuilder(
@@ -57,6 +59,14 @@ export class Shop implements ISlashCommand {
       }
     )
   ];
+
+  public async registerDynamicButtons(componentManager: ComponentManager): Promise<void> {
+    for (const category of this.categories) {
+      if ("registerDynamicButtons" in category) {
+        await (category as DynamicButtonsCommandType).registerDynamicButtons(componentManager);
+      }
+    }
+  }
 }
 
 async function buildShopMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {

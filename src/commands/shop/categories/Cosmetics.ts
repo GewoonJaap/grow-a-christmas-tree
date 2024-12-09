@@ -14,6 +14,7 @@ import { getRandomLockedTreeStyle } from "../../../util/helpers/treeStyleHelper"
 import { WalletHelper } from "../../../util/wallet/WalletHelper";
 import { disposeActiveTimeouts } from "../../Tree";
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
+import { DynamicButtonsCommandType } from "../../../util/types/command/DynamicButtonsCommandType";
 import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/FestiveStyleResponseType";
 import { StyleItemShopApi } from "../../../util/api/item-shop/StyleItemShopApi";
@@ -38,14 +39,15 @@ const COSMETIC_IMAGES = [
 const TREE_STYLE_COST = 1500;
 const STYLES_PER_PAGE = 2;
 
+const imageStyleApi = new ImageStylesApi();
+const styleItemShopApi = new StyleItemShopApi();
+
 type CosmeticsButtonState = {
   page: number;
 };
 
-export class Cosmetics implements PartialCommand {
+export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
   public entryButtonName = "shop.cosmetics";
-  private imageStyleApi = new ImageStylesApi();
-  private styleItemShopApi = new StyleItemShopApi();
 
   public components: Button[] = [
     new Button(
@@ -96,6 +98,11 @@ export class Cosmetics implements PartialCommand {
     return state !== undefined && !isNaN(state.page) && state.page >= 0;
   }
 
+  public async registerDynamicButtons(componentManager: ComponentManager): Promise<void> {
+    const allStyles = await this.getAllStyles();
+    await this.registerStyleButtons(componentManager, allStyles);
+  }
+
   private async registerStyleButtons(
     componentManager: ComponentManager,
     styles: (FestiveImageStyle | ItemShopStyleItem)[]
@@ -134,8 +141,6 @@ export class Cosmetics implements PartialCommand {
 
     const fields = this.buildFields(paginatedStyles, state.page, ctx);
     embed.addFields(fields);
-
-    await this.registerStyleButtons(ctx.manager.components, allStyles);
 
     const actionRow = new ActionRowBuilder().addComponents(
       ...(state.page === 1 ? [await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style")] : []),
@@ -248,16 +253,16 @@ export class Cosmetics implements PartialCommand {
   }
 
   private async getTreeImageUrl(styleName: string): Promise<string> {
-    const hasImageResponse = await this.imageStyleApi.hasImageStyleImage(styleName);
+    const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
 
     let imageUrl = getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0];
     if (hasImageResponse.exists) {
-      const imageResponse = await this.imageStyleApi.getImageStyleImage(styleName);
+      const imageResponse = await imageStyleApi.getImageStyleImage(styleName);
       if (imageResponse.success) {
         imageUrl = imageResponse.data?.url ?? imageUrl;
       }
     } else {
-      this.imageStyleApi.generateImageStyles();
+      imageStyleApi.generateImageStyles();
     }
     return imageUrl;
   }
@@ -274,12 +279,12 @@ export class Cosmetics implements PartialCommand {
   }
 
   private async getFestiveTreeStyles(): Promise<FestiveImageStyle[]> {
-    const response = await this.imageStyleApi.getFestiveImageStyles();
+    const response = await imageStyleApi.getFestiveImageStyles();
     return response.success ? response.styles : [];
   }
 
   private async getItemShopStyles(): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
-    const response = await this.styleItemShopApi.getDailyItemShopStyles();
+    const response = await styleItemShopApi.getDailyItemShopStyles();
     return response.items;
   }
 
