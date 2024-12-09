@@ -1,4 +1,4 @@
-import { ImageStyle } from "../ImageStylesApi/ImageStylesResponseType";
+import { FestiveImageStyle } from "../ImageStylesApi/FestiveStyleResponseType";
 
 export interface DailyItemShopResponse {
   success: boolean;
@@ -7,7 +7,6 @@ export interface DailyItemShopResponse {
 
 export type StyleItemRarity = "Common" | "Rare" | "Epic" | "Legendary";
 
-export interface ItemShopStyleItem extends ImageStyle {
-  cost: number;
+export interface ItemShopStyleItem extends FestiveImageStyle {
   rarity: StyleItemRarity;
 }

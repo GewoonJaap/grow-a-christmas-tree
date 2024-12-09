@@ -3,6 +3,7 @@ import {
   Button,
   ButtonBuilder,
   ButtonContext,
+  ComponentManager,
   EmbedBuilder,
   MessageBuilder,
   SlashCommandContext
@@ -15,6 +16,8 @@ import { disposeActiveTimeouts } from "../../Tree";
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/FestiveStyleResponseType";
+import { StyleItemShopApi } from "../../../util/api/item-shop/StyleItemShopApi";
+import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -39,6 +42,8 @@ type CosmeticsButtonState = {
 
 export class Cosmetics implements PartialCommand {
   public entryButtonName = "shop.cosmetics";
+  private imageStyleApi = new ImageStylesApi();
+  private styleItemShopApi = new StyleItemShopApi();
 
   public components: Button[] = [
     new Button(
@@ -91,10 +96,12 @@ export class Cosmetics implements PartialCommand {
     return true;
   }
 
-  private async registerFestiveStyleButtons(
-    ctx: ButtonContext | ButtonContext<unknown> | SlashCommandContext,
-    styles: FestiveImageStyle[]
-  ): Promise<void> {
+  public async registerFestiveStyleButtons(componentManager: ComponentManager): Promise<void> {
+    const festiveStyles = await this.getFestiveTreeStyles();
+    const itemShopStyles = await this.getItemShopStyles();
+    const flatItemShop = Object.values(itemShopStyles).flat();
+
+    const styles = [...festiveStyles, ...flatItemShop];
     let buttons = styles.map((style, index) => {
       const buttonId = `shop.cosmetics.buy.festive_style_${index + 1}`;
       return new Button(
@@ -106,9 +113,9 @@ export class Cosmetics implements PartialCommand {
       );
     });
 
-    buttons = buttons.filter((button) => !ctx.manager.components.has(button.id));
+    buttons = buttons.filter((button) => !componentManager.has(button.id));
 
-    ctx.manager.components.register(buttons);
+    componentManager.register(buttons);
   }
 
   public async buildCosmeticsMessage(
@@ -151,7 +158,7 @@ export class Cosmetics implements PartialCommand {
 
     embed.addFields(fields);
 
-    await this.registerFestiveStyleButtons(ctx, festiveStyles);
+    await this.registerFestiveStyleButtons(ctx.manager.components);
 
     const actionRow = new ActionRowBuilder().addComponents(
       ...(state.page === 1 ? [await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style")] : []),
@@ -289,9 +296,13 @@ export class Cosmetics implements PartialCommand {
   }
 
   private async getFestiveTreeStyles(): Promise<FestiveImageStyle[]> {
-    const imageStyleApi = new ImageStylesApi();
-    const response = await imageStyleApi.getFestiveImageStyles();
+    const response = await this.imageStyleApi.getFestiveImageStyles();
     return response.success ? response.styles : [];
+  }
+
+  private async getItemShopStyles(): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
+    const response = await this.styleItemShopApi.getDailyItemShopStyles();
+    return response.items;
   }
 
   private transitionBackToDefaultShopViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
