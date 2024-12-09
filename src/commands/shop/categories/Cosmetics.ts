@@ -146,7 +146,6 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       ...(state.page === 1 ? [await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style")] : []),
       ...(await Promise.all(
         paginatedStyles
-          .filter((style) => !ctx.game?.unlockedTreeStyles.includes(style.name))
           .map((style, index) =>
             ctx.manager.components.createInstance(
               `shop.cosmetics.buy.style_${(state.page - 1) * STYLES_PER_PAGE + index + 1}`
