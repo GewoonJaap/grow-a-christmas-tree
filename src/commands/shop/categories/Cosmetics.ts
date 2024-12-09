@@ -188,9 +188,12 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
 
     styles.forEach((style, index) => {
       const isUnlocked = ctx.game?.unlockedTreeStyles.includes(style.name);
+      const rarity = "rarity" in style ? `**Rarity:** ${style.rarity}\n` : "";
       fields.push({
         name: `${index + 1}. ${style.name} 🎄`,
-        value: `**Effect:** ${style.description}\n**Cost:** ${style.cost} coins\n${isUnlocked ? "✅ Unlocked" : ""}`,
+        value: `${rarity}**Effect:** ${style.description}\n**Cost:** ${style.cost} coins\n${
+          isUnlocked ? "✅ Unlocked" : ""
+        }`,
         inline: false
       });
     });
