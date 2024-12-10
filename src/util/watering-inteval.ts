@@ -11,7 +11,7 @@ export function getWateringInterval(
   superThirsty = false
 ): number {
   const cached = cache.has(size);
-  let result = cached ? cache.get(size) : Math.floor(Math.pow(size * 0.01 + 5, 1.05));
+  let result = cached ? cache.get(size) : getWateringIntervalInSeconds(size);
 
   if (!cached) cache.set(size, result);
 
@@ -20,6 +20,14 @@ export function getWateringInterval(
   result = Math.floor(BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Watering Booster", result));
 
   return Math.floor(result);
+}
+
+function getWateringIntervalInSeconds(size: number): number {
+  if(size <= 2000) {
+    return Math.floor(Math.pow(size * 0.05 + 5, 1.1))
+  }
+  //Some base modifier to make the start of the line correct.
+  return (141 + Math.floor(Math.pow(size * 0.01 + 5, 1.05)))
 }
 
 export function getTreeAge(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>, size: number): number {
