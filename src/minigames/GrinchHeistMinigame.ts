@@ -13,10 +13,10 @@ const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
 const BUTTON_SUCCESS_EMOJI = getRandomEmojiWithExclusion(BUTTON_FAIL_EMOJIS);
 
 const GRINCH_BUTTON_NAMES = [
-  `minigame.grinchheist.grinch-${randomUUID()}`,
-  `minigame.grinchheist.grinch-${randomUUID()}`,
-  `minigame.grinchheist.grinch-${randomUUID()}`,
-  `minigame.grinchheist.grinch-${randomUUID()}`
+  `minigame.grinchheist.grinch-1`,
+  `minigame.grinchheist.grinch-2`,
+  `minigame.grinchheist.grinch-3`,
+  `minigame.grinchheist.grinch-4`
 ];
 
 type GrinchHeistButtonState = {
