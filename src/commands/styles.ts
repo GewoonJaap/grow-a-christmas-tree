@@ -49,6 +49,13 @@ export class Styles implements ISlashCommand {
         ctx.state.page--;
         return ctx.reply(await this.buildStylesMessage(ctx));
       }
+    ),
+    new Button(
+      "styles.toggle",
+      new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Toggle Styles"),
+      async (ctx: ButtonContext<StylesButtonState>): Promise<void> => {
+        return ctx.reply(await this.buildToggleStylesMessage(ctx));
+      }
     )
   ];
 
@@ -65,12 +72,40 @@ export class Styles implements ISlashCommand {
     const unlockedStyles = ctx.game.treeStyles;
     const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
 
-    console.log(paginatedStyles);
-
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Manage Tree Styles** 🎁")
-      .setDescription("Enable or disable your unlocked tree styles.")
+      .setDescription(
+        "Enable or disable your unlocked tree styles.\n" +
+          paginatedStyles
+            .map((style) => {
+              return style.styleName + " - " + (style.active ? "Enabled" : "Disabled");
+            })
+            .join("\n")
+      )
       .setFooter({ text: `Page ${state.page}/${Math.ceil(unlockedStyles.length / STYLES_PER_PAGE)}` });
+
+    const actionRow = new ActionRowBuilder();
+
+    if (state.page > 1) {
+      actionRow.addComponents(await ctx.manager.components.createInstance("styles.back", state));
+    }
+
+    if (unlockedStyles.length > state.page * STYLES_PER_PAGE) {
+      actionRow.addComponents(await ctx.manager.components.createInstance("styles.next", state));
+    }
+
+    actionRow.addComponents(await ctx.manager.components.createInstance("styles.toggle", state));
+
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+  }
+
+  private async buildToggleStylesMessage(ctx: ButtonContext<StylesButtonState>): Promise<MessageBuilder> {
+    const state: StylesButtonState = ctx.state || { page: 1 };
+
+    if (!ctx.game) return new MessageBuilder().setContent("You don't have a tree planted yet!");
+
+    const unlockedStyles = ctx.game.treeStyles;
+    const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
 
     const options = paginatedStyles.map((style) => {
       return new SelectMenuOptionBuilder()
@@ -96,9 +131,6 @@ export class Styles implements ISlashCommand {
         if (!ctx.state || !ctx.game) return;
         const selectedStyles = ctx.interaction.data.values;
 
-        //from ctx.game.styles, enable all styles that are in selectedStyles
-        //disable all styles that are not in selectedStyles
-
         for (const style of ctx.game.treeStyles) {
           style.active = selectedStyles.includes(style.styleName);
         }
@@ -117,15 +149,7 @@ export class Styles implements ISlashCommand {
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    // if (state.page > 1) {
-    //   actionRow.addComponents(await ctx.manager.components.createInstance("styles.back", state));
-    // }
-
-    // if (unlockedStyles.length > state.page * STYLES_PER_PAGE) {
-    //   actionRow.addComponents(await ctx.manager.components.createInstance("styles.next", state));
-    // }
-
-    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+    return new MessageBuilder().addComponents(actionRow);
   }
 
   private paginateStyles(styles: ITreeStyle[], page: number): ITreeStyle[] {
