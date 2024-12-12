@@ -33,7 +33,8 @@ interface IGuild {
 
   activeBoosters: IBooster[];
 
-  unlockedTreeStyles: IUnlockedTreeStyle[];
+  unlockedTreeStyles?: string[];
+  treeStyles: ITreeStyle[];
 }
 
 interface IContributor {
@@ -48,7 +49,7 @@ interface IBooster {
   duration: number;
 }
 
-interface IUnlockedTreeStyle {
+interface ITreeStyle {
   styleName: string;
   active: boolean;
 }
@@ -65,7 +66,7 @@ const BoosterSchema = new Schema<IBooster>({
   duration: { type: Number, required: true }
 });
 
-const UnlockedTreeStyleSchema = new Schema<IUnlockedTreeStyle>({
+const TreeStyleSchema = new Schema<ITreeStyle>({
   styleName: { type: String, required: true },
   active: { type: Boolean, required: true, default: false }
 });
@@ -103,7 +104,9 @@ const GuildSchema = new Schema<IGuild>({
 
   activeBoosters: { type: [BoosterSchema], required: true, default: [] },
 
-  unlockedTreeStyles: { type: [UnlockedTreeStyleSchema], required: true, default: [] }
+  unlockedTreeStyles: { type: [String], required: false, default: [] },
+
+  treeStyles: { type: [TreeStyleSchema], required: true, default: [] }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);
@@ -120,6 +123,6 @@ export {
   IBooster,
   BoosterSchema,
   Booster,
-  IUnlockedTreeStyle,
-  UnlockedTreeStyleSchema
+  ITreeStyle,
+  TreeStyleSchema
 };

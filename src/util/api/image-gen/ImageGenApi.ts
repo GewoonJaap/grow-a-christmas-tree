@@ -1,4 +1,4 @@
-import { IUnlockedTreeStyle } from "../../../models/Guild";
+import { ITreeStyle } from "../../../models/Guild";
 import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
 import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
 
@@ -11,11 +11,7 @@ export class ImageGenApi {
     }
   }
 
-  public async getGeneratedImage(
-    guildId: string,
-    treeLevel: number,
-    treeStyles: IUnlockedTreeStyle[]
-  ): Promise<ImageReponse> {
+  public async getGeneratedImage(guildId: string, treeLevel: number, treeStyles: ITreeStyle[]): Promise<ImageReponse> {
     treeLevel = Math.floor(treeLevel);
     console.log(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
     try {

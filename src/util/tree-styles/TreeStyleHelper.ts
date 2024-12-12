@@ -1,7 +1,7 @@
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { ImageStylesApi } from "../api/image-styles/ImageStyleApi";
 import { ImageStyle } from "../types/api/ImageStylesApi/ImageStylesResponseType";
-import { IUnlockedTreeStyle } from "../../models/Guild";
+import { ITreeStyle } from "../../models/Guild";
 
 const imageStyleApi = new ImageStylesApi();
 
@@ -10,13 +10,13 @@ export class TreeStyleHelper {
     ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
   ): Promise<ImageStyle | null> {
     if (!ctx.game) return null;
-    const unlockedTreeStyles = ctx.game.unlockedTreeStyles ?? [];
+    const unlockedTreeStyles = ctx.game.treeStyles ?? [];
     const apiResponse = await imageStyleApi.getImageStyles();
     if (!apiResponse.success) {
       return null;
     }
     const lockedTreeStyles = apiResponse.styles.filter(
-      (style) => !unlockedTreeStyles.some((unlockedStyle: IUnlockedTreeStyle) => unlockedStyle.styleName === style.name)
+      (style) => !unlockedTreeStyles.some((unlockedStyle: ITreeStyle) => unlockedStyle.styleName === style.name)
     );
     if (lockedTreeStyles.length === 0) {
       return null;
@@ -31,8 +31,8 @@ export class TreeStyleHelper {
   ): Promise<void> {
     if (!ctx.game) return;
 
-    if (!ctx.game.unlockedTreeStyles.some((style) => style.styleName === styleName)) {
-      ctx.game.unlockedTreeStyles.push({ styleName, active: true });
+    if (!ctx.game.treeStyles.some((style) => style.styleName === styleName)) {
+      ctx.game.treeStyles.push({ styleName, active: true });
       await ctx.game.save();
     }
   }
@@ -44,7 +44,7 @@ export class TreeStyleHelper {
   ): Promise<void> {
     if (!ctx.game) return;
 
-    const style = ctx.game.unlockedTreeStyles.find((s) => s.styleName === styleName);
+    const style = ctx.game.treeStyles.find((s) => s.styleName === styleName);
     if (!style) return;
 
     style.active = activationStatus;
@@ -57,6 +57,6 @@ export class TreeStyleHelper {
   ): boolean {
     if (!ctx.game) return false;
 
-    return ctx.game.unlockedTreeStyles.some((style) => style.styleName === styleName);
+    return ctx.game.treeStyles.some((style) => style.styleName === styleName);
   }
 }

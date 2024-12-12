@@ -6,12 +6,14 @@ import {
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
+  SelectMenu,
   SelectMenuBuilder,
+  SelectMenuContext,
   SelectMenuOptionBuilder,
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import { Guild, IUnlockedTreeStyle } from "../models/Guild";
+import { Guild, ITreeStyle } from "../models/Guild";
 
 const STYLES_PER_PAGE = 25;
 
@@ -47,23 +49,21 @@ export class Styles implements ISlashCommand {
         return ctx.reply(await this.buildStylesMessage(ctx));
       }
     ),
-    new Button(
+    new SelectMenu(
       "styles.toggle",
-      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1).setLabel("Toggle Style"),
-      async (ctx: ButtonContext): Promise<void> => {
-        console.log(ctx.interaction.data);
-        const selectedStyle = null;
-        if (!selectedStyle) return;
+      new SelectMenuBuilder().setCustomId("styles.toggle"),
+      async (ctx: SelectMenuContext<StylesButtonState>): Promise<void> => {
+        if (!ctx.state) return;
+        console.log(ctx.interaction.data.values);
+        const styleName = ctx.interaction.data.values[0];
+        if (!ctx.game) return;
 
-        const guild = await Guild.findOne({ id: ctx.interaction.guild_id });
-        if (!guild) return;
-
-        const style = guild.unlockedTreeStyles.find((s) => s.styleName === selectedStyle);
+        const style = ctx.game.treeStyles.find((s) => s.styleName === styleName);
         if (!style) return;
 
         style.active = !style.active;
+        await ctx.game.save();
 
-        await guild.save();
         return ctx.reply(await this.buildStylesMessage(ctx));
       }
     )
@@ -77,10 +77,9 @@ export class Styles implements ISlashCommand {
         ? { page: 1 }
         : (ctx.state as StylesButtonState);
 
-    const guild = await Guild.findOne({ id: ctx.interaction.guild_id });
-    if (!guild) return new MessageBuilder().setContent("Guild not found.");
+    if (!ctx.game) return new MessageBuilder().setContent("You don't have a tree planted yet!");
 
-    const unlockedStyles = guild.unlockedTreeStyles;
+    const unlockedStyles = ctx.game.treeStyles;
     const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
 
     console.log(paginatedStyles);
@@ -95,14 +94,17 @@ export class Styles implements ISlashCommand {
       return new SelectMenuOptionBuilder()
         .setLabel(style.styleName)
         .setValue(style.styleName)
-        .setDescription(style.active ? "Enabled" : "Disabled")
-        .setDefault(style.active);
+        .setDescription(style.active ? "Enabled" : "Disabled");
     });
 
     const selectMenu = new SelectMenuBuilder()
       .setCustomId("styles.toggle")
       .setPlaceholder("Select a style to toggle")
-      .addOptions(options);
+      .addOptions(options)
+      .setMinValues(0)
+      .setMaxValues(paginatedStyles.length);
+
+    new SelectMen();
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
@@ -117,7 +119,7 @@ export class Styles implements ISlashCommand {
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
-  private paginateStyles(styles: IUnlockedTreeStyle[], page: number): IUnlockedTreeStyle[] {
+  private paginateStyles(styles: ITreeStyle[], page: number): ITreeStyle[] {
     const start = (page - 1) * STYLES_PER_PAGE;
     return styles.slice(start, start + STYLES_PER_PAGE);
   }
