@@ -7,7 +7,7 @@ import {
   SimpleError,
   SlashCommandBuilder,
   SlashCommandContext,
-  SlashCommandIntegerOption,
+  SlashCommandNumberOption,
   SlashCommandUserOption
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
@@ -16,10 +16,10 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
-  .addIntegerOption(
-    new SlashCommandIntegerOption("amount", "The amount of coins to transfer.")
+  .addNumberOption(
+    new SlashCommandNumberOption("amount", "The amount of coins to transfer.")
       .setRequired(true)
-      .setMinValue(1)
+      .setMinValue(0.1)
       .setMaxValue(1000)
   );
 
@@ -69,7 +69,7 @@ export class SendCoinsCommand implements ISlashCommand {
       return await ctx.reply(SimpleError("The transfer amount must be a positive number."));
     }
 
-    if (sender.coins < amount) {
+    if (amount > sender.coins) {
       return await ctx.reply(
         SimpleError(`You do not have enough coins to complete the transfer. You have ${sender.coins} coins.`)
       );
