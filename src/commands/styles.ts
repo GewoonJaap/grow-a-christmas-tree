@@ -14,6 +14,7 @@ import {
   SlashCommandContext
 } from "interactions.ts";
 import { Guild, ITreeStyle } from "../models/Guild";
+import { randomUUID } from "crypto";
 
 const STYLES_PER_PAGE = 25;
 
@@ -48,29 +49,11 @@ export class Styles implements ISlashCommand {
         ctx.state.page--;
         return ctx.reply(await this.buildStylesMessage(ctx));
       }
-    ),
-    new SelectMenu(
-      "styles.toggle",
-      new SelectMenuBuilder().setCustomId("styles.toggle"),
-      async (ctx: SelectMenuContext<StylesButtonState>): Promise<void> => {
-        if (!ctx.state) return;
-        console.log(ctx.interaction.data.values);
-        const styleName = ctx.interaction.data.values[0];
-        if (!ctx.game) return;
-
-        const style = ctx.game.treeStyles.find((s) => s.styleName === styleName);
-        if (!style) return;
-
-        style.active = !style.active;
-        await ctx.game.save();
-
-        return ctx.reply(await this.buildStylesMessage(ctx));
-      }
     )
   ];
 
   private async buildStylesMessage(
-    ctx: SlashCommandContext | ButtonContext<StylesButtonState>
+    ctx: SlashCommandContext | ButtonContext<StylesButtonState> | SelectMenuContext<StylesButtonState>
   ): Promise<MessageBuilder> {
     const state: StylesButtonState =
       ctx instanceof SlashCommandContext || !this.isStateValid(ctx.state)
@@ -90,21 +73,47 @@ export class Styles implements ISlashCommand {
       .setFooter({ text: `Page ${state.page}/${Math.ceil(unlockedStyles.length / STYLES_PER_PAGE)}` });
 
     const options = paginatedStyles.map((style) => {
-      console.log(style);
       return new SelectMenuOptionBuilder()
         .setLabel(style.styleName)
         .setValue(style.styleName)
-        .setDescription(style.active ? "Enabled" : "Disabled");
+        .setDescription(style.active ? "Enabled" : "Disabled")
+        .setDefault(style.active);
     });
 
-    const selectMenu = new SelectMenuBuilder()
-      .setCustomId("styles.toggle")
+    const name = "styles.toggle-" + randomUUID();
+
+    const selectMenuBuilder = new SelectMenuBuilder()
+      .setCustomId(name)
       .setPlaceholder("Select a style to toggle")
       .addOptions(options)
       .setMinValues(0)
       .setMaxValues(paginatedStyles.length);
 
-    new SelectMen();
+    const menu = new SelectMenu(
+      name,
+      selectMenuBuilder,
+      async (ctx: SelectMenuContext<StylesButtonState>): Promise<void> => {
+        if (!ctx.state || !ctx.game) return;
+        const selectedStyles = ctx.interaction.data.values;
+
+        //from ctx.game.styles, enable all styles that are in selectedStyles
+        //disable all styles that are not in selectedStyles
+
+        for (const style of ctx.game.treeStyles) {
+          style.active = selectedStyles.includes(style.styleName);
+        }
+
+        await ctx.game.save();
+
+        ctx.manager.components.unregister(name);
+
+        return ctx.reply(await this.buildStylesMessage(ctx));
+      }
+    );
+
+    ctx.manager.components.register([menu]);
+
+    const selectMenu = await ctx.manager.components.createInstance(name, state);
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
