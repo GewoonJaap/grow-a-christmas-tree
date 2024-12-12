@@ -1,3 +1,4 @@
+import { IUnlockedTreeStyle } from "../models/Guild";
 import { ImageGenApi } from "./api/image-gen/ImageGenApi";
 import { TreeStageConfig, TreeStages } from "./treeStages";
 
@@ -8,7 +9,7 @@ export async function calculateTreeTierImage(
   size: number,
   useAiGen: boolean,
   guildId: string,
-  treeStyles: string[],
+  treeStyles: IUnlockedTreeStyle[],
   currentImageUri?: string
 ): Promise<TreeTier> {
   size = Math.floor(size);

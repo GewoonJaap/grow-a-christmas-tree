@@ -10,7 +10,6 @@ import {
 } from "interactions.ts";
 import { PremiumButtons } from "../../../util/buttons/PremiumButtons";
 import { getRandomElement } from "../../../util/helpers/arrayHelper";
-import { getRandomLockedTreeStyle } from "../../../util/helpers/treeStyleHelper";
 import { WalletHelper } from "../../../util/wallet/WalletHelper";
 import { disposeActiveTimeouts } from "../../Tree";
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
@@ -20,6 +19,7 @@ import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/Festiv
 import { StyleItemShopApi } from "../../../util/api/item-shop/StyleItemShopApi";
 import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
 import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
+import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -61,7 +61,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       "shop.cosmetics.buy.tree_style",
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Buy Random Tree Style"),
       async (ctx: ButtonContext): Promise<void> => {
-        const style = await getRandomLockedTreeStyle(ctx);
+        const style = await TreeStyleHelper.getRandomLockedTreeStyle(ctx);
         return ctx.reply(await this.handleStylePurchase(ctx, style));
       }
     ),
@@ -145,12 +145,11 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     const actionRow = new ActionRowBuilder().addComponents(
       ...(state.page === 1 ? [await ctx.manager.components.createInstance("shop.cosmetics.buy.tree_style")] : []),
       ...(await Promise.all(
-        paginatedStyles
-          .map((style, index) =>
-            ctx.manager.components.createInstance(
-              `shop.cosmetics.buy.style_${(state.page - 1) * STYLES_PER_PAGE + index + 1}`
-            )
+        paginatedStyles.map((style, index) =>
+          ctx.manager.components.createInstance(
+            `shop.cosmetics.buy.style_${(state.page - 1) * STYLES_PER_PAGE + index + 1}`
           )
+        )
       )),
       await ctx.manager.components.createInstance("shop.main")
     );
@@ -190,7 +189,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     }
 
     styles.forEach((style, index) => {
-      const isUnlocked = ctx.game?.unlockedTreeStyles.includes(style.name);
+      const isUnlocked = TreeStyleHelper.hasStyleUnlocked(ctx, style.name);
       const rarity = "rarity" in style ? `**Rarity:** ${style.rarity}\n` : "";
       fields.push({
         name: `${index + 1}. ${style.name} 🎄`,
@@ -229,7 +228,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     const cost = "cost" in style ? style.cost : TREE_STYLE_COST;
     const styleName = style.name;
 
-    if (ctx.game.unlockedTreeStyles.includes(styleName)) {
+    if (TreeStyleHelper.hasStyleUnlocked(ctx, styleName)) {
       return this.buildPurchaseFailedMessage(
         ctx,
         "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨"
@@ -244,8 +243,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
 
     await WalletHelper.removeCoins(ctx.user.id, cost);
 
-    ctx.game.unlockedTreeStyles.push(styleName);
-    await ctx.game.save();
+    await TreeStyleHelper.addNewStyle(ctx, styleName);
 
     const embed = await this.getTreeStyleEmbed(styleName);
 

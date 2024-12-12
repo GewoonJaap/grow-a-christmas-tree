@@ -11,7 +11,7 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import { Guild } from "../models/Guild";
+import { Guild, IUnlockedTreeStyle } from "../models/Guild";
 
 const STYLES_PER_PAGE = 25;
 
@@ -51,18 +51,17 @@ export class Styles implements ISlashCommand {
       "styles.toggle",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1).setLabel("Toggle Style"),
       async (ctx: ButtonContext): Promise<void> => {
-        const selectedStyle = ctx.interaction.data?.values?.[0];
+        console.log(ctx.interaction.data);
+        const selectedStyle = null;
         if (!selectedStyle) return;
 
         const guild = await Guild.findOne({ id: ctx.interaction.guild_id });
         if (!guild) return;
 
-        const isEnabled = guild.enabledTreeStyles.includes(selectedStyle);
-        if (isEnabled) {
-          guild.enabledTreeStyles = guild.enabledTreeStyles.filter((style) => style !== selectedStyle);
-        } else {
-          guild.enabledTreeStyles.push(selectedStyle);
-        }
+        const style = guild.unlockedTreeStyles.find((s) => s.styleName === selectedStyle);
+        if (!style) return;
+
+        style.active = !style.active;
 
         await guild.save();
         return ctx.reply(await this.buildStylesMessage(ctx));
@@ -70,7 +69,9 @@ export class Styles implements ISlashCommand {
     )
   ];
 
-  private async buildStylesMessage(ctx: SlashCommandContext | ButtonContext<StylesButtonState>): Promise<MessageBuilder> {
+  private async buildStylesMessage(
+    ctx: SlashCommandContext | ButtonContext<StylesButtonState>
+  ): Promise<MessageBuilder> {
     const state: StylesButtonState =
       ctx instanceof SlashCommandContext || !this.isStateValid(ctx.state)
         ? { page: 1 }
@@ -80,9 +81,9 @@ export class Styles implements ISlashCommand {
     if (!guild) return new MessageBuilder().setContent("Guild not found.");
 
     const unlockedStyles = guild.unlockedTreeStyles;
-    const enabledStyles = guild.enabledTreeStyles;
-
     const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
+
+    console.log(paginatedStyles);
 
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Manage Tree Styles** 🎁")
@@ -90,11 +91,12 @@ export class Styles implements ISlashCommand {
       .setFooter({ text: `Page ${state.page}/${Math.ceil(unlockedStyles.length / STYLES_PER_PAGE)}` });
 
     const options = paginatedStyles.map((style) => {
-      const isEnabled = enabledStyles.includes(style);
+      console.log(style);
       return new SelectMenuOptionBuilder()
-        .setLabel(style)
-        .setValue(style)
-        .setDescription(isEnabled ? "Enabled" : "Disabled");
+        .setLabel(style.styleName)
+        .setValue(style.styleName)
+        .setDescription(style.active ? "Enabled" : "Disabled")
+        .setDefault(style.active);
     });
 
     const selectMenu = new SelectMenuBuilder()
@@ -104,18 +106,18 @@ export class Styles implements ISlashCommand {
 
     const actionRow = new ActionRowBuilder().addComponents(selectMenu);
 
-    if (state.page > 1) {
-      actionRow.addComponents(await ctx.manager.components.createInstance("styles.back", state));
-    }
+    // if (state.page > 1) {
+    //   actionRow.addComponents(await ctx.manager.components.createInstance("styles.back", state));
+    // }
 
-    if (unlockedStyles.length > state.page * STYLES_PER_PAGE) {
-      actionRow.addComponents(await ctx.manager.components.createInstance("styles.next", state));
-    }
+    // if (unlockedStyles.length > state.page * STYLES_PER_PAGE) {
+    //   actionRow.addComponents(await ctx.manager.components.createInstance("styles.next", state));
+    // }
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
-  private paginateStyles(styles: string[], page: number): string[] {
+  private paginateStyles(styles: IUnlockedTreeStyle[], page: number): IUnlockedTreeStyle[] {
     const start = (page - 1) * STYLES_PER_PAGE;
     return styles.slice(start, start + STYLES_PER_PAGE);
   }

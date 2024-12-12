@@ -33,7 +33,7 @@ interface IGuild {
 
   activeBoosters: IBooster[];
 
-  unlockedTreeStyles: string[];
+  unlockedTreeStyles: IUnlockedTreeStyle[];
 }
 
 interface IContributor {
@@ -48,6 +48,11 @@ interface IBooster {
   duration: number;
 }
 
+interface IUnlockedTreeStyle {
+  styleName: string;
+  active: boolean;
+}
+
 const ContributorSchema = new Schema<IContributor>({
   userId: { type: String, required: true },
   count: { type: Number, required: true, default: 1 },
@@ -58,6 +63,11 @@ const BoosterSchema = new Schema<IBooster>({
   type: { type: String, required: true },
   startTime: { type: Number, required: true },
   duration: { type: Number, required: true }
+});
+
+const UnlockedTreeStyleSchema = new Schema<IUnlockedTreeStyle>({
+  styleName: { type: String, required: true },
+  active: { type: Boolean, required: true, default: false }
 });
 
 const GuildSchema = new Schema<IGuild>({
@@ -93,11 +103,23 @@ const GuildSchema = new Schema<IGuild>({
 
   activeBoosters: { type: [BoosterSchema], required: true, default: [] },
 
-  unlockedTreeStyles: { type: [String], required: true, default: [] }
+  unlockedTreeStyles: { type: [UnlockedTreeStyleSchema], required: true, default: [] }
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);
 const Booster = model<IBooster>("Booster", BoosterSchema);
 const Guild = model<IGuild>("Guild", GuildSchema);
 
-export { Guild, GuildSchema, Contributor, ContributorSchema, IGuild, IContributor, IBooster, BoosterSchema, Booster };
+export {
+  Guild,
+  GuildSchema,
+  Contributor,
+  ContributorSchema,
+  IGuild,
+  IContributor,
+  IBooster,
+  BoosterSchema,
+  Booster,
+  IUnlockedTreeStyle,
+  UnlockedTreeStyleSchema
+};
