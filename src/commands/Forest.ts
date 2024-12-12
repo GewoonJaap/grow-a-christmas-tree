@@ -59,6 +59,39 @@ export class Forest implements ISlashCommand {
         ctx.state.page++;
         return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
+    ),
+    new Button(
+      "forest.first",
+      new ButtonBuilder().setEmoji({ name: "⏮️" }).setStyle(2),
+      async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
+        if (!ctx.state) return;
+
+        ctx.state.page = 1;
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
+      }
+    ),
+    new Button(
+      "forest.last",
+      new ButtonBuilder().setEmoji({ name: "⏭️" }).setStyle(2),
+      async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
+        if (!ctx.state) return;
+
+        const amountOfTrees = await Guild.countDocuments();
+        const maxPages = Math.ceil(amountOfTrees / 10);
+        ctx.state.page = maxPages;
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
+      }
+    ),
+    new Button(
+      "forest.pageOfTree",
+      new ButtonBuilder().setEmoji({ name: "📌" }).setStyle(2),
+      async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
+        if (!ctx.state || !ctx.game) return;
+
+        const treeIndex = await Guild.find().sort({ size: -1 }).findIndex((tree) => tree.id === ctx.game?.id);
+        ctx.state.page = Math.ceil((treeIndex + 1) / 10);
+        return await ctx.reply(await buildLeaderboardMessage(ctx));
+      }
     )
   ];
 }
@@ -119,6 +152,10 @@ async function buildLeaderboardMessage(
   if (trees.length > 10) {
     actionRow.addComponents(await ctx.manager.components.createInstance("forest.next", state));
   }
+
+  actionRow.addComponents(await ctx.manager.components.createInstance("forest.first", state));
+  actionRow.addComponents(await ctx.manager.components.createInstance("forest.last", state));
+  actionRow.addComponents(await ctx.manager.components.createInstance("forest.pageOfTree", state));
 
   return new MessageBuilder()
     .addEmbed(
