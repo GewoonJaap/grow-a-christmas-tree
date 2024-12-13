@@ -40,7 +40,9 @@ export class SendCoinsCommand implements ISlashCommand {
 
   private async handleTransfer(ctx: SlashCommandContext): Promise<void> {
     const recipientId = ctx.options.get("recipient")?.value as string;
-    const amount = ctx.options.get("amount")?.value as number;
+    let amount = ctx.options.get("amount")?.value as number;
+
+    amount = +amount.toFixed(2);
 
     if (recipientId === ctx.user.id) {
       return await ctx.reply(SimpleError("You cannot transfer coins to yourself."));
