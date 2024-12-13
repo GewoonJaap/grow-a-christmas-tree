@@ -6,7 +6,6 @@ import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { toFixed } from "../util/helpers/numberHelper";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 import { getRandomEmojiWithExclusion, SPOOKY_EMOJIS } from "../util/emoji";
-import { randomUUID } from "crypto";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
 const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);

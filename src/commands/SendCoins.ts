@@ -20,7 +20,7 @@ const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another 
     new SlashCommandNumberOption("amount", "The amount of coins to transfer.")
       .setRequired(true)
       .setMinValue(0.1)
-      .setMaxValue(1000)
+      .setMaxValue(10000)
   );
 
 builder.setDMEnabled(false);
