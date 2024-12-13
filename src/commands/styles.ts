@@ -86,7 +86,7 @@ export class Styles implements ISlashCommand {
           "✨ Enable or disable your unlocked tree styles below: ✨\n\n" +
           paginatedStyles
             .map((style) => {
-              return `🎨 **${style.styleName}** - **${style.active ? "Enabled ✅" : "Disabled ❌"}**`;
+              return `🎨 ${style.styleName} - ${style.active ? "Enabled ✅" : "Disabled ❌"}`;
             })
             .join("\n")
       )
