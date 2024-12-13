@@ -8,6 +8,9 @@ export async function migrateUnlockedTreeStyles(): Promise<void> {
     console.log(`Migrating guild ${guild.id}...`, Array.isArray(guild.unlockedTreeStyles));
     if (Array.isArray(guild.unlockedTreeStyles) && typeof guild.unlockedTreeStyles[0] === "string") {
       const updatedStyles = [];
+      if (guild.treeStyles !== undefined && guild.treeStyles.length > 0) {
+        continue;
+      }
       for (const style of guild.unlockedTreeStyles) {
         updatedStyles.push({
           styleName: style,
