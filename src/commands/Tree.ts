@@ -262,7 +262,7 @@ export async function buildTreeDisplayMessage(
     ctx.game.size,
     ctx.game.hasAiAccess ?? false,
     ctx.game.id,
-    ctx.game.unlockedTreeStyles ?? [],
+    ctx.game.treeStyles ?? [],
     ctx.game.currentImageUrl
   );
   ctx.game.currentImageUrl = treeImage.image;
