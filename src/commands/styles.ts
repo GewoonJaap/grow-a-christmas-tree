@@ -15,6 +15,8 @@ import {
 } from "interactions.ts";
 import { ITreeStyle } from "../models/Guild";
 import { randomUUID } from "crypto";
+import { permissionsExtractor } from "../util/bitfield-permission-calculator";
+import { disposeActiveTimeouts } from "./Tree";
 
 const STYLES_PER_PAGE = 25;
 
@@ -113,6 +115,16 @@ export class Styles implements ISlashCommand {
 
     if (!ctx.game) return new MessageBuilder().setContent("🎄 You don't have a tree planted yet! 🎄");
 
+    const perms = permissionsExtractor((ctx.interaction.member?.permissions as unknown as number) ?? 0);
+    if (!perms.includes("MANAGE_GUILD")) {
+      this.transitionBackToDefaultStylesViewWithTimeout(ctx);
+      const embed = new EmbedBuilder()
+        .setTitle("Woah there!")
+        .setColor(0xff0000)
+        .setDescription("You need the Manage Server permission to toggle tree styles.");
+      return new MessageBuilder().addEmbed(embed);
+    }
+
     const unlockedStyles = ctx.game.treeStyles;
     const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
 
@@ -170,5 +182,20 @@ export class Styles implements ISlashCommand {
 
   private isStateValid(state: StylesButtonState | undefined): boolean {
     return state !== undefined && !isNaN(state.page) && state.page >= 0;
+  }
+
+  private transitionBackToDefaultStylesViewWithTimeout(ctx: ButtonContext<StylesButtonState>, delay = 4000): void {
+    disposeActiveTimeouts(ctx);
+    ctx.timeouts.set(
+      ctx.interaction.message.id,
+      setTimeout(async () => {
+        try {
+          disposeActiveTimeouts(ctx);
+          await ctx.edit(await this.buildStylesMessage(ctx));
+        } catch (e) {
+          console.log(e);
+        }
+      }, delay)
+    );
   }
 }

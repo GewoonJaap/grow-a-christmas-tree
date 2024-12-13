@@ -3,7 +3,6 @@ import {
   Button,
   ButtonBuilder,
   ButtonContext,
-  Component,
   ComponentManager,
   EmbedBuilder,
   MessageBuilder,
