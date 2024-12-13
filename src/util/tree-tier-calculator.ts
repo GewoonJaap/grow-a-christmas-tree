@@ -14,6 +14,7 @@ export async function calculateTreeTierImage(
 ): Promise<TreeTier> {
   size = Math.floor(size);
   let level = getCurrentTreeTier(size, useAiGen);
+  const enabledStyles = treeStyles.filter((style) => style.active);
   if (process.env.AI_ENABLED && useAiGen && size >= AI_GEN_AFTER_TIER.requiredTreeLength) {
     const imageGenApi = new ImageGenApi();
 
@@ -21,12 +22,12 @@ export async function calculateTreeTierImage(
     const hasGeneratedImage = await imageGenApi.getHasGeneratedImage(guildId, level);
 
     if (hasGeneratedImage) {
-      const image = await imageGenApi.getGeneratedImage(guildId, level, treeStyles);
+      const image = await imageGenApi.getGeneratedImage(guildId, level, enabledStyles);
       if (image.data) {
         return { tier: level, image: image.data?.url };
       }
     } else {
-      imageGenApi.getGeneratedImage(guildId, level, treeStyles);
+      imageGenApi.getGeneratedImage(guildId, level, enabledStyles);
       if (currentImageUri && (await isCurrentImageUriStillValid(currentImageUri))) {
         return { tier: level, image: currentImageUri };
       }
