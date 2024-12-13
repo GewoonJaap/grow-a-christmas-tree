@@ -88,7 +88,9 @@ export class Forest implements ISlashCommand {
       async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
         if (!ctx.state || !ctx.game) return;
 
-        const treeIndex = await Guild.find().sort({ size: -1 }).findIndex((tree) => tree.id === ctx.game?.id);
+        const treeIndex = await Guild.find()
+          .sort({ size: -1 })
+          .findIndex((tree) => tree.id === ctx.game?.id);
         ctx.state.page = Math.ceil((treeIndex + 1) / 10);
         return await ctx.reply(await buildLeaderboardMessage(ctx));
       }
