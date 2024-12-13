@@ -1,7 +1,9 @@
 import { Guild, ITreeStyle } from "../models/Guild";
 
 export async function migrateUnlockedTreeStyles(): Promise<void> {
-  const guilds = await Guild.find({ id: "306126255604891648" });
+  console.log("Skipping migrateUnlockedTreeStyles for now.");
+  return;
+  const guilds = await Guild.find();
   console.log(`Migrating ${guilds.length} guilds...`);
 
   for (const guild of guilds) {
