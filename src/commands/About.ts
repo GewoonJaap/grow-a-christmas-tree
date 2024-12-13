@@ -64,6 +64,7 @@ export class About implements ISlashCommand {
         **ADMIN COMMANDS**
         These require the Manage Server permission.
 
+        ✨ **/styles** - Manage your unlocked tree styles.
         🔔 **/notifications** - Setup tree watering notifications.
         ⏲️ **/settimezone** - Set the timezone for your tree, so that dates en times are correctly shown.
         ✏️ **/rename** - Rename your Christmas tree.
