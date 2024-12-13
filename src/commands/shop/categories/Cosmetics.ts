@@ -3,6 +3,7 @@ import {
   Button,
   ButtonBuilder,
   ButtonContext,
+  Component,
   ComponentManager,
   EmbedBuilder,
   MessageBuilder,
@@ -216,6 +217,14 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       );
     }
 
+    if (!ctx.game.hasAiAccess) {
+      return this.buildPurchaseFailedMessage(
+        ctx,
+        "This premium feature is part of the Festive Forest subscription! Upgrade now to enjoy exclusive perks and watch your Christmas tree thrive like never before! 🎅✨",
+        true
+      );
+    }
+
     const allStyles = await this.getAllStyles();
 
     if (style === null || !allStyles.some((x) => x.name === style.name)) {
@@ -314,10 +323,17 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     );
   }
 
-  private async buildPurchaseFailedMessage(ctx: ButtonContext, description: string): Promise<MessageBuilder> {
+  private async buildPurchaseFailedMessage(
+    ctx: ButtonContext,
+    description: string,
+    showPremiumButton = false
+  ): Promise<MessageBuilder> {
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.cosmetics.refresh")
     );
+    if (showPremiumButton && !process.env.DEV_MODE) {
+      actionRow.addComponents(PremiumButtons.FestiveForestButton);
+    }
     this.transitionBackToDefaultShopViewWithTimeout(ctx);
     return new MessageBuilder()
       .addEmbed(

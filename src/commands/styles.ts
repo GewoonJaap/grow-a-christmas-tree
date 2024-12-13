@@ -132,7 +132,9 @@ export class Styles implements ISlashCommand {
         const selectedStyles = ctx.interaction.data.values;
 
         for (const style of ctx.game.treeStyles) {
-          style.active = selectedStyles.includes(style.styleName);
+          if (paginatedStyles.some((paginatedStyle) => paginatedStyle.styleName === style.styleName)) {
+            style.active = selectedStyles.includes(style.styleName);
+          }
         }
 
         await ctx.game.save();
