@@ -257,7 +257,7 @@ function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, del
 
 function coinUpsell(upgradeCost: number): MessageUpsellType {
   const needMoreCoins =
-    "🎅 Need more coins? Play minigames after watering, claim your daily reward or purschage more coins in the store";
+    "🎅 Need more coins? Play minigames after watering, claim your daily reward or purchase more coins in the store";
   if (upgradeCost <= 500) {
     return {
       message: needMoreCoins,

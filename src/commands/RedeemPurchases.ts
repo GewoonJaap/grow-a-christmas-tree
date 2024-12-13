@@ -31,11 +31,11 @@ import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
-const builder = new SlashCommandBuilder("redeempurschages", "Redeem all your purchases from the shop");
+const builder = new SlashCommandBuilder("redeempurchases", "Redeem all your purchases from the shop");
 
 builder.setDMEnabled(false);
 
-export class RedeemPurschagesCommand implements ISlashCommand {
+export class RedeemPurchasesCommand implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
