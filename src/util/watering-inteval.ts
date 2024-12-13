@@ -1,8 +1,8 @@
 import { BoosterHelper } from "./booster/BoosterHelper";
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
 
-const cache = new Map()
-  
+const cache = new Map();
+
 //const maxInterval = 600; // in seconds, 10 mins
 
 export function getWateringInterval(
@@ -23,11 +23,11 @@ export function getWateringInterval(
 }
 
 function getWateringIntervalInSeconds(size: number): number {
-  if(size <= 2000) {
-    return Math.floor(Math.pow(size * 0.05 + 5, 1.1))
+  if (size <= 2000) {
+    return Math.floor(Math.pow(size * 0.05 + 5, 1.1));
   }
   //Some base modifier to make the start of the line correct.
-  return (141 + Math.floor(Math.pow(size * 0.01 + 5, 1.05)))
+  return 141 + Math.floor(Math.pow(size * 0.01 + 5, 1.05));
 }
 
 export function getTreeAge(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>, size: number): number {

@@ -36,7 +36,8 @@ import {
   Wheel,
   RedeemPurschagesCommand,
   AdventCalendar,
-  Rename
+  Rename,
+  Styles
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";
@@ -48,8 +49,9 @@ import { unleash } from "./util/unleash/UnleashHelper";
 import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
+import { runMigrations } from "./migrations";
 
-const VERSION = "1.9";
+const VERSION = "2.0";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 
@@ -139,7 +141,8 @@ if (keys.some((key) => !(key in process.env))) {
     new ServerInfo(),
     new Wheel(),
     new AdventCalendar(),
-    new Rename()
+    new Rename(),
+    new Styles()
   ];
 
   app.commands.register(commands, false);
@@ -271,6 +274,8 @@ if (keys.some((key) => !(key in process.env))) {
     .then(async () => {
       const address = "0.0.0.0";
       const port = process.env.PORT as string;
+
+      await runMigrations();
 
       server.listen({ port: parseInt(port), host: address });
       console.log(`Listening for interactions on http://${address}:${port}.`);

@@ -66,11 +66,13 @@ export class ServerInfo implements ISlashCommand {
   }
 
   private getUnlockedTreeStylesText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
-    const unlockedTreeStyles = ctx.game?.unlockedTreeStyles ?? [];
+    const unlockedTreeStyles = ctx.game?.treeStyles ?? [];
     if (unlockedTreeStyles.length) {
       const displayedStyles = unlockedTreeStyles.slice(0, 10);
       const remainingStylesCount = unlockedTreeStyles.length - displayedStyles.length;
-      const stylesText = displayedStyles.map((style) => `🎄 **${style}**`).join("\n");
+      const stylesText = displayedStyles
+        .map((style) => `🎄 **${style.styleName}**${style.active ? "✅" : "❌"}`)
+        .join("\n");
       return remainingStylesCount > 0 ? `${stylesText}\n...and ${remainingStylesCount} more styles` : stylesText;
     }
     return "No unlocked tree styles";
