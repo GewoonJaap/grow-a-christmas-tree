@@ -225,9 +225,20 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       );
     }
 
-    const allStyles = await this.getAllStyles();
+    if (!style) {
+      return this.buildPurchaseFailedMessage(
+        ctx,
+        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
+      );
+    }
 
-    if (style === null || !allStyles.some((x) => x.name === style.name)) {
+    const allStyles = await this.getAllStyles();
+    const defaultStyles = await imageStyleApi.getImageStyles();
+
+    const styleAvailable =
+      defaultStyles.styles.some((x) => x.name === style.name) || allStyles.some((x) => x.name === style.name);
+
+    if (!styleAvailable) {
       return this.buildPurchaseFailedMessage(
         ctx,
         "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"

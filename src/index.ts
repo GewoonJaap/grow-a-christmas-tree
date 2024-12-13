@@ -51,7 +51,7 @@ import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
 import { runMigrations } from "./migrations";
 
-const VERSION = "1.9";
+const VERSION = "2.0";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
 

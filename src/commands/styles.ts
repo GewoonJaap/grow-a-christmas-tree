@@ -13,7 +13,7 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import { Guild, ITreeStyle } from "../models/Guild";
+import { ITreeStyle } from "../models/Guild";
 import { randomUUID } from "crypto";
 
 const STYLES_PER_PAGE = 25;
@@ -56,6 +56,13 @@ export class Styles implements ISlashCommand {
       async (ctx: ButtonContext<StylesButtonState>): Promise<void> => {
         return ctx.reply(await this.buildToggleStylesMessage(ctx));
       }
+    ),
+    new Button(
+      "styles.refresh",
+      new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1).setLabel("Refresh"),
+      async (ctx: ButtonContext<StylesButtonState>): Promise<void> => {
+        return ctx.reply(await this.buildStylesMessage(ctx));
+      }
     )
   ];
 
@@ -67,7 +74,7 @@ export class Styles implements ISlashCommand {
         ? { page: 1 }
         : (ctx.state as StylesButtonState);
 
-    if (!ctx.game) return new MessageBuilder().setContent("You don't have a tree planted yet!");
+    if (!ctx.game) return new MessageBuilder().setContent("🎄 You don't have a tree planted yet! 🎄");
 
     const unlockedStyles = ctx.game.treeStyles;
     const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
@@ -75,10 +82,11 @@ export class Styles implements ISlashCommand {
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Manage Tree Styles** 🎁")
       .setDescription(
-        "Enable or disable your unlocked tree styles.\n" +
+        `🎅 You have unlocked ${unlockedStyles.length} styles! 🎅\n\n` +
+          "✨ Enable or disable your unlocked tree styles below: ✨\n\n" +
           paginatedStyles
             .map((style) => {
-              return style.styleName + " - " + (style.active ? "Enabled" : "Disabled");
+              return `🎨 **${style.styleName}** - **${style.active ? "Enabled ✅" : "Disabled ❌"}**`;
             })
             .join("\n")
       )
@@ -95,6 +103,7 @@ export class Styles implements ISlashCommand {
     }
 
     actionRow.addComponents(await ctx.manager.components.createInstance("styles.toggle", state));
+    actionRow.addComponents(await ctx.manager.components.createInstance("styles.refresh", state));
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
@@ -102,7 +111,7 @@ export class Styles implements ISlashCommand {
   private async buildToggleStylesMessage(ctx: ButtonContext<StylesButtonState>): Promise<MessageBuilder> {
     const state: StylesButtonState = ctx.state || { page: 1 };
 
-    if (!ctx.game) return new MessageBuilder().setContent("You don't have a tree planted yet!");
+    if (!ctx.game) return new MessageBuilder().setContent("🎄 You don't have a tree planted yet! 🎄");
 
     const unlockedStyles = ctx.game.treeStyles;
     const paginatedStyles = this.paginateStyles(unlockedStyles, state.page);
@@ -111,7 +120,7 @@ export class Styles implements ISlashCommand {
       return new SelectMenuOptionBuilder()
         .setLabel(style.styleName)
         .setValue(style.styleName)
-        .setDescription(style.active ? "Enabled" : "Disabled")
+        .setDescription(style.active ? "Enabled ✅" : "Disabled ❌")
         .setDefault(style.active);
     });
 
