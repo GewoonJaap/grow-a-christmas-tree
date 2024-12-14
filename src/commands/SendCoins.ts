@@ -7,7 +7,7 @@ import {
   SimpleError,
   SlashCommandBuilder,
   SlashCommandContext,
-  SlashCommandNumberOption,
+  SlashCommandIntegerOption,
   SlashCommandUserOption
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
@@ -16,10 +16,10 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 
 const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
-  .addNumberOption(
-    new SlashCommandNumberOption("amount", "The amount of coins to transfer.")
+  .addIntegerOption(
+    new SlashCommandIntegerOption("amount", "The amount of coins to transfer.")
       .setRequired(true)
-      .setMinValue(0.1)
+      .setMinValue(1)
       .setMaxValue(10000)
   );
 
@@ -40,9 +40,7 @@ export class SendCoinsCommand implements ISlashCommand {
 
   private async handleTransfer(ctx: SlashCommandContext): Promise<void> {
     const recipientId = ctx.options.get("recipient")?.value as string;
-    let amount = ctx.options.get("amount")?.value as number;
-
-    amount = +amount.toFixed(2);
+    const amount = ctx.options.get("amount")?.value as number;
 
     if (recipientId === ctx.user.id) {
       return await ctx.reply(SimpleError("You cannot transfer coins to yourself."));

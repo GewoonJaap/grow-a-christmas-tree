@@ -34,7 +34,7 @@ import {
   SetTimezone,
   ServerInfo,
   Wheel,
-  RedeemPurschagesCommand,
+  RedeemPurchasesCommand,
   AdventCalendar,
   Rename,
   Styles
@@ -133,7 +133,7 @@ if (keys.some((key) => !(key in process.env))) {
     new Feedback(),
     new NotificationSettings(),
     new SendCoinsCommand(),
-    new RedeemPurschagesCommand(),
+    new RedeemPurchasesCommand(),
     new DailyReward(),
     new Composter(),
     new Shop(),
@@ -145,7 +145,7 @@ if (keys.some((key) => !(key in process.env))) {
     new Styles()
   ];
 
-  app.commands.register(commands, true);
+  app.commands.register(commands, false);
 
   for (const command of commands) {
     if ("registerDynamicButtons" in command) {
