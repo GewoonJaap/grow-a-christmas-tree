@@ -11,19 +11,12 @@ import {
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { getRandomElement } from "../util/helpers/arrayHelper";
-import {
-  FESTIVE_ENTITLEMENT_SKU_ID,
-  PremiumButtonBuilder,
-  SMALL_POUCH_OF_COINS_SKU_ID,
-  GOLDEN_COIN_STASH_SKU_ID,
-  LUCKY_COIN_BAG_SKU_ID,
-  TREASURE_CHEST_OF_COINS_SKU_ID
-} from "../util/discord/DiscordApiExtensions";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
 import { toFixed } from "../util/helpers/numberHelper";
 import { disposeActiveTimeouts } from "./Tree";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -105,7 +98,7 @@ function upsellText(hasPremium: boolean): MessageUpsellType {
       message:
         "🎄 Did you know? With the Festive Forest subscription, Santa's Magic Composter works even more magically! Unlock the full potential of your tree!",
       isUpsell: true,
-      buttonSku: FESTIVE_ENTITLEMENT_SKU_ID
+      buttonSku: SKU.FESTIVE_ENTITLEMENT
     };
   }
   return {
@@ -262,25 +255,25 @@ function coinUpsell(upgradeCost: number): MessageUpsellType {
     return {
       message: needMoreCoins,
       isUpsell: true,
-      buttonSku: SMALL_POUCH_OF_COINS_SKU_ID
+      buttonSku: SKU.SMALL_POUCH_OF_COINS
     };
   } else if (upgradeCost <= 1500) {
     return {
       message: needMoreCoins,
       isUpsell: true,
-      buttonSku: LUCKY_COIN_BAG_SKU_ID
+      buttonSku: SKU.LUCKY_COIN_BAG
     };
   } else if (upgradeCost <= 3000) {
     return {
       message: needMoreCoins,
       isUpsell: true,
-      buttonSku: TREASURE_CHEST_OF_COINS_SKU_ID
+      buttonSku: SKU.TREASURE_CHEST_OF_COINS
     };
   } else {
     return {
       message: needMoreCoins,
       isUpsell: true,
-      buttonSku: GOLDEN_COIN_STASH_SKU_ID
+      buttonSku: SKU.GOLDEN_COIN_STASH
     };
   }
 }

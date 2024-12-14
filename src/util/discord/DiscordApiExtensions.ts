@@ -5,19 +5,45 @@ import { ButtonStyle } from "discord-api-types/v10";
 import axios from "axios";
 import { BoosterName } from "../booster/BoosterHelper";
 
-export const FESTIVE_ENTITLEMENT_SKU_ID = "1298016263687110697";
-export const SUPER_THIRSTY_ENTITLEMENT_SKU_ID = "1298017583941029949";
-export const SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID = "1298016263687110698";
-export const SMALL_POUCH_OF_COINS_SKU_ID = "1302385817846550611";
-export const GOLDEN_COIN_STASH_SKU_ID = "1304819461366480946";
-export const LUCKY_COIN_BAG_SKU_ID = "1304819131543195738";
-export const TREASURE_CHEST_OF_COINS_SKU_ID = "1304819358442192936";
-export const HOLIDAY_LUCKY_TICKET = "1312106259608244287";
-export const LUCKY_TICKET_25 = "1312108891076690011";
-export const LUCKY_TICKET_50 = "1312108952905056316";
+export enum SKU {
+  FESTIVE_ENTITLEMENT = "1298016263687110697",
+  SUPER_THIRSTY_ENTITLEMENT = "1298017583941029949",
+  SUPER_THIRSTY_2_ENTITLEMENT = "1298016263687110698",
+  SMALL_POUCH_OF_COINS = "1302385817846550611",
+  GOLDEN_COIN_STASH = "1304819461366480946",
+  LUCKY_COIN_BAG = "1304819131543195738",
+  TREASURE_CHEST_OF_COINS = "1304819358442192936",
+  HOLIDAY_LUCKY_TICKET = "1312106259608244287",
+  LUCKY_TICKET_25 = "1312108891076690011",
+  LUCKY_TICKET_50 = "1312108952905056316",
+  GOLDEN_COIN_STASH_WATERING_BOOSTER = "1313226625738997872",
+  TREASURE_CHEST_OF_COINS_WATERING_BOOSTER = "1313225955480698982"
+}
 
-export const GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID = "1313226625738997872";
-export const TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID = "1313225955480698982";
+export type SKURewardType = {
+  coins: number;
+  luckyTickets: number;
+  booster: BoosterName | undefined;
+};
+
+export type SKURewardsType = {
+  [key in SKU]: SKURewardType;
+};
+
+export const SKU_REWARDS: SKURewardsType = {
+  [SKU.FESTIVE_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined },
+  [SKU.SUPER_THIRSTY_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined },
+  [SKU.SUPER_THIRSTY_2_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined },
+  [SKU.SMALL_POUCH_OF_COINS]: { coins: 500, luckyTickets: 0, booster: undefined },
+  [SKU.GOLDEN_COIN_STASH]: { coins: 5000, luckyTickets: 0, booster: undefined },
+  [SKU.LUCKY_COIN_BAG]: { coins: 1500, luckyTickets: 0, booster: undefined },
+  [SKU.TREASURE_CHEST_OF_COINS]: { coins: 3000, luckyTickets: 0, booster: undefined },
+  [SKU.HOLIDAY_LUCKY_TICKET]: { coins: 0, luckyTickets: 10, booster: undefined },
+  [SKU.LUCKY_TICKET_25]: { coins: 0, luckyTickets: 25, booster: undefined },
+  [SKU.LUCKY_TICKET_50]: { coins: 0, luckyTickets: 50, booster: undefined },
+  [SKU.GOLDEN_COIN_STASH_WATERING_BOOSTER]: { coins: 5000, luckyTickets: 0, booster: "Watering Booster" },
+  [SKU.TREASURE_CHEST_OF_COINS_WATERING_BOOSTER]: { coins: 3000, luckyTickets: 0, booster: "Watering Booster" }
+};
 
 export function getEntitlements(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
@@ -33,10 +59,10 @@ export function getEntitlements(
 }
 
 export function entitlementSkuResolver(skuId: string): EntitlementType {
-  if (skuId === FESTIVE_ENTITLEMENT_SKU_ID) {
+  if (skuId === SKU.FESTIVE_ENTITLEMENT) {
     return EntitlementType.UNLIMITED_LEVELS;
   }
-  if (skuId === SUPER_THIRSTY_ENTITLEMENT_SKU_ID || skuId === SUPER_THIRSTY_2_ENTITLEMENT_SKU_ID) {
+  if (skuId === SKU.SUPER_THIRSTY_ENTITLEMENT || skuId === SKU.SUPER_THIRSTY_2_ENTITLEMENT) {
     return EntitlementType.SUPER_THIRSTY;
   }
   return EntitlementType.UNKNOWN;
@@ -86,7 +112,7 @@ export async function fetchEntitlementsFromApi(
   userId: string,
   withoutExpired = false,
   guildId: string | null | undefined,
-  skuIds?: string[]
+  skuIds?: SKU[]
 ): Promise<Entitlement[]> {
   if (!guildId) {
     return [];
@@ -136,58 +162,15 @@ export async function consumeEntitlement(entitlementId: string): Promise<boolean
   return true;
 }
 
-export function skuIdToBooster(skuId: string): BoosterName | undefined {
-  switch (skuId) {
-    case GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID:
-      return "Watering Booster";
-    case TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID:
-      return "Watering Booster";
-    default:
-      return undefined;
-  }
-}
-
-export function skuIdToCoins(skuId: string): number {
-  switch (skuId) {
-    case SMALL_POUCH_OF_COINS_SKU_ID:
-      return 500;
-    case LUCKY_COIN_BAG_SKU_ID:
-      return 1500;
-    case TREASURE_CHEST_OF_COINS_SKU_ID:
-      return 3000;
-    case TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID:
-      return 3000;
-    case GOLDEN_COIN_STASH_SKU_ID:
-      return 5000;
-    case GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID:
-      return 5000;
-    default:
-      return 0;
-  }
-}
-
-export function skuIdToLuckyTickets(skuId: string): number {
-  switch (skuId) {
-    case HOLIDAY_LUCKY_TICKET:
-      return 10;
-    case LUCKY_TICKET_25:
-      return 25;
-    case LUCKY_TICKET_50:
-      return 50;
-    default:
-      return 0;
-  }
-}
-
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
-  private sku_id?: string;
+  private sku_id?: SKU;
 
   /**
    * Set the sku_id for the premium button.
-   * @param {string} sku_id - The sku_id to set.
+   * @param {SKU} sku_id - The sku_id to set.
    * @returns {this}
    */
-  public setSkuId(sku_id: string): this {
+  public setSkuId(sku_id: SKU): this {
     this.sku_id = sku_id;
     return this;
   }

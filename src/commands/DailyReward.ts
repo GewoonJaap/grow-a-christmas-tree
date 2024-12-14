@@ -11,7 +11,7 @@ import {
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { MessageUpsellType } from "../util/types/MessageUpsellType";
-import { FESTIVE_ENTITLEMENT_SKU_ID, PremiumButtonBuilder } from "../util/discord/DiscordApiExtensions";
+import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
@@ -53,7 +53,7 @@ function upsellText(hasPremium: boolean): MessageUpsellType {
       message:
         "🔥 Did you know that with the Festive Forest subscription you can get more coins each day and a longer grace period?",
       isUpsell: true,
-      buttonSku: FESTIVE_ENTITLEMENT_SKU_ID
+      buttonSku: SKU.FESTIVE_ENTITLEMENT
     };
   }
   return {
