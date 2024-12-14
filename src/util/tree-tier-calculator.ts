@@ -24,7 +24,7 @@ export async function calculateTreeTierImage(
     if (hasGeneratedImage) {
       const image = await imageGenApi.getGeneratedImage(guildId, level, enabledStyles);
       if (image.data) {
-        return { tier: level, image: image.data?.url };
+        return { tier: level, image: image.data?.url, metadata: image.data?.metadata };
       }
     } else {
       imageGenApi.getGeneratedImage(guildId, level, enabledStyles);
@@ -60,6 +60,7 @@ export function getCurrentTreeTier(size: number, useAiGen: boolean): number {
 export interface TreeTier {
   tier: number;
   image: string;
+  metadata?: Record<string, string>;
 }
 
 function tierToImageName(tierNumber: number): string {

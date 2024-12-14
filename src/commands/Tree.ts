@@ -278,7 +278,7 @@ export async function buildTreeDisplayMessage(
       ctx.game.lastWateredAt + getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false) < time
         ? getTreeAge(ctx, ctx.game.size) * 1000
         : (getTreeAge(ctx, ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
-    )} growing. Nice!`
+    )} growing. Nice!${getStyleMetadata(treeImage.metadata)}`
   });
 
   if (canBeWateredAt < Date.now() / 1000) {
@@ -320,6 +320,11 @@ export async function buildTreeDisplayMessage(
   message.addEmbed(embed);
 
   return message;
+}
+
+function getStyleMetadata(metadata: Record<string, string> | undefined): string {
+  if (!metadata || !metadata.styles) return "";
+  return ` | Style: ${metadata.styles}`;
 }
 
 function getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {
