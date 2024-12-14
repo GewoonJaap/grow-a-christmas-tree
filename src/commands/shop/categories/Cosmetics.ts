@@ -102,7 +102,14 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
 
   public async registerDynamicButtons(componentManager: ComponentManager): Promise<void> {
     const allStyles = await this.getAllStyles();
+    await this.unregisterOldButtons(componentManager);
     await this.registerStyleButtons(componentManager, allStyles);
+  }
+
+  private async unregisterOldButtons(componentManager: ComponentManager): Promise<void> {
+    const buttonIds = componentManager.getAll().map((button) => button.id);
+    const styleButtonIds = buttonIds.filter((id) => id.startsWith("shop.cosmetics.buy.style_"));
+    styleButtonIds.forEach((id) => componentManager.unregister(id));
   }
 
   private async registerStyleButtons(
