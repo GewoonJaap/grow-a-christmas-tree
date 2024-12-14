@@ -17,7 +17,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
-const GRACE_PERIOD_DAYS = 1;
+const GRACE_PERIOD_DAYS = 2;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
 const BASE_REWARD = 10;
 const PREMIUM_BASE_REWARD = 15;
