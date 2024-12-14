@@ -145,7 +145,9 @@ if (keys.some((key) => !(key in process.env))) {
     new Styles()
   ];
 
-  app.commands.register(commands, false);
+  await app.commands.register(commands, false);
+
+  await app.commands.deleteUnregistered();
 
   for (const command of commands) {
     if ("registerDynamicButtons" in command) {

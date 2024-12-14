@@ -20,6 +20,7 @@ import { StyleItemShopApi } from "../../../util/api/item-shop/StyleItemShopApi";
 import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
 import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
 import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
+import { getLocaleFromTimezone } from "../../../util/timezones";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -47,6 +48,7 @@ type CosmeticsButtonState = {
 };
 
 export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
+  public refreshTime = new Date();
   public entryButtonName = "shop.cosmetics";
 
   public components: Button[] = [
@@ -130,14 +132,31 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         ? { page: 1 }
         : (ctx.state as CosmeticsButtonState);
 
+    if (!ctx.game || ctx.isDM) {
+      return new MessageBuilder().addEmbed(
+        new EmbedBuilder()
+          .setTitle("Error")
+          .setDescription("Please use /plant to plant a tree first.")
+          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+      );
+    }
+
     const allStyles = await this.getAllStyles();
     const paginatedStyles = this.paginateStyles(allStyles, state.page);
+
+    const localeTimeString = this.refreshTime.toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), {
+      timeZone: ctx.game.timeZone
+    });
 
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Cosmetics Shop** 🎁")
       .setDescription("🎄 Unlock magical tree styles to make your tree the star of the season! 🌟")
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
-      .setFooter({ text: `Page ${state.page}/${Math.ceil(allStyles.length / STYLES_PER_PAGE)}` });
+      .setFooter({
+        text: `Page ${state.page}/${Math.ceil(
+          allStyles.length / STYLES_PER_PAGE
+        )} | Item shop refresh: ${localeTimeString}`
+      });
 
     const fields = this.buildFields(paginatedStyles, state.page, ctx);
     embed.addFields(fields);
@@ -308,6 +327,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
 
   private async getItemShopStyles(): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
     const response = await styleItemShopApi.getDailyItemShopStyles();
+    this.refreshTime = new Date(response.refreshTime);
     return response.items;
   }
 
