@@ -9,22 +9,7 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
-import {
-  fetchEntitlementsFromApi,
-  consumeEntitlement,
-  SMALL_POUCH_OF_COINS_SKU_ID,
-  skuIdToCoins,
-  skuIdToLuckyTickets,
-  GOLDEN_COIN_STASH_SKU_ID,
-  LUCKY_COIN_BAG_SKU_ID,
-  TREASURE_CHEST_OF_COINS_SKU_ID,
-  HOLIDAY_LUCKY_TICKET,
-  LUCKY_TICKET_25,
-  LUCKY_TICKET_50,
-  GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID,
-  TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID,
-  skuIdToBooster
-} from "../util/discord/DiscordApiExtensions";
+import { fetchEntitlementsFromApi, consumeEntitlement, SKU_REWARDS, SKU } from "../util/discord/DiscordApiExtensions";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
@@ -59,17 +44,12 @@ export class RedeemPurchasesCommand implements ISlashCommand {
 
 async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
-  const entitlements = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game?.id, [
-    SMALL_POUCH_OF_COINS_SKU_ID,
-    GOLDEN_COIN_STASH_SKU_ID,
-    LUCKY_COIN_BAG_SKU_ID,
-    TREASURE_CHEST_OF_COINS_SKU_ID,
-    HOLIDAY_LUCKY_TICKET,
-    LUCKY_TICKET_25,
-    LUCKY_TICKET_50,
-    GOLDEN_COIN_STASH_WATERING_BOOSTER_SKU_ID,
-    TREASURE_CHEST_OF_COINS_WATERING_BOOSTER_SKU_ID
-  ]);
+  const entitlements = await fetchEntitlementsFromApi(
+    userId,
+    true,
+    ctx.interaction.guild_id ?? ctx.game?.id,
+    Object.keys(SKU_REWARDS) as SKU[]
+  );
 
   if (entitlements.length === 0) {
     const embed = new EmbedBuilder()
@@ -97,11 +77,15 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
   for (const entitlement of entitlements) {
     const success = await consumeEntitlement(entitlement.id);
     if (success) {
-      totalCoins += skuIdToCoins(entitlement.sku_id);
-      totalLuckyTickets += skuIdToLuckyTickets(entitlement.sku_id);
-      const boosterToApply = skuIdToBooster(entitlement.sku_id);
-      if (boosterToApply) {
-        boostersToApply.push(boosterToApply);
+      const reward = SKU_REWARDS[entitlement.sku_id as SKU];
+      if (!reward) {
+        console.error(`No reward found for SKU ${entitlement.sku_id}`);
+        continue;
+      }
+      totalCoins += reward.coins;
+      totalLuckyTickets += reward.luckyTickets;
+      if (reward.booster) {
+        boostersToApply.push(reward.booster);
       }
     }
   }
