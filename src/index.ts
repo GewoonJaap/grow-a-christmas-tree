@@ -145,7 +145,7 @@ if (keys.some((key) => !(key in process.env))) {
     new Styles()
   ];
 
-  app.commands.register(commands, false);
+  app.commands.register(commands, true);
 
   for (const command of commands) {
     if ("registerDynamicButtons" in command) {
