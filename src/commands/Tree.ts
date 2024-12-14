@@ -278,7 +278,7 @@ export async function buildTreeDisplayMessage(
       ctx.game.lastWateredAt + getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false) < time
         ? getTreeAge(ctx, ctx.game.size) * 1000
         : (getTreeAge(ctx, ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
-    )} growing. Nice!${getStyleMetadata(treeImage.metadata)}`
+    )} growing. Nice!${getStyleMetadata(treeImage.metadata, treeImage.isLoadingNewImage ?? false)}`
   });
 
   if (canBeWateredAt < Date.now() / 1000) {
@@ -322,7 +322,10 @@ export async function buildTreeDisplayMessage(
   return message;
 }
 
-function getStyleMetadata(metadata: Record<string, string> | undefined): string {
+function getStyleMetadata(metadata: Record<string, string> | undefined, isLoadingNewImage = false): string {
+  if (isLoadingNewImage) {
+    return " | Loading new tree...";
+  }
   if (!metadata || !metadata.styles) return "";
   return ` | Style: ${metadata.styles}`;
 }
