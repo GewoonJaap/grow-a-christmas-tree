@@ -12,6 +12,12 @@ import {
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { AdventCalendarHelper, WonPresent } from "../util/adventCalendar/AdventCalendarHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { getRandomElement } from "../util/helpers/arrayHelper";
+
+const CHRISTMAS_DAY_IMAGES = [
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/christmas-day/advent-calendar-christmasday-1.jpg"
+];
 
 export class AdventCalendar implements ISlashCommand {
   public builder = new SlashCommandBuilder(
@@ -83,7 +89,7 @@ async function buildAdventCalendarUnavailableMessage(
       )}:R>.`
     )
     .setColor(0xff0000)
-    .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg");
+    .setImage(getImageUrl());
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("adventcalendar.refresh")
@@ -106,13 +112,19 @@ async function buildAlreadyOpenedMessage(
       )}:R>.`
     )
     .setColor(0xff0000)
-    .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg");
+    .setImage(getImageUrl());
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("adventcalendar.refresh")
   );
 
   return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+}
+
+function getImageUrl(): string {
+  return SpecialDayHelper.isChristmas()
+    ? getRandomElement(CHRISTMAS_DAY_IMAGES) ?? CHRISTMAS_DAY_IMAGES[0]
+    : "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg";
 }
 
 async function buildPresentOpenedMessage(
@@ -125,7 +137,14 @@ async function buildPresentOpenedMessage(
       `🎉 <@${ctx.user.id}>, You've unwrapped your advent calendar gift and received **${present.displayText}**! Check back tomorrow for more festive surprises. 🎄`
     )
     .setColor(0x00ff00)
-    .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/advent-calendar-1.jpg");
+    .setImage(getImageUrl());
+
+  if (SpecialDayHelper.isChristmas()) {
+    embed.setDescription(
+      `🎁 <@${ctx.user.id}>, you've unwrapped your special advent calendar gift and received **${present.displayText}**! 🎄✨\n\n🎅 Wishing you a magical and Merry Christmas! 🎅`
+    );
+    embed.setFooter({ text: "We wish you a Merry Christmas!🎅" });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("adventcalendar.refresh")

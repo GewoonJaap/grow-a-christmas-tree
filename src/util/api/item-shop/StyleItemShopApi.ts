@@ -24,7 +24,11 @@ export class StyleItemShopApi {
       return jsonData;
     } catch (error) {
       console.error(error);
-      return { success: false, items: { Common: [], Rare: [], Epic: [], Legendary: [] } };
+      return {
+        success: false,
+        items: { Common: [], Rare: [], Epic: [], Legendary: [] },
+        refreshTime: new Date().toUTCString()
+      };
     }
   }
 

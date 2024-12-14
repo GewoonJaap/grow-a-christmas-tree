@@ -32,7 +32,7 @@ export class SpecialDayHelper {
     return (now.getMonth() === 11 && now.getDate() === 31) || (now.getMonth() === 0 && now.getDate() === 1);
   }
 
-  public static shopPurschaseMultiplier(): number {
+  public static shopPurchaseMultiplier(): number {
     if (this.isChristmas()) {
       return 1.25;
     }
