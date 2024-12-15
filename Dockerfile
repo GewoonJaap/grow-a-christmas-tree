@@ -7,12 +7,12 @@ WORKDIR /usr/app
 COPY package.json .
 COPY yarn.lock .
 
-RUN yarn install
+RUN yarn install && yarn cache clean
 
 # Build
 FROM base AS builder
 
-COPY . .
+COPY src ./src
 
 RUN yarn build
 
