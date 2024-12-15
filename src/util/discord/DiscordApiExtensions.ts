@@ -31,9 +31,6 @@ export type SKURewardsType = {
 };
 
 export const SKU_REWARDS: SKURewardsType = {
-  [SKU.FESTIVE_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined },
-  [SKU.SUPER_THIRSTY_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined },
-  [SKU.SUPER_THIRSTY_2_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined },
   [SKU.SMALL_POUCH_OF_COINS]: { coins: 500, luckyTickets: 0, booster: undefined },
   [SKU.GOLDEN_COIN_STASH]: { coins: 5000, luckyTickets: 0, booster: undefined },
   [SKU.LUCKY_COIN_BAG]: { coins: 1500, luckyTickets: 0, booster: undefined },
@@ -144,7 +141,23 @@ export function getRandomButtonStyle(): ButtonStyle {
   return (Math.floor(Math.random() * 4) + 1) as ButtonStyle;
 }
 
-export async function consumeEntitlement(entitlementId: string): Promise<boolean> {
+export async function consumeEntitlement(entitlementId: string, skuId: SKU): Promise<boolean> {
+  const consumableSkus = [
+    SKU.SMALL_POUCH_OF_COINS,
+    SKU.GOLDEN_COIN_STASH,
+    SKU.LUCKY_COIN_BAG,
+    SKU.TREASURE_CHEST_OF_COINS,
+    SKU.HOLIDAY_LUCKY_TICKET,
+    SKU.LUCKY_TICKET_25,
+    SKU.LUCKY_TICKET_50,
+    SKU.GOLDEN_COIN_STASH_WATERING_BOOSTER,
+    SKU.TREASURE_CHEST_OF_COINS_WATERING_BOOSTER
+  ];
+
+  if (!consumableSkus.includes(skuId)) {
+    return false;
+  }
+
   const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
   const response = await axios.post(
     url,
