@@ -14,34 +14,26 @@ services:
     image: gewoonjaap/discord-bot-status-displayer:latest
     restart: always
     env_file:
-      - .env
+      - .env.prod
     environment:
       - ACTIVITY_TYPE=PLAYING
       - ACTIVITY_NAME=Watering the christmas trees
 
   grow-a-tree:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: ghcr.io/gewoonjaap/grow-a-tree:latest
     ports:
       - "8089:8080"
     restart: always
-    volumes:
-      - .:/usr/app
-    command: yarn dev
+    env_file:
+      - .env.prod
 
-  # The Unleash server contains the Unleash configuration and
-  # communicates with server-side SDKs and the Unleash Proxy
   unleash-web:
     image: unleashorg/unleash-server:latest
     ports:
       - "5489:4242"
     environment:
-      # This points Unleash to its backing database (defined in the `db` section below)
       DATABASE_URL: "postgres://postgres:unleash@db/db"
-      # Disable SSL for database connections.
       DATABASE_SSL: "false"
-      # Changing log levels:
       LOG_LEVEL: "warn"
     depends_on:
       db:
@@ -57,9 +49,7 @@ services:
   db:
     image: postgres:15
     environment:
-      # create a database called `db`
       POSTGRES_DB: "db"
-      # trust incoming connections blindly (DON'T DO THIS IN PRODUCTION!)
       POSTGRES_HOST_AUTH_METHOD: "trust"
     volumes:
       - christmas_tree_postgres_data:/var/lib/postgresql/data

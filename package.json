@@ -10,7 +10,7 @@
     "build": "yarn lint && tsc -p tsconfig.json",
     "build:docker": " tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "dockerStart": "yarn build:docker && yarn start",
+    "dockerStart": "yarn start",
     "dev": "yarn build && yarn start"
   },
   "author": "ssMMiles",
