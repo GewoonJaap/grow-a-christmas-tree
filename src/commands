@@ -1,0 +1,34 @@
+import { context, trace, Span, SpanStatusCode } from "@opentelemetry/api";
+import { CommandInteraction, Interaction } from "discord.js";
+import { Command } from "./Command";
+
+export class InstrumentedCommand extends Command {
+  constructor() {
+    super();
+  }
+
+  async execute(interaction: CommandInteraction): Promise<void> {
+    const tracer = trace.getTracer("default");
+    const span = tracer.startSpan("command.execute", {
+      attributes: {
+        commandName: interaction.commandName,
+        userId: interaction.user.id,
+        guildId: interaction.guildId,
+      },
+    });
+
+    try {
+      await super.execute(interaction);
+      span.setStatus({ code: SpanStatusCode.OK });
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      throw error;
+    } finally {
+      span.end();
+    }
+  }
+}
+
+export function instrumentCommand(command: Command): Command {
+  return new InstrumentedCommand(command);
+}
