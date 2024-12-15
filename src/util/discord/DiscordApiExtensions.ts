@@ -24,6 +24,7 @@ export type SKURewardType = {
   coins: number;
   luckyTickets: number;
   booster: BoosterName | undefined;
+  isConsumable: boolean;
 };
 
 export type SKURewardsType = {
@@ -31,15 +32,28 @@ export type SKURewardsType = {
 };
 
 export const SKU_REWARDS: SKURewardsType = {
-  [SKU.SMALL_POUCH_OF_COINS]: { coins: 500, luckyTickets: 0, booster: undefined },
-  [SKU.GOLDEN_COIN_STASH]: { coins: 5000, luckyTickets: 0, booster: undefined },
-  [SKU.LUCKY_COIN_BAG]: { coins: 1500, luckyTickets: 0, booster: undefined },
-  [SKU.TREASURE_CHEST_OF_COINS]: { coins: 3000, luckyTickets: 0, booster: undefined },
-  [SKU.HOLIDAY_LUCKY_TICKET]: { coins: 0, luckyTickets: 10, booster: undefined },
-  [SKU.LUCKY_TICKET_25]: { coins: 0, luckyTickets: 25, booster: undefined },
-  [SKU.LUCKY_TICKET_50]: { coins: 0, luckyTickets: 50, booster: undefined },
-  [SKU.GOLDEN_COIN_STASH_WATERING_BOOSTER]: { coins: 5000, luckyTickets: 0, booster: "Watering Booster" },
-  [SKU.TREASURE_CHEST_OF_COINS_WATERING_BOOSTER]: { coins: 3000, luckyTickets: 0, booster: "Watering Booster" }
+  [SKU.FESTIVE_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined, isConsumable: false },
+  [SKU.SUPER_THIRSTY_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined, isConsumable: false },
+  [SKU.SUPER_THIRSTY_2_ENTITLEMENT]: { coins: 0, luckyTickets: 0, booster: undefined, isConsumable: false },
+  [SKU.SMALL_POUCH_OF_COINS]: { coins: 500, luckyTickets: 0, booster: undefined, isConsumable: true },
+  [SKU.GOLDEN_COIN_STASH]: { coins: 5000, luckyTickets: 0, booster: undefined, isConsumable: true },
+  [SKU.LUCKY_COIN_BAG]: { coins: 1500, luckyTickets: 0, booster: undefined, isConsumable: true },
+  [SKU.TREASURE_CHEST_OF_COINS]: { coins: 3000, luckyTickets: 0, booster: undefined, isConsumable: true },
+  [SKU.HOLIDAY_LUCKY_TICKET]: { coins: 0, luckyTickets: 10, booster: undefined, isConsumable: true },
+  [SKU.LUCKY_TICKET_25]: { coins: 0, luckyTickets: 25, booster: undefined, isConsumable: true },
+  [SKU.LUCKY_TICKET_50]: { coins: 0, luckyTickets: 50, booster: undefined, isConsumable: true },
+  [SKU.GOLDEN_COIN_STASH_WATERING_BOOSTER]: {
+    coins: 5000,
+    luckyTickets: 0,
+    booster: "Watering Booster",
+    isConsumable: true
+  },
+  [SKU.TREASURE_CHEST_OF_COINS_WATERING_BOOSTER]: {
+    coins: 3000,
+    luckyTickets: 0,
+    booster: "Watering Booster",
+    isConsumable: true
+  }
 };
 
 export function getEntitlements(
@@ -142,19 +156,7 @@ export function getRandomButtonStyle(): ButtonStyle {
 }
 
 export async function consumeEntitlement(entitlementId: string, skuId: SKU): Promise<boolean> {
-  const consumableSkus = [
-    SKU.SMALL_POUCH_OF_COINS,
-    SKU.GOLDEN_COIN_STASH,
-    SKU.LUCKY_COIN_BAG,
-    SKU.TREASURE_CHEST_OF_COINS,
-    SKU.HOLIDAY_LUCKY_TICKET,
-    SKU.LUCKY_TICKET_25,
-    SKU.LUCKY_TICKET_50,
-    SKU.GOLDEN_COIN_STASH_WATERING_BOOSTER,
-    SKU.TREASURE_CHEST_OF_COINS_WATERING_BOOSTER
-  ];
-
-  if (!consumableSkus.includes(skuId)) {
+  if (!SKU_REWARDS[skuId].isConsumable) {
     return false;
   }
 

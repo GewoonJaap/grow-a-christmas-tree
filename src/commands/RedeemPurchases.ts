@@ -76,7 +76,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
 
   for (const entitlement of entitlements) {
     const reward = SKU_REWARDS[entitlement.sku_id as SKU];
-    if (!reward) {
+    if (!reward || !reward.isConsumable) {
       console.error(`No reward found for SKU ${entitlement.sku_id}`);
       continue;
     }
