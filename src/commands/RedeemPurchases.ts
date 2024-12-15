@@ -125,14 +125,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     )
     .setColor(0x00ff00)
     .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
-
-  if (nonConsumableEntitlements.length > 0) {
-    embed.addFields({
-      name: "Non-Consumable Entitlements",
-      value: `The following entitlements are non-consumable and cannot be redeemed:\n${nonConsumableEntitlements.map(entitlement => entitlement.sku_id).join("\n")}`
-    });
-  }
-
+  
   const message = new MessageBuilder().addEmbed(embed);
   const actions = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("redeemcoins.refresh")
