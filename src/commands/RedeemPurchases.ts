@@ -75,13 +75,13 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
   const boostersToApply: BoosterName[] = [];
 
   for (const entitlement of entitlements) {
-    const success = await consumeEntitlement(entitlement.id);
+    const reward = SKU_REWARDS[entitlement.sku_id as SKU];
+    if (!reward || !reward.isConsumable) {
+      console.error(`No reward found for SKU ${entitlement.sku_id}`);
+      continue;
+    }
+    const success = await consumeEntitlement(entitlement.id, entitlement.sku_id as SKU);
     if (success) {
-      const reward = SKU_REWARDS[entitlement.sku_id as SKU];
-      if (!reward) {
-        console.error(`No reward found for SKU ${entitlement.sku_id}`);
-        continue;
-      }
       totalCoins += reward.coins;
       totalLuckyTickets += reward.luckyTickets;
       if (reward.booster) {

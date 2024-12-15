@@ -9,9 +9,8 @@ export async function handleEntitlementCreate(data: EntitlementCreateData) {
   const skuId = data.sku_id as SKU;
   const reward = SKU_REWARDS[skuId];
 
-  if (reward && !reward.booster) {
-    // Booster rewards are server bound and thus not supported this way
-    await consumeEntitlement(data.id);
+  if (reward && !reward.booster && reward.isConsumable) {
+    await consumeEntitlement(data.id, skuId);
 
     if (reward.coins > 0) {
       await WalletHelper.addCoins(userId, reward.coins);
