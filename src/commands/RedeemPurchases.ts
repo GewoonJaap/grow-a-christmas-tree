@@ -51,7 +51,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     Object.keys(SKU_REWARDS) as SKU[]
   );
 
-  if (entitlements.length === 0) {
+  const consumableEntitlements = entitlements.filter((entitlement) => SKU_REWARDS[entitlement.sku_id as SKU]?.isConsumable);
+
+  if (consumableEntitlements.length === 0) {
     const embed = new EmbedBuilder()
       .setTitle("🎅 No Purchases to Redeem")
       .setColor(0xff0000)
@@ -74,9 +76,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
   let totalLuckyTickets = 0;
   const boostersToApply: BoosterName[] = [];
 
-  for (const entitlement of entitlements) {
+  for (const entitlement of consumableEntitlements) {
     const reward = SKU_REWARDS[entitlement.sku_id as SKU];
-    if (!reward || !reward.isConsumable) {
+    if (!reward) {
       console.error(`No reward found for SKU ${entitlement.sku_id}`);
       continue;
     }
@@ -123,7 +125,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     )
     .setColor(0x00ff00)
     .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
-
+  
   const message = new MessageBuilder().addEmbed(embed);
   const actions = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("redeemcoins.refresh")
