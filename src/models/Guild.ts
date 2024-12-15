@@ -1,4 +1,5 @@
 import { model, Schema } from "mongoose";
+import { trace } from "@opentelemetry/api";
 
 interface IGuild {
   id: string;
@@ -107,6 +108,34 @@ const GuildSchema = new Schema<IGuild>({
   unlockedTreeStyles: { type: [String], required: false, default: [] },
 
   treeStyles: { type: [TreeStyleSchema], required: true, default: [] }
+});
+
+GuildSchema.pre("save", function (next) {
+  const span = trace.getTracer("default").startSpan("Guild - save");
+  span.setAttribute("guildId", this.id);
+  span.end();
+  next();
+});
+
+GuildSchema.pre("find", function (next) {
+  const span = trace.getTracer("default").startSpan("Guild - find");
+  span.setAttribute("guildId", this.getQuery().id);
+  span.end();
+  next();
+});
+
+GuildSchema.pre("findOne", function (next) {
+  const span = trace.getTracer("default").startSpan("Guild - findOne");
+  span.setAttribute("guildId", this.getQuery().id);
+  span.end();
+  next();
+});
+
+GuildSchema.pre("updateOne", function (next) {
+  const span = trace.getTracer("default").startSpan("Guild - updateOne");
+  span.setAttribute("guildId", this.getQuery().id);
+  span.end();
+  next();
 });
 
 const Contributor = model<IContributor>("Contributor", ContributorSchema);

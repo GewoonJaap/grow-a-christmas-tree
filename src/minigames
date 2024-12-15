@@ -1,0 +1,174 @@
+import { context, trace, Span, SpanStatusCode } from "@opentelemetry/api";
+import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
+import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
+import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
+import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
+import { getRandomElement, getRandomElements, shuffleArray } from "../util/helpers/arrayHelper";
+import { getRandomEmojiWithExclusion, SPOOKY_EMOJIS } from "../util/emoji";
+import { toFixed } from "../util/helpers/numberHelper";
+
+const MINIGAME_MAX_DURATION = 10 * 1000;
+const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
+const BUTTON_SUCCESS_EMOJI = getRandomEmojiWithExclusion(BUTTON_FAIL_EMOJIS);
+
+const MINIGAME_BUTTON_NAMES = [
+  `minigame.button-1`,
+  `minigame.button-2`,
+  `minigame.button-3`,
+  `minigame.button-4`
+];
+
+type MinigameButtonState = {
+  isPenalty: boolean;
+};
+
+export class MinigameExample implements Minigame {
+  config: MinigameConfig = {
+    premiumGuildOnly: false
+  };
+
+  private images = [
+    "https://example.com/image1.jpg",
+    "https://example.com/image2.jpg",
+    "https://example.com/image3.jpg"
+  ];
+
+  async start(ctx: ButtonContext, isPenalty = false): Promise<void> {
+    const EMBED_DESCRIPTIONS = [
+      `Description 1. Click the ${BUTTON_SUCCESS_EMOJI} to proceed!${getPremiumUpsellMessage(ctx)}`,
+      `Description 2. Click the ${BUTTON_SUCCESS_EMOJI} to proceed!${getPremiumUpsellMessage(ctx)}`,
+      `Description 3. Click the ${BUTTON_SUCCESS_EMOJI} to proceed!${getPremiumUpsellMessage(ctx)}`
+    ];
+
+    const embed = new EmbedBuilder()
+      .setTitle("Minigame Example!")
+      .setDescription(getRandomElement(EMBED_DESCRIPTIONS) ?? EMBED_DESCRIPTIONS[0])
+      .setImage(this.images[Math.floor(Math.random() * this.images.length)])
+      .setFooter({
+        text: "Hurry! You have limited time!"
+      });
+
+    const buttons = [
+      await ctx.manager.components.createInstance(MINIGAME_BUTTON_NAMES[0], { isPenalty }),
+      await ctx.manager.components.createInstance(MINIGAME_BUTTON_NAMES[1], { isPenalty }),
+      await ctx.manager.components.createInstance(MINIGAME_BUTTON_NAMES[2], { isPenalty }),
+      await ctx.manager.components.createInstance(MINIGAME_BUTTON_NAMES[3], { isPenalty })
+    ];
+
+    shuffleArray(buttons);
+
+    const message = new MessageBuilder().addComponents(new ActionRowBuilder().addComponents(...buttons));
+
+    message.addEmbed(embed);
+
+    await ctx.reply(message);
+
+    const timeoutId = setTimeout(async () => {
+      await MinigameExample.handleButton(ctx, true);
+    }, MINIGAME_MAX_DURATION);
+    disposeActiveTimeouts(ctx);
+    ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
+  }
+
+  private static async handleButton(ctx: ButtonContext<MinigameButtonState>, isTimeout = false): Promise<void> {
+    disposeActiveTimeouts(ctx);
+
+    if (!ctx.game) throw new Error("Game data missing.");
+    let randomLoss = Math.floor(Math.random() * Math.min(5, Math.floor(ctx.game.size * 0.1))) + 1;
+    if (ctx.state?.isPenalty) {
+      randomLoss += 5;
+    }
+    ctx.game.size = toFixed(Math.max(0, ctx.game.size - randomLoss), 2);
+    await ctx.game.save();
+
+    const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
+    const embed = new EmbedBuilder()
+      .setTitle(ctx.game.name)
+      .setDescription(`<@${ctx.user.id}>, You lost ${randomLoss}ft.`)
+      .setImage("https://example.com/loss-image.jpg");
+
+    if (isTimeout) {
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: MINIGAME_MAX_DURATION,
+        failureReason: "Timeout"
+      });
+      await ctx.edit(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
+    } else {
+      await minigameFinished(ctx, {
+        success: false,
+        difficulty: 1,
+        maxDuration: MINIGAME_MAX_DURATION,
+        failureReason: "Wrong button"
+      });
+      await ctx.reply(
+        new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+      );
+    }
+
+    transitionToDefaultTreeView(ctx);
+  }
+
+  public static buttons = [
+    new Button(
+      MINIGAME_BUTTON_NAMES[0],
+      new ButtonBuilder().setEmoji({ name: BUTTON_SUCCESS_EMOJI }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<MinigameButtonState>): Promise<void> => {
+        disposeActiveTimeouts(ctx);
+
+        if (!ctx.game) throw new Error("Game data missing.");
+
+        if (!ctx.state?.isPenalty) {
+          ctx.game.size++;
+          await ctx.game.save();
+        }
+
+        const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
+
+        const embed = new EmbedBuilder()
+          .setTitle(ctx.game.name)
+          .setDescription(`You succeeded!${ctx.state?.isPenalty ? "" : " Your tree grew 1ft taller!"}`)
+          .setImage("https://example.com/success-image.jpg");
+
+        await ctx.reply(
+          new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+        );
+
+        transitionToDefaultTreeView(ctx);
+
+        await minigameFinished(ctx, {
+          success: true,
+          difficulty: 1,
+          maxDuration: MINIGAME_MAX_DURATION,
+          penalty: ctx.state?.isPenalty ?? false
+        });
+      }
+    ),
+    new Button(
+      MINIGAME_BUTTON_NAMES[1],
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[0] }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<MinigameButtonState>): Promise<void> => {
+        MinigameExample.handleButton(ctx, false);
+      }
+    ),
+    new Button(
+      MINIGAME_BUTTON_NAMES[2],
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[1] }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<MinigameButtonState>): Promise<void> => {
+        MinigameExample.handleButton(ctx, false);
+      }
+    ),
+    new Button(
+      MINIGAME_BUTTON_NAMES[3],
+      new ButtonBuilder().setEmoji({ name: BUTTON_FAIL_EMOJIS[2] }).setStyle(getRandomButtonStyle()),
+      async (ctx: ButtonContext<MinigameButtonState>): Promise<void> => {
+        MinigameExample.handleButton(ctx, false);
+      }
+    )
+  ];
+}

@@ -51,6 +51,32 @@ import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
 import { runMigrations } from "./migrations";
 
+// Import OpenTelemetry packages
+import { NodeSDK } from "@opentelemetry/sdk-node";
+import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-otlp-http";
+import { OTLPMetricExporter } from "@opentelemetry/exporter-otlp-http";
+import { diag, DiagConsoleLogger, DiagLogLevel } from "@opentelemetry/api";
+
+// Initialize OpenTelemetry SDK
+diag.setLogger(new DiagConsoleLogger(), DiagLogLevel.INFO);
+
+const traceExporter = new OTLPTraceExporter({
+  url: "http://signoz-collector:4318/v1/traces"
+});
+
+const metricExporter = new OTLPMetricExporter({
+  url: "http://signoz-collector:4318/v1/metrics"
+});
+
+const sdk = new NodeSDK({
+  traceExporter,
+  metricExporter,
+  instrumentations: [getNodeAutoInstrumentations()]
+});
+
+sdk.start();
+
 const VERSION = "2.0";
 
 unleash.on("ready", console.log.bind(console, "Unleash ready"));
