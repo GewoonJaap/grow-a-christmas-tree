@@ -304,7 +304,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         imageUrl = imageResponse.data?.url ?? imageUrl;
       }
     } else {
-      imageStyleApi.generateImageStyles();
+      imageStyleApi.getImageStyleImage(styleName);
     }
     return imageUrl;
   }
