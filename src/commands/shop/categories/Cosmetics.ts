@@ -236,7 +236,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     }
 
     if (!ctx.game.hasAiAccess) {
-      return this.buildPurchaseFailedMessage(
+      return await this.buildPurchaseFailedMessage(
         ctx,
         "This premium feature is part of the Festive Forest subscription! Upgrade now to enjoy exclusive perks and watch your Christmas tree thrive like never before! 🎅✨",
         true
@@ -244,7 +244,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     }
 
     if (!style) {
-      return this.buildPurchaseFailedMessage(
+      return await this.buildPurchaseFailedMessage(
         ctx,
         "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
       );
@@ -257,9 +257,11 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       defaultStyles.styles.some((x) => x.name === style.name) || allStyles.some((x) => x.name === style.name);
 
     if (!styleAvailable) {
-      return this.buildPurchaseFailedMessage(
+      return await this.buildPurchaseFailedMessage(
         ctx,
-        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
+        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨",
+        false,
+        style.name
       );
     }
 
@@ -267,9 +269,11 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     const styleName = style.name;
 
     if (TreeStyleHelper.hasStyleUnlocked(ctx, styleName)) {
-      return this.buildPurchaseFailedMessage(
+      return await this.buildPurchaseFailedMessage(
         ctx,
-        "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨"
+        "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨",
+        false,
+        styleName
       );
     }
 
@@ -294,10 +298,15 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
-  private async getTreeImageUrl(styleName: string): Promise<string> {
-    const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
-
+  private async getTreeImageUrl(styleName: string | undefined): Promise<string> {
     let imageUrl = getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0];
+
+    if(!styleName){
+      return imageUrl;
+    }
+    
+    const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
+    
     if (hasImageResponse.exists) {
       const imageResponse = await imageStyleApi.getImageStyleImage(styleName);
       if (imageResponse.success) {
@@ -356,7 +365,8 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
   private async buildPurchaseFailedMessage(
     ctx: ButtonContext,
     description: string,
-    showPremiumButton = false
+    showPremiumButton = false,
+    styleName?: string
   ): Promise<MessageBuilder> {
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.cosmetics.refresh")
@@ -370,7 +380,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         new EmbedBuilder()
           .setTitle("🎅 Purchase Failed! ❄️")
           .setDescription(description)
-          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+          .setImage(await this.getTreeImageUrl(styleName))
       )
       .addComponents(actionRow);
   }
