@@ -162,15 +162,20 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
-        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 65 : 15)) + 10 };
+        const amount = Math.floor(Math.random() * (isPremium ? 65 : 15)) + 10;
+        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount };
       } else if (reward === "tickets") {
-        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 3 : 1)) + 1 };
+        const amount = Math.floor(Math.random() * (isPremium ? 3 : 1)) + 1;
+        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount };
       } else if (reward === "composterEfficiencyUpgrade") {
-        return { type: reward, amount: 1 }; // Always 1 level upgrade
+        const amount = 1;
+        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Always 1 level upgrade
       } else if (reward === "composterQualityUpgrade") {
-        return { type: reward, amount: 1 }; // Always 1 level upgrade
+        const amount = 1;
+        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Always 1 level upgrade
       } else if (reward === "treeSize") {
-        return { type: reward, amount: Math.floor(Math.random() * (isPremium ? 25 : 10)) + 1 }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
+        const amount = Math.floor(Math.random() * (isPremium ? 25 : 10)) + 1;
+        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
       }
       return { type: reward };
     }
@@ -190,8 +195,7 @@ async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amoun
       break;
     case "coins":
       if (reward.amount) {
-        const finalAmount = SpecialDayHelper.isChristmas() ? reward.amount * 2 : reward.amount;
-        await WalletHelper.addCoins(userId, finalAmount);
+        await WalletHelper.addCoins(userId, reward.amount);
       }
       break;
     case "composterEfficiencyUpgrade":

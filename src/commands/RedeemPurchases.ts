@@ -51,7 +51,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     Object.keys(SKU_REWARDS) as SKU[]
   );
 
-  const consumableEntitlements = entitlements.filter((entitlement) => SKU_REWARDS[entitlement.sku_id as SKU]?.isConsumable);
+  const consumableEntitlements = entitlements.filter(
+    (entitlement) => SKU_REWARDS[entitlement.sku_id as SKU]?.isConsumable
+  );
 
   if (consumableEntitlements.length === 0) {
     const embed = new EmbedBuilder()
@@ -125,7 +127,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     )
     .setColor(0x00ff00)
     .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
-  
+
   const message = new MessageBuilder().addEmbed(embed);
   const actions = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("redeemcoins.refresh")

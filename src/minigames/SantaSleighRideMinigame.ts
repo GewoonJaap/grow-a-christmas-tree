@@ -1,9 +1,10 @@
 import { ButtonContext, EmbedBuilder, MessageBuilder, ActionRowBuilder, Button, ButtonBuilder } from "interactions.ts";
-import { shuffleArray } from "../util/helpers/arrayHelper";
+import { getRandomElement, shuffleArray } from "../util/helpers/arrayHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/Tree";
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -20,6 +21,12 @@ export class SantaSleighRideMinigame implements Minigame {
     "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-sleigh-ride/santa-sleigh-ride-1.jpg",
     "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-sleigh-ride/santa-sleigh-ride-2.jpg",
     "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-sleigh-ride/santa-sleigh-ride-3.jpg"
+  ];
+
+  private sleighRideImagesFinished = [
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-sleigh-ride/santa-sleigh-ride-complete-1.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-sleigh-ride/santa-sleigh-ride-complete-2.jpg",
+    "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/santa-sleigh-ride/santa-sleigh-ride-complete-3.jpg"
   ];
 
   private maxStages = 3;
@@ -43,7 +50,7 @@ export class SantaSleighRideMinigame implements Minigame {
           ctx as ButtonContext
         )}`
       )
-      .setImage(this.sleighRideImages[Math.floor(Math.random() * this.sleighRideImages.length)])
+      .setImage(getRandomElement(this.sleighRideImages) ?? this.sleighRideImages[0])
       .setFooter({ text: "Help Santa deliver presents to earn rewards!" });
 
     const buttons = [
@@ -77,14 +84,23 @@ export class SantaSleighRideMinigame implements Minigame {
 
   private async completeMinigame(ctx: ButtonContext<SantaSleighRideButtonState>): Promise<void> {
     if (!ctx.game) throw new Error("Game data missing.");
-    ctx.game.size++;
+    let extraTreeSize = Math.floor(Math.random() * 3) + 1;
+    if (SpecialDayHelper.isChristmas()) {
+      extraTreeSize *= 2;
+    }
+    if (ctx.game.hasAiAccess) {
+      extraTreeSize *= 1.5;
+    }
+    ctx.game.size += extraTreeSize;
     await ctx.game.save();
 
     const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
 
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
-      .setDescription("You helped Santa deliver presents! Your tree has grown 1ft!");
+      .setDescription(`You helped Santa deliver presents! Your tree has grown ${extraTreeSize}ft!`)
+      .setImage(getRandomElement(this.sleighRideImagesFinished) ?? this.sleighRideImagesFinished[0])
+      .setFooter({ text: SpecialDayHelper.isChristmas() ? "Merry Christmas!" : "Thanks for helping Santa!" });
 
     await ctx.reply(
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))

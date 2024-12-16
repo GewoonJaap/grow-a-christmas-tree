@@ -22,6 +22,7 @@ import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts } from "../commands";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
+import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -46,6 +47,7 @@ export const minigameButtons = [
   ...PumpkinHuntMinigame.buttons,
   ...StPatricksDayTreasureHuntMinigame.buttons,
   ...ThanksgivingFeastMinigame.buttons,
+  ...SantaSleighRideMinigame.buttons,
   new Button(
     "minigame.refresh",
     new ButtonBuilder().setEmoji({ name: "🔄" }).setLabel("Refresh").setStyle(2),
@@ -57,13 +59,14 @@ export const minigameButtons = [
 ];
 
 const minigames: Minigame[] = [
-  new HotCocoaMinigame(),
-  new GiftUnwrappingMinigame(),
-  new SnowballFightMinigame(),
-  new GrinchHeistMinigame(),
-  new HolidayCookieCountdownMinigame(),
-  new TinselTwisterMinigame(),
-  new CarolingChoirMinigame()
+  // new HotCocoaMinigame(),
+  // new GiftUnwrappingMinigame(),
+  // new SnowballFightMinigame(),
+  // new GrinchHeistMinigame(),
+  // new HolidayCookieCountdownMinigame(),
+  // new TinselTwisterMinigame(),
+  // new CarolingChoirMinigame()
+  new SantaSleighRideMinigame()
 ];
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {
@@ -101,6 +104,10 @@ export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> 
     {
       dateRange: [new Date(new Date().getFullYear(), 11, 25), new Date(new Date().getFullYear(), 11, 26)],
       minigame: new SantaPresentMinigame()
+    },
+    {
+      dateRange: [new Date(new Date().getFullYear(), 11, 25), new Date(new Date().getFullYear(), 11, 26)],
+      minigame: new SantaSleighRideMinigame()
     }
   ];
 
