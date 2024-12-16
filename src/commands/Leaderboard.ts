@@ -15,6 +15,7 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const builder = new SlashCommandBuilder(
   "leaderboard",
@@ -138,6 +139,10 @@ async function buildLeaderboardMessage(
     description += `${
       i < 3 ? `${MEDAL_EMOJIS[i]}${isBanned ? CHEATER_CLOWN_EMOJI : ""}` : `${i + 1}${i < 9 ? " " : ""}`
     } - 💧${contributor.count} - 🪙 ${wallet?.coins ?? 0} - 🔥${wallet?.streak ?? 0} <@${contributor.userId}>\n`;
+  }
+
+  if (SpecialDayHelper.isChristmas()) {
+    description += "\n🎄 Merry Christmas! Enjoy the festive season! 🎄";
   }
 
   const actionRow = new ActionRowBuilder().addComponents(

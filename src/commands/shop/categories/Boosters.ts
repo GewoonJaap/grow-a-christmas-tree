@@ -11,6 +11,7 @@ import { BoosterHelper, BoosterName } from "../../../util/booster/BoosterHelper"
 import { getRandomElement } from "../../../util/helpers/arrayHelper";
 import { WalletHelper } from "../../../util/wallet/WalletHelper";
 import { disposeActiveTimeouts } from "../../Tree";
+import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 import humanizeDuration = require("humanize-duration");
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 
@@ -95,10 +96,15 @@ export class Boosters implements PartialCommand {
         ? { page: 1 }
         : (ctx.state as BoostersButtonState);
 
+    const isChristmas = SpecialDayHelper.isChristmas();
+    const discount = isChristmas ? 0.75 : 1;
+    const discountText = isChristmas ? "\n\n🎄 **Christmas Special: 25% off on all boosters!** 🎄" : "";
+
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Boosters Shop** 🎁")
       .setDescription(
-        "✨ Discover limited-time boosters to speed up tree growth, watering, minigame chances, and coin earnings. Make your tree the star of the season! 🌟"
+        "✨ Discover limited-time boosters to speed up tree growth, watering, minigame chances, and coin earnings. Make your tree the star of the season! 🌟" +
+          discountText
       )
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       .setFooter({ text: `Page ${state.page}/${Math.ceil(Object.values(BoosterHelper.BOOSTERS).length / 2)}` });
@@ -109,10 +115,9 @@ export class Boosters implements PartialCommand {
 
     const fields = paginatedBoosters.map((booster) => ({
       name: `${booster.name} ${booster.emoji}`,
-      value: `**Effect:** ${booster.effect}\n**Cost:** ${booster.cost} coins\n**Duration:** ${humanizeDuration(
-        booster.duration * 1000,
-        { largest: 1 }
-      )}`,
+      value: `**Effect:** ${booster.effect}\n**Cost:** ${Math.floor(
+        booster.cost * discount
+      )} coins\n**Duration:** ${humanizeDuration(booster.duration * 1000, { largest: 1 })}`,
       inline: false
     }));
 
@@ -150,9 +155,14 @@ export class Boosters implements PartialCommand {
           .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
       );
     }
+
+    const isChristmas = SpecialDayHelper.isChristmas();
+    const discount = isChristmas ? 0.75 : 1;
+    const discountedCost = Math.floor(booster.cost * discount);
+
     const wallet = await WalletHelper.getWallet(ctx.user.id);
 
-    if (wallet.coins < booster.cost) {
+    if (wallet.coins < discountedCost) {
       const actionRow = new ActionRowBuilder().addComponents(
         await ctx.manager.components.createInstance("shop.boosters.refresh")
       );
@@ -162,7 +172,7 @@ export class Boosters implements PartialCommand {
           new EmbedBuilder()
             .setTitle("🎅 Not Enough Coins! ❄️")
             .setDescription(
-              `You need **${booster.cost}** coins to purchase: **${booster.name}**. Keep earning and come back soon! 🎄`
+              `You need **${discountedCost}** coins to purchase: **${booster.name}**. Keep earning and come back soon! 🎄`
             )
             .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
         )

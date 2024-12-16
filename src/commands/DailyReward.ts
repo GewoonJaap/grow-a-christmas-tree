@@ -104,8 +104,7 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
     wallet.streak = 1;
   }
 
-  const isSpecialDay = SpecialDayHelper.isChristmas() || SpecialDayHelper.isNewYearsEve();
-  const baseRewardMultiplier = isSpecialDay ? 2 : 1;
+  const baseRewardMultiplier = SpecialDayHelper.isChristmas() ? 2 : 1;
   const streakMultiplier = Math.min(wallet.streak, MAX_STREAK_DAYS);
   const reward = baseReward * streakMultiplier * baseRewardMultiplier;
 
@@ -114,7 +113,10 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
   await wallet.save();
 
   // Add tickets when the user claims their daily reward
-  const claimedTickets = isPremium ? 2 : 1;
+  let claimedTickets = isPremium ? 2 : 1;
+  if (SpecialDayHelper.isChristmas()) {
+    claimedTickets *= 2;
+  }
   await WheelStateHelper.addTickets(userId, claimedTickets);
 
   const embed = new EmbedBuilder()
@@ -128,7 +130,9 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
         isPremium
           ? `As a premium user, you receive more coins and have a ${PREMIUM_GRACE_PERIOD_DAYS} day grace period!`
           : `Subscribe to Festive Forest to receive more coins and a ${PREMIUM_GRACE_PERIOD_DAYS} day grace period! Click on the bot avatar to open the [store](https://discord.com/application-directory/1050722873569968128/store).`
-      }\nYou can claim it again <t:${getNextClaimDayEpoch(currentDate)}:R>.`
+      }\nYou can claim it again <t:${getNextClaimDayEpoch(currentDate)}:R>.\n\n${
+        SpecialDayHelper.isChristmas() ? "🎄 Merry Christmas! Enjoy double rewards today! 🎄" : ""
+      }`
     )
     .setFooter({ text: upsellData.message });
 

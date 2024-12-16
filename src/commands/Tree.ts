@@ -26,6 +26,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { getLocaleFromTimezone } from "../util/timezones";
 import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
