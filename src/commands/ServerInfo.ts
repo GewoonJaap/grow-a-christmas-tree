@@ -15,6 +15,7 @@ import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 import humanizeDuration = require("humanize-duration");
 import { BoosterHelper } from "../util/booster/BoosterHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/server-info/server-info-1.jpg",
@@ -98,7 +99,8 @@ export class ServerInfo implements ISlashCommand {
           `**🧝 Composter Efficiency Level:** ${efficiencyLevel} 🛠️\n` +
           `**✨ Composter Quality Level:** ${qualityLevel} 🌟\n\n` +
           `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}\n` +
-          `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}`
+          `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}\n\n` +
+          `${SpecialDayHelper.isChristmas() ? "🎄 Merry Christmas! Enjoy the festive season! 🎄" : ""}`
       )
       .setColor(0x00ff00)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])

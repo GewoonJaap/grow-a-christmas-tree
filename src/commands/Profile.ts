@@ -16,6 +16,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { AchievementHelper } from "../util/achievement/AchievementHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 type State = {
   id: string;
@@ -127,21 +128,23 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
     actionRow.addComponents(await ctx.manager.components.createInstance("profile.next", { id, nick, page }));
   }
 
+  const description = `${ctx.user.id === id ? `You have` : `This user has`} ${
+    contributor
+      ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
+          ctx.user.id === id ? `You` : `They `
+        } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
+      : "not yet watered the christmas tree."
+  }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
+    wallet ? wallet.streak : 0
+  } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`;
+
+  const christmasMessage = SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy the festive season! 🎄" : "";
+
   return new MessageBuilder()
     .addEmbed(
       new EmbedBuilder()
         .setTitle(`${isBanned ? CHEATER_CLOWN_EMOJI : ""}${nick}'s Contributions`)
-        .setDescription(
-          `${ctx.user.id === id ? `You have` : `This user has`} ${
-            contributor
-              ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
-                  ctx.user.id === id ? `You` : `They `
-                } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
-              : "not yet watered the christmas tree."
-          }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
-            wallet ? wallet.streak : 0
-          } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`
-        )
+        .setDescription(description + christmasMessage)
     )
     .addComponents(actionRow);
 }

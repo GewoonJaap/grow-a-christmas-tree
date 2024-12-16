@@ -11,6 +11,7 @@ import {
 } from "interactions.ts";
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade" | "treeSize";
 
@@ -126,7 +127,11 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       : REWARDS[reward.type].displayName;
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
-    .setDescription(`🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁`)
+    .setDescription(
+      `🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁${
+        SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy double rewards today! 🎄" : ""
+      }`
+    )
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
 
@@ -185,7 +190,8 @@ async function applyReward(ctx: ButtonContext, reward: { type: RewardType; amoun
       break;
     case "coins":
       if (reward.amount) {
-        await WalletHelper.addCoins(userId, reward.amount);
+        const finalAmount = SpecialDayHelper.isChristmas() ? reward.amount * 2 : reward.amount;
+        await WalletHelper.addCoins(userId, finalAmount);
       }
       break;
     case "composterEfficiencyUpgrade":

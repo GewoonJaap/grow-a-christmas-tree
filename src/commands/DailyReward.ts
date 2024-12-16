@@ -128,7 +128,9 @@ async function buildDailyRewardMessage(ctx: SlashCommandContext | ButtonContext)
         isPremium
           ? `As a premium user, you receive more coins and have a ${PREMIUM_GRACE_PERIOD_DAYS} day grace period!`
           : `Subscribe to Festive Forest to receive more coins and a ${PREMIUM_GRACE_PERIOD_DAYS} day grace period! Click on the bot avatar to open the [store](https://discord.com/application-directory/1050722873569968128/store).`
-      }\nYou can claim it again <t:${getNextClaimDayEpoch(currentDate)}:R>.`
+      }\nYou can claim it again <t:${getNextClaimDayEpoch(currentDate)}:R>.\n\n${
+        isSpecialDay ? "🎄 Merry Christmas! Enjoy double rewards today! 🎄" : ""
+      }`
     )
     .setFooter({ text: upsellData.message });
 
