@@ -290,9 +290,7 @@ export async function buildTreeDisplayMessage(
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : ""
-      }\n${getActiveBoostersText(ctx)}\n${getNewsMessages()}${
-        SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy the festive season! 🎄" : ""
-      }`
+      }\n${getActiveBoostersText(ctx)}\n${getNewsMessages()}`
     );
   } else {
     embed.setDescription(
@@ -304,9 +302,7 @@ export async function buildTreeDisplayMessage(
         (ctx.game.hasAiAccess ?? false) == false
           ? "\nEnjoy unlimited levels, fun minigames, watering notifications and more via the [shop](https://discord.com/application-directory/1050722873569968128/store)! Just click [here](https://discord.com/application-directory/1050722873569968128/store) or on the bot avatar to access the shop."
           : ""
-      }\n${getActiveBoostersText(ctx)}\n${getNewsMessages()}${
-        SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy the festive season! 🎄" : ""
-      }`
+      }\n${getActiveBoostersText(ctx)}\n${getNewsMessages()}`
     );
 
     if (ctx.interaction.message && !ctx.timeouts.has(ctx.interaction.message.id)) {

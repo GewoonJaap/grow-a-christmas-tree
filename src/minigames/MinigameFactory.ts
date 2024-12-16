@@ -59,14 +59,13 @@ export const minigameButtons = [
 ];
 
 const minigames: Minigame[] = [
-  // new HotCocoaMinigame(),
-  // new GiftUnwrappingMinigame(),
-  // new SnowballFightMinigame(),
-  // new GrinchHeistMinigame(),
-  // new HolidayCookieCountdownMinigame(),
-  // new TinselTwisterMinigame(),
-  // new CarolingChoirMinigame()
-  new SantaSleighRideMinigame()
+  new HotCocoaMinigame(),
+  new GiftUnwrappingMinigame(),
+  new SnowballFightMinigame(),
+  new GrinchHeistMinigame(),
+  new HolidayCookieCountdownMinigame(),
+  new TinselTwisterMinigame(),
+  new CarolingChoirMinigame()
 ];
 
 export async function startRandomMinigame(ctx: ButtonContext): Promise<boolean> {

@@ -100,7 +100,7 @@ export class SantaSleighRideMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription(`You helped Santa deliver presents! Your tree has grown ${extraTreeSize}ft!`)
       .setImage(getRandomElement(this.sleighRideImagesFinished) ?? this.sleighRideImagesFinished[0])
-      .setFooter({ text: SpecialDayHelper.isChristmas() ? "Merry Christmas!" : "Thanks for helping Santa!" });
+      .setFooter({ text: SpecialDayHelper.isChristmas() ? "🎄Merry Christmas!🎄🎅" : "Thanks for helping Santa!🎅" });
 
     await ctx.reply(
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
