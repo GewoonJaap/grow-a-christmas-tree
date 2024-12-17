@@ -12,6 +12,7 @@ import {
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade" | "treeSize";
 
@@ -32,7 +33,7 @@ export class Wheel implements ISlashCommand {
   public builder = new SlashCommandBuilder("wheel", "Give it a whirl and unwrap festive rewards! 🎅✨");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return await ctx.reply(await buildWheelMessage(ctx));
+    return await safeReply(ctx, await buildWheelMessage(ctx));
   };
 
   public components = [
@@ -40,21 +41,21 @@ export class Wheel implements ISlashCommand {
       "wheel.spin",
       new ButtonBuilder().setEmoji({ name: "🎡" }).setStyle(1).setLabel("Spin the Wheel"),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await handleSpin(ctx));
+        return await safeReply(ctx, await handleSpin(ctx));
       }
     ),
     new Button(
       "wheel.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await buildWheelMessage(ctx));
+        return await safeReply(ctx, await buildWheelMessage(ctx));
       }
     ),
     new Button(
       "wheel.chances",
       new ButtonBuilder().setEmoji({ name: "📊" }).setStyle(2).setLabel("Win Chances"),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await showWinChances(ctx));
+        return await safeReply(ctx, await showWinChances(ctx));
       }
     )
   ];
