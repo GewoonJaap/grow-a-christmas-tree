@@ -8,11 +8,11 @@ async function retryOperation<T>(operation: () => Promise<T>, retries = 1): Prom
     } catch (error) {
       console.error(`Operation failed on attempt ${attempt + 1}:`, error);
       if (attempt === retries) {
-        throw error;
+        console.error("Operation failed after all retries");
       }
     }
   }
-  throw new Error("Operation failed after all retries");
+  console.error("Operation failed after all retries");
 }
 
 export async function safeReply(ctx: SlashCommandContext | ButtonContext, message: MessageBuilder): Promise<void> {

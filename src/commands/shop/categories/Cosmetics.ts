@@ -301,12 +301,12 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
   private async getTreeImageUrl(styleName: string | undefined): Promise<string> {
     let imageUrl = getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0];
 
-    if(!styleName){
+    if (!styleName) {
       return imageUrl;
     }
-    
+
     const hasImageResponse = await imageStyleApi.hasImageStyleImage(styleName);
-    
+
     if (hasImageResponse.exists) {
       const imageResponse = await imageStyleApi.getImageStyleImage(styleName);
       if (imageResponse.success) {
