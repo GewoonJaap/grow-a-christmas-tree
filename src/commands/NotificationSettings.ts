@@ -63,7 +63,7 @@ export class NotificationSettings implements ISlashCommand {
     const perms = permissionsExtractor((ctx.interaction.member?.permissions as unknown as number) ?? 0);
 
     if (!perms.includes("MANAGE_GUILD"))
-      return await ctx.reply(`You need the Manage Server permission to recycle your christmas tree.`);
+      return await ctx.reply(`You need the Manage Server permission to change the notification settings.`);
 
     const role = ctx.options.get("role")?.value as string | undefined;
     const channel = ctx.options.get("channel")?.value as string | undefined;
