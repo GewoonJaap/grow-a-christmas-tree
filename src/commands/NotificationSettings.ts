@@ -3,6 +3,7 @@ import {
   EmbedBuilder,
   ISlashCommand,
   MessageBuilder,
+  SimpleError,
   SlashCommandBooleanOption,
   SlashCommandBuilder,
   SlashCommandChannelOption,
@@ -14,6 +15,7 @@ import { createWebhook } from "../util/discord/DiscordWebhookHelper";
 import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
 import { permissionsExtractor } from "../util/bitfield-permission-calculator";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const builder = new SlashCommandBuilder("notifications", "Configure the role and channel for notifications.")
   .addBooleanOption(new SlashCommandBooleanOption("enabled", "Turn notification on or off").setRequired(true))
@@ -31,14 +33,14 @@ export class NotificationSettings implements ISlashCommand {
         .setTitle("Woah there!")
         .setColor(0xff0000)
         .setDescription("This command can only be used in a server.");
-      return await ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+      return await safeReply(ctx, new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
     if (!ctx.game) {
       const embed = new EmbedBuilder()
         .setTitle("Woah there!")
         .setColor(0xff0000)
         .setDescription("Use /plant to plant a tree for your server first.");
-      return await ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+      return await safeReply(ctx, new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
 
     await updateEntitlementsToGame(ctx);
@@ -56,14 +58,14 @@ export class NotificationSettings implements ISlashCommand {
         actionBuilder.addComponents(PremiumButtons.FestiveForestButton);
         message.addComponents(actionBuilder);
       }
-      return await ctx.reply(message);
+      return await safeReply(ctx, message);
     }
 
     //only with manage server perms
     const perms = permissionsExtractor((ctx.interaction.member?.permissions as unknown as number) ?? 0);
 
     if (!perms.includes("MANAGE_GUILD"))
-      return await ctx.reply(`You need the Manage Server permission to change the notification settings.`);
+      return await safeReply(ctx, SimpleError("You need `Manage Server` permission to use this command."));
 
     const role = ctx.options.get("role")?.value as string | undefined;
     const channel = ctx.options.get("channel")?.value as string | undefined;
@@ -74,7 +76,10 @@ export class NotificationSettings implements ISlashCommand {
         { id: ctx.interaction.guild_id },
         { $unset: { notificationRoleId: "", webhookId: "", webhookToken: "" } }
       );
-      return await ctx.reply(new MessageBuilder().setContent("Notifications have been turned off.").setEphemeral(true));
+      return await safeReply(
+        ctx,
+        new MessageBuilder().setContent("Notifications have been turned off.").setEphemeral(true)
+      );
     }
 
     if (!role || !channel) {
@@ -82,7 +87,7 @@ export class NotificationSettings implements ISlashCommand {
         .setTitle("Missing Options")
         .setColor(0xff0000)
         .setDescription("Please provide the following options: role or channel.");
-      return await ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+      return await safeReply(ctx, new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
 
     const updateData: { notificationRoleId?: string; webhookId?: string; webhookToken?: string } = {};
@@ -105,7 +110,7 @@ export class NotificationSettings implements ISlashCommand {
       if (enabled) {
         embed.setDescription(`Role: <@&${role}>\nChannel: <#${channel}>`);
       }
-      return await ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+      return await safeReply(ctx, new MessageBuilder().addEmbed(embed).setEphemeral(true));
     } catch (err) {
       const embed = new EmbedBuilder()
         .setTitle("Error")
@@ -113,7 +118,7 @@ export class NotificationSettings implements ISlashCommand {
         .setDescription(
           "An error occurred while updating the notification settings. Does the bot have `Manage Webhook` permissions? Check our guide on how to set up notifications [here](https://christmas-tree.app/how-to-setup-notifications/?utm_source=setup-notif-bot)."
         );
-      return await ctx.reply(new MessageBuilder().addEmbed(embed).setEphemeral(true));
+      return await safeReply(ctx, new MessageBuilder().addEmbed(embed).setEphemeral(true));
     }
   };
 

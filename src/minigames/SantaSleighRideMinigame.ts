@@ -5,6 +5,7 @@ import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -66,7 +67,7 @@ export class SantaSleighRideMinigame implements Minigame {
       .addEmbed(embed)
       .addComponents(new ActionRowBuilder().addComponents(...buttons));
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -76,7 +77,7 @@ export class SantaSleighRideMinigame implements Minigame {
         maxDuration: SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx as ButtonContext));
     }, SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -102,7 +103,8 @@ export class SantaSleighRideMinigame implements Minigame {
       .setImage(getRandomElement(this.sleighRideImagesFinished) ?? this.sleighRideImagesFinished[0])
       .setFooter({ text: SpecialDayHelper.isChristmas() ? "🎄Merry Christmas!🎄🎅" : "Thanks for helping Santa!🎅" });
 
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
@@ -134,7 +136,8 @@ export class SantaSleighRideMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription(`<@${ctx.user.id}>, You clicked the wrong button. Better luck next time!`);
 
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 

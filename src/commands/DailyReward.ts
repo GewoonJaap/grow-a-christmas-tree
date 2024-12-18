@@ -16,6 +16,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const GRACE_PERIOD_DAYS = 2;
 const PREMIUM_GRACE_PERIOD_DAYS = 3;
@@ -30,9 +31,9 @@ export class DailyReward implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     }
-    return await ctx.reply(await buildDailyRewardMessage(ctx));
+    return await safeReply(ctx, await buildDailyRewardMessage(ctx));
   };
 
   public components = [
@@ -40,7 +41,7 @@ export class DailyReward implements ISlashCommand {
       "dailyreward.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await buildDailyRewardMessage(ctx));
+        return await safeReply(ctx, await buildDailyRewardMessage(ctx));
       }
     )
   ];

@@ -15,6 +15,7 @@ import { Guild } from "../models/Guild";
 import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 type LeaderboardButtonState = {
   page: number;
@@ -29,7 +30,7 @@ export class Forest implements ISlashCommand {
   );
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return await ctx.reply(await buildLeaderboardMessage(ctx));
+    return await safeReply(ctx, await buildLeaderboardMessage(ctx));
   };
 
   public components = [
@@ -37,7 +38,7 @@ export class Forest implements ISlashCommand {
       "forest.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -47,7 +48,7 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -57,7 +58,7 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -67,7 +68,7 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page = 1;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -79,7 +80,7 @@ export class Forest implements ISlashCommand {
         const amountOfTrees = await Guild.countDocuments();
         const maxPages = Math.ceil(amountOfTrees / 10);
         ctx.state.page = maxPages;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     )
   ];

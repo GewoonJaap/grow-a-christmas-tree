@@ -3,6 +3,7 @@ import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTree
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
 import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../../util/discord/MessageExtenstions";
 
 const PUMPKIN_HUNT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -35,7 +36,7 @@ export class PumpkinHuntMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -45,7 +46,7 @@ export class PumpkinHuntMinigame implements Minigame {
         maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -65,7 +66,10 @@ export class PumpkinHuntMinigame implements Minigame {
       .setDescription("You found a hidden pumpkin and your tree grew 2ft taller!")
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/halloween/halloween-2.jpg");
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
@@ -81,7 +85,10 @@ export class PumpkinHuntMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription(`<@${ctx.user.id}>, You missed the pumpkins. Better luck next time!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
     await minigameFinished(ctx, {
       success: false,
       difficulty: 1,

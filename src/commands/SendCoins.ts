@@ -13,6 +13,7 @@ import {
 import { WalletHelper } from "../util/wallet/WalletHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
@@ -31,9 +32,10 @@ export class SendCoinsCommand implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM || !ctx.game) return await ctx.reply("This command can only be used in a server.");
+    if (ctx.isDM || !ctx.game)
+      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
     if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     }
     return this.handleTransfer(ctx);
   };
@@ -43,34 +45,35 @@ export class SendCoinsCommand implements ISlashCommand {
     const amount = ctx.options.get("amount")?.value as number;
 
     if (recipientId === ctx.user.id) {
-      return await ctx.reply(SimpleError("You cannot transfer coins to yourself."));
+      return await safeReply(ctx, SimpleError("You cannot transfer coins to yourself."));
     }
 
     if (ctx.isDM) {
-      return await ctx.reply(SimpleError("This command can only be used in a server."));
+      return await safeReply(ctx, SimpleError("This command can only be used in a server."));
     }
 
     if (!ctx.game) {
-      return await ctx.reply(SimpleError("Game data missing."));
+      return await safeReply(ctx, SimpleError("Game data missing."));
     }
 
     const sender = await WalletHelper.getWallet(ctx.user.id);
     const recipient = await WalletHelper.getWallet(recipientId);
 
     if (!sender) {
-      return await ctx.reply(SimpleError("You do not have a wallet."));
+      return await safeReply(ctx, SimpleError("You do not have a wallet."));
     }
 
     if (!recipient) {
-      return await ctx.reply(SimpleError("The recipient does not have a wallet."));
+      return await safeReply(ctx, SimpleError("The recipient does not have a wallet."));
     }
 
     if (amount <= 0) {
-      return await ctx.reply(SimpleError("The transfer amount must be a positive number."));
+      return await safeReply(ctx, SimpleError("The transfer amount must be a positive number."));
     }
 
     if (amount > sender.coins) {
-      return await ctx.reply(
+      return await safeReply(
+        ctx,
         SimpleError(`You do not have enough coins to complete the transfer. You have ${sender.coins} coins.`)
       );
     }
@@ -91,7 +94,7 @@ export class SendCoinsCommand implements ISlashCommand {
         }`
       });
 
-    await ctx.reply(new MessageBuilder().addEmbed(embed));
+    await safeReply(ctx, new MessageBuilder().addEmbed(embed));
 
     // Log the transfer details for auditing purposes
     console.log(

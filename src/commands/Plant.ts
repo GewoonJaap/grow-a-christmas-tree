@@ -11,6 +11,7 @@ import { Guild } from "../models/Guild";
 import { validateTreeName } from "../util/validate-tree-name";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const builder = new SlashCommandBuilder("plant", "🎄 Plant a Christmas Tree for Your Server").addStringOption(
   new SlashCommandStringOption("name", "Give your server's tree a festive name").setRequired(true)
@@ -22,21 +23,25 @@ export class Plant implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
+    if (ctx.isDM) return await safeReply(ctx, SimpleError("This command can only be used in a server."));
     if (ctx.game !== null)
-      return await ctx.reply(
-        `A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`
+      return await safeReply(
+        ctx,
+        new MessageBuilder().setContent(
+          `A christmas tree has already been planted in this server called \`\`${ctx.game.name}\`\`.`
+        )
       );
     if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     }
-    if (ctx.interaction.guild_id === undefined) return await ctx.reply(SimpleError("Guild ID missing."));
+    if (ctx.interaction.guild_id === undefined) return await safeReply(ctx, SimpleError("Guild ID missing."));
 
     const name = ctx.options.get("name")?.value as string | undefined;
-    if (name === undefined) return await ctx.reply(SimpleError("Name not found."));
+    if (name === undefined) return await safeReply(ctx, SimpleError("Name not found."));
 
     if (!validateTreeName(name))
-      return await ctx.reply(
+      return await safeReply(
+        ctx,
         SimpleError(
           "Your Christmas tree name must be between 1-36 characters and can only contain alphanumeric characters, hyphens, and apostrophes. ✨"
         )
@@ -58,7 +63,8 @@ export class Plant implements ISlashCommand {
       ]
     }).save();
 
-    return await ctx.reply(
+    return await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(
         new EmbedBuilder()
           .setTitle("🎄 Tree Planted!")

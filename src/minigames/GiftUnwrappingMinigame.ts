@@ -4,6 +4,7 @@ import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTree
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const GIFT_UNWRAPPING_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -37,7 +38,7 @@ export class GiftUnwrappingMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -47,7 +48,7 @@ export class GiftUnwrappingMinigame implements Minigame {
         maxDuration: GIFT_UNWRAPPING_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, GIFT_UNWRAPPING_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -81,7 +82,10 @@ export class GiftUnwrappingMinigame implements Minigame {
       .setImage(
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/gift-unwrapping/gift-unwrapping-1.png"
       );
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     transitionToDefaultTreeView(ctx);
 
@@ -98,7 +102,10 @@ export class GiftUnwrappingMinigame implements Minigame {
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`<@${ctx.user.id}>, You unwrapped an empty box. Better luck next time!`);
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     transitionToDefaultTreeView(ctx);
 

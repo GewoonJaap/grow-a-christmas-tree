@@ -4,6 +4,7 @@ import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const SNOWBALL_FIGHT_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -38,7 +39,7 @@ export class SnowballFightMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -68,7 +69,8 @@ export class SnowballFightMinigame implements Minigame {
     const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
 
     const embed = new EmbedBuilder().setTitle(ctx.game.name).setDescription(message);
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
@@ -95,7 +97,8 @@ export class SnowballFightMinigame implements Minigame {
         maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(
+      await safeEdit(
+        ctx,
         new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
       );
     } else {
@@ -105,7 +108,8 @@ export class SnowballFightMinigame implements Minigame {
         maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
         failureReason: "Wrong button"
       });
-      await ctx.reply(
+      await safeReply(
+        ctx,
         new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
       );
     }

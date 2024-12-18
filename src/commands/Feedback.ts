@@ -10,6 +10,7 @@ import { FeedbackPost, postFeedback } from "../util/postFeedback";
 import { SUPPORT_SERVER_INVITE } from "../util/const";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const builder = new SlashCommandBuilder(
   "feedback",
@@ -23,7 +24,7 @@ export class Feedback implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     }
     const feedback: FeedbackPost = {
       content: ctx.options.get("content")?.value as string,
@@ -34,7 +35,8 @@ export class Feedback implements ISlashCommand {
 
     postFeedback(feedback);
 
-    return await ctx.reply(
+    return await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(
         new EmbedBuilder().setTitle(
           `Thanks for submitting your feedback! We'll look into it. If you have a question, please join our support server ${SUPPORT_SERVER_INVITE}`

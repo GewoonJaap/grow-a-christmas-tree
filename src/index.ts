@@ -50,6 +50,7 @@ import { startAntiBotCleanupTimer } from "./util/anti-bot/antiBotCleanupTimer";
 import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
 import { runMigrations } from "./migrations";
+import { safeReply } from "./util/discord/MessageExtenstions";
 
 const VERSION = "2.0";
 
@@ -102,9 +103,9 @@ if (keys.some((key) => !(key in process.env))) {
           console.error(err);
 
           if (ctx instanceof AutocompleteContext) {
-            await ctx.reply([]);
+            await safeReply(ctx, []);
           } else {
-            await ctx.reply(SimpleError("There was an error loading your game data"));
+            await safeReply(ctx, SimpleError("There was an error loading your game data"));
           }
 
           return true;

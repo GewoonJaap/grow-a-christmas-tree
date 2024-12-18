@@ -1,4 +1,4 @@
-import { Button, ButtonBuilder, ButtonContext } from "interactions.ts";
+import { Button, ButtonBuilder, ButtonContext, MessageBuilder } from "interactions.ts";
 import { SantaPresentMinigame } from "./SantaPresentMinigame";
 import { Minigame } from "../util/types/minigame/MinigameType";
 import { HotCocoaMinigame } from "./HotCocoaMinigame";
@@ -23,6 +23,7 @@ import { saveFailedAttempt } from "../util/anti-bot/failedAttemptsHelper";
 import { buildTreeDisplayMessage, disposeActiveTimeouts } from "../commands";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -53,7 +54,7 @@ export const minigameButtons = [
     new ButtonBuilder().setEmoji({ name: "🔄" }).setLabel("Refresh").setStyle(2),
     async (ctx) => {
       disposeActiveTimeouts(ctx);
-      return ctx.reply(await buildTreeDisplayMessage(ctx));
+      return safeReply(ctx, await buildTreeDisplayMessage(ctx));
     }
   )
 ];

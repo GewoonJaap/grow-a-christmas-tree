@@ -9,6 +9,7 @@ import {
   SlashCommandBuilder,
   SlashCommandContext
 } from "interactions.ts";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 type TestButtonState = {
   ping: boolean;
@@ -20,7 +21,8 @@ export class Ping implements ISlashCommand {
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     const button = await ctx.manager.components.createInstance("ping.pong", { ping: false });
 
-    return await ctx.reply(
+    return await safeReply(
+      ctx,
       new MessageBuilder()
         .addEmbed(new EmbedBuilder().setTitle("Pong!"))
         .addComponents(new ActionRowBuilder().addComponents(button))
@@ -34,7 +36,8 @@ export class Ping implements ISlashCommand {
       async (ctx: ButtonContext<TestButtonState>): Promise<void> => {
         if (!ctx.state) throw new Error("State missing.");
 
-        ctx.reply(
+        safeReply(
+          ctx,
           new MessageBuilder()
             .addEmbed(new EmbedBuilder().setTitle(ctx.state.ping ? "Pong!" : "Ping!"))
             .addComponents(

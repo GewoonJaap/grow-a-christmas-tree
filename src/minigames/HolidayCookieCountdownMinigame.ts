@@ -4,6 +4,7 @@ import { disposeActiveTimeouts, transitionToDefaultTreeView } from "../commands/
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -59,7 +60,7 @@ export class HolidayCookieCountdownMinigame implements Minigame {
       .addEmbed(embed)
       .addComponents(new ActionRowBuilder().addComponents(...buttons));
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -80,7 +81,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription("You collected all the cookies! Your tree has grown 1ft!");
 
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
@@ -116,7 +118,7 @@ export class HolidayCookieCountdownMinigame implements Minigame {
       .setDescription(`<@${ctx.user.id}>, You missed the cookie. Better luck next time!`);
 
     if (isTimeout) {
-      await ctx.edit(new MessageBuilder().addEmbed(embed).setComponents([]));
+      await safeEdit(ctx, new MessageBuilder().addEmbed(embed).setComponents([]));
       await minigameFinished(ctx, {
         success: false,
         difficulty: 1,
@@ -124,7 +126,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
         failureReason: "Timeout"
       });
     } else {
-      await ctx.reply(
+      await safeReply(
+        ctx,
         new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
       );
       await minigameFinished(ctx, {

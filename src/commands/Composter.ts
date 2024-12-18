@@ -17,6 +17,7 @@ import { disposeActiveTimeouts } from "./Tree";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
+import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -34,9 +35,9 @@ export class Composter implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     }
-    return await ctx.reply(await buildComposterMessage(ctx));
+    return await safeReply(ctx, await buildComposterMessage(ctx));
   };
 
   public components = [
@@ -48,11 +49,11 @@ export class Composter implements ISlashCommand {
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
           transitionBackToDefaultComposterViewWithTimeout(ctx);
           return;
         }
-        return await ctx.reply(await handleUpgrade(ctx, "efficiency"));
+        return await safeReply(ctx, await handleUpgrade(ctx, "efficiency"));
       }
     ),
     new Button(
@@ -63,9 +64,9 @@ export class Composter implements ISlashCommand {
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
-          return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
         }
-        return await ctx.reply(await handleUpgrade(ctx, "quality"));
+        return await safeReply(ctx, await handleUpgrade(ctx, "quality"));
       }
     ),
     new Button(
@@ -76,9 +77,9 @@ export class Composter implements ISlashCommand {
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
-          return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
         }
-        return await ctx.reply(await buildComposterMessage(ctx));
+        return await safeReply(ctx, await buildComposterMessage(ctx));
       }
     )
   ];
@@ -240,7 +241,7 @@ function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, del
       try {
         disposeActiveTimeouts(ctx);
 
-        await ctx.edit(await buildComposterMessage(ctx));
+        await safeEdit(ctx, await buildComposterMessage(ctx));
       } catch (e) {
         console.log(e);
       }

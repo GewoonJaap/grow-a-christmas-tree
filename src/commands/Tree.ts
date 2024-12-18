@@ -26,7 +26,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { getLocaleFromTimezone } from "../util/timezones";
 import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
-import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -40,14 +40,19 @@ export class Tree implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     disposeActiveTimeouts(ctx);
-    if (ctx.isDM) return await ctx.reply("This command can only be used in a server.");
-    if (ctx.game === null || !ctx.game) return await ctx.reply("Use /plant to plant a tree for your server first.");
+    if (ctx.isDM)
+      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
+    if (ctx.game === null || !ctx.game)
+      return await safeReply(
+        ctx,
+        new MessageBuilder().setContent("You don't have a christmas tree planted in this server.")
+      );
 
     if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     }
 
-    return await ctx.reply(await buildTreeDisplayMessage(ctx));
+    return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
   };
 
   public components = [
@@ -68,11 +73,11 @@ export class Tree implements ISlashCommand {
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
-          await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
           transitionToDefaultTreeView(ctx);
           return;
         }
-        return await ctx.reply(await buildTreeDisplayMessage(ctx));
+        return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
       }
     ),
     ...minigameButtons
@@ -82,7 +87,7 @@ export class Tree implements ISlashCommand {
 async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
   if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-    await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+    await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
     transitionToDefaultTreeView(ctx);
     return;
   }
@@ -95,7 +100,8 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
       if (penaltyMinigameStarted) return;
     }
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
-    await ctx.reply(
+    await safeReply(
+      ctx,
       SimpleError("You watered this tree last, you must let someone else water it first.")
         .setEphemeral(true)
         .addComponents(actions)
@@ -117,7 +123,8 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     }
 
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder()
         .addEmbed(
           new EmbedBuilder()
@@ -167,7 +174,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
     if (minigameStarted) return;
   }
 
-  return await ctx.reply(await buildTreeDisplayMessage(ctx));
+  return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
 }
 
 async function logWateringEvent(ctx: ButtonContext): Promise<void> {
@@ -226,12 +233,12 @@ export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<u
     setTimeout(async () => {
       try {
         disposeActiveTimeouts(ctx);
-        await ctx.edit(await buildTreeDisplayMessage(ctx));
+        await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
       } catch (e) {
         console.error(e);
         try {
           //One last retry
-          await ctx.edit(await buildTreeDisplayMessage(ctx));
+          await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
         } catch (e) {
           console.error(e);
         }
@@ -312,7 +319,7 @@ export async function buildTreeDisplayMessage(
         ctx.interaction.message.id,
         setTimeout(async () => {
           disposeActiveTimeouts(ctx);
-          await ctx.edit(await buildTreeDisplayMessage(ctx));
+          await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
         }, canBeWateredAtTimeoutTime)
       );
     }

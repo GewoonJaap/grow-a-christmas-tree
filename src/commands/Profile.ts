@@ -17,6 +17,7 @@ import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { AchievementHelper } from "../util/achievement/AchievementHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 type State = {
   id: string;
@@ -34,9 +35,10 @@ export class Profile implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM || !ctx.game) return await ctx.reply("This command can only be used in a server.");
+    if (ctx.isDM || !ctx.game)
+      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
     await updateEntitlementsToGame(ctx);
-    return await ctx.reply(await buildProfileMessage(ctx));
+    return await safeReply(ctx, await buildProfileMessage(ctx));
   };
 
   public components = [
@@ -44,7 +46,7 @@ export class Profile implements ISlashCommand {
       "profile.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1),
       async (ctx: ButtonContext<State>): Promise<void> => {
-        return await ctx.reply(await buildProfileMessage(ctx));
+        return await safeReply(ctx, await buildProfileMessage(ctx));
       }
     ),
     new Button(
@@ -54,7 +56,7 @@ export class Profile implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return await ctx.reply(await buildProfileMessage(ctx));
+        return await safeReply(ctx, await buildProfileMessage(ctx));
       }
     ),
     new Button(
@@ -64,7 +66,7 @@ export class Profile implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return await ctx.reply(await buildProfileMessage(ctx));
+        return await safeReply(ctx, await buildProfileMessage(ctx));
       }
     )
   ];

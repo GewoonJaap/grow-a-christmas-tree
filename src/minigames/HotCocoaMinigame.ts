@@ -4,6 +4,7 @@ import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTree
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const HOT_COCOA_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -38,7 +39,7 @@ export class HotCocoaMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -49,7 +50,7 @@ export class HotCocoaMinigame implements Minigame {
         failureReason: "Timeout"
       });
 
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, HOT_COCOA_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -66,7 +67,10 @@ export class HotCocoaMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription(`<@${ctx.user.id}>, You spilled the cocoa! Better luck next time!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     await minigameFinished(ctx, {
       success: false,
@@ -96,7 +100,10 @@ export class HotCocoaMinigame implements Minigame {
           .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/hot-cocoa/hot-cocoa-1.jpg")
           .setDescription(`This hot cocoa is delicious! Your tree has grown 1ft!`);
 
-        ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+        safeReply(
+          ctx,
+          new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+        );
         await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION });
 
         transitionToDefaultTreeView(ctx);
