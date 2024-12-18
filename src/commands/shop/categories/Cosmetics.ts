@@ -21,6 +21,7 @@ import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/Item
 import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
 import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
 import { getLocaleFromTimezone } from "../../../util/timezones";
+import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -56,7 +57,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       this.entryButtonName,
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Cosmetics"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await this.buildCosmeticsMessage(ctx));
+        return safeReply(ctx, await this.buildCosmeticsMessage(ctx));
       }
     ),
     new Button(
@@ -64,14 +65,14 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel("Buy Random Tree Style"),
       async (ctx: ButtonContext): Promise<void> => {
         const style = await TreeStyleHelper.getRandomLockedTreeStyle(ctx);
-        return ctx.reply(await this.handleStylePurchase(ctx, style));
+        return safeReply(ctx, await this.handleStylePurchase(ctx, style));
       }
     ),
     new Button(
       "shop.cosmetics.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await this.buildCosmeticsMessage(ctx));
+        return safeReply(ctx, await this.buildCosmeticsMessage(ctx));
       }
     ),
     new Button(
@@ -81,7 +82,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return ctx.reply(await this.buildCosmeticsMessage(ctx));
+        return safeReply(ctx, await this.buildCosmeticsMessage(ctx));
       }
     ),
     new Button(
@@ -91,7 +92,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return ctx.reply(await this.buildCosmeticsMessage(ctx));
+        return safeReply(ctx, await this.buildCosmeticsMessage(ctx));
       }
     )
   ];
@@ -115,7 +116,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         buttonId,
         new ButtonBuilder().setEmoji({ name: "🎄" }).setStyle(1).setLabel(`Buy ${style.name}`),
         async (ctx: ButtonContext): Promise<void> => {
-          return ctx.reply(await this.handleStylePurchase(ctx, style));
+          return safeReply(ctx, await this.handleStylePurchase(ctx, style));
         }
       );
     });
@@ -354,7 +355,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       setTimeout(async () => {
         try {
           disposeActiveTimeouts(ctx);
-          await ctx.edit(await this.buildCosmeticsMessage(ctx));
+          await safeEdit(ctx, await this.buildCosmeticsMessage(ctx));
         } catch (e) {
           console.log(e);
         }

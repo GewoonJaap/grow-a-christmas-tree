@@ -15,6 +15,7 @@ import { PremiumButtons } from "../util/buttons/PremiumButtons";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const builder = new SlashCommandBuilder("redeempurchases", "Redeem all your purchases from the shop");
 
@@ -25,10 +26,10 @@ export class RedeemPurchasesCommand implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM || !ctx.game) {
-      return await ctx.reply("This command can only be used in a server.");
+      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
     }
 
-    return await ctx.reply(await buildRedeemCoinsMessage(ctx));
+    return await safeReply(ctx, await buildRedeemCoinsMessage(ctx));
   };
 
   public components = [
@@ -36,7 +37,7 @@ export class RedeemPurchasesCommand implements ISlashCommand {
       "redeemcoins.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await buildRedeemCoinsMessage(ctx));
+        return await safeReply(ctx, await buildRedeemCoinsMessage(ctx));
       }
     )
   ];

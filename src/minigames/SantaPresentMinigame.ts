@@ -4,6 +4,7 @@ import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTree
 import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 const SANTA_MINIGAME_MAX_DURATION = 10 * 1000;
 
 const IMAGES = [
@@ -40,7 +41,7 @@ export class SantaPresentMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -50,7 +51,7 @@ export class SantaPresentMinigame implements Minigame {
         maxDuration: SANTA_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, SANTA_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -70,7 +71,10 @@ export class SantaPresentMinigame implements Minigame {
       .setDescription(`Enjoy your present! There was some magic inside which made your tree grow 1ft!`)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SANTA_MINIGAME_MAX_DURATION });
 
@@ -89,7 +93,10 @@ export class SantaPresentMinigame implements Minigame {
       .setDescription(`<@${ctx.user.id}>, Whoops! The witch stole your present!`)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
 
     await minigameFinished(ctx, {
       success: false,

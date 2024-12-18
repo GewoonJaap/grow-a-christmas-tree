@@ -10,12 +10,13 @@ import {
   SlashCommandContext
 } from "interactions.ts";
 import { SUPPORT_SERVER_INVITE } from "../util/const";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 export class About implements ISlashCommand {
   public builder = new SlashCommandBuilder("about", "Learn about all the magical commands!");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return await ctx.reply(await this.buildAboutMessage(ctx));
+    return await safeReply(ctx, await this.buildAboutMessage(ctx));
   };
 
   public components = [
@@ -23,7 +24,7 @@ export class About implements ISlashCommand {
       "about.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await this.buildAboutMessage(ctx));
+        return await safeReply(ctx, await this.buildAboutMessage(ctx));
       }
     )
   ];

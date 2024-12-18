@@ -6,6 +6,7 @@ import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { toFixed } from "../util/helpers/numberHelper";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
 import { getRandomEmojiWithExclusion, SPOOKY_EMOJIS } from "../util/emoji";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const GRINCH_HEIST_MINIGAME_MAX_DURATION = 10 * 1000;
 const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
@@ -73,7 +74,7 @@ export class GrinchHeistMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       await GrinchHeistMinigame.handleGrinchButton(ctx, true);
@@ -112,7 +113,8 @@ export class GrinchHeistMinigame implements Minigame {
         maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(
+      await safeEdit(
+        ctx,
         new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
       );
     } else {
@@ -122,7 +124,8 @@ export class GrinchHeistMinigame implements Minigame {
         maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
         failureReason: "Wrong button"
       });
-      await ctx.reply(
+      await safeReply(
+        ctx,
         new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
       );
     }
@@ -153,7 +156,8 @@ export class GrinchHeistMinigame implements Minigame {
             "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/grinch-heist/grinch-tree-saved-1.jpg"
           );
 
-        await ctx.reply(
+        await safeReply(
+          ctx,
           new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
         );
 

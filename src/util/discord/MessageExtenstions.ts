@@ -1,4 +1,12 @@
-import { ButtonContext, SlashCommandContext, MessageBuilder } from "interactions.ts";
+import {
+  ButtonContext,
+  SlashCommandContext,
+  MessageBuilder,
+  SelectMenuContext,
+  AutocompleteContext,
+  UserCommandContext,
+  MessageCommandContext
+} from "interactions.ts";
 import { APIMessage } from "discord-api-types/v10";
 
 async function retryOperation<T>(operation: () => Promise<T>, retries = 1): Promise<T | undefined> {
@@ -10,7 +18,7 @@ async function retryOperation<T>(operation: () => Promise<T>, retries = 1): Prom
           console.error("Operation failed after all retries");
           return undefined;
         }
-        throw error;
+        console.log(`Retrying operation in 1 second...`);
       });
     } catch (error) {
       // This catch block is necessary to handle the rethrown error from the .catch block above
@@ -19,10 +27,23 @@ async function retryOperation<T>(operation: () => Promise<T>, retries = 1): Prom
   return undefined;
 }
 
-export async function safeReply(ctx: SlashCommandContext | ButtonContext, message: MessageBuilder): Promise<void> {
-  await retryOperation(() => ctx.reply(message));
+export async function safeReply(
+  ctx:
+    | SlashCommandContext
+    | ButtonContext
+    | ButtonContext<unknown>
+    | SelectMenuContext<unknown>
+    | AutocompleteContext
+    | UserCommandContext
+    | MessageCommandContext,
+  message: MessageBuilder | unknown[]
+): Promise<void> {
+  await retryOperation(() => ctx.reply(message as any));
 }
 
-export async function safeEdit(ctx: ButtonContext, message: MessageBuilder): Promise<APIMessage | void> {
+export async function safeEdit(
+  ctx: ButtonContext | ButtonContext<unknown> | SlashCommandContext | SelectMenuContext<unknown>,
+  message: MessageBuilder
+): Promise<APIMessage | void> {
   return retryOperation(() => ctx.edit(message));
 }

@@ -3,6 +3,7 @@ import { buildTreeDisplayMessage, disposeActiveTimeouts, transitionToDefaultTree
 import { Minigame, MinigameConfig } from "../../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "../MinigameFactory";
 import { getRandomButtonStyle } from "../../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../../util/discord/MessageExtenstions";
 
 const HEART_COLLECTION_MINIGAME_MAX_DURATION = 10 * 1000;
 
@@ -35,7 +36,7 @@ export class HeartCollectionMinigame implements Minigame {
 
     message.addEmbed(embed);
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -45,7 +46,7 @@ export class HeartCollectionMinigame implements Minigame {
         maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(await buildTreeDisplayMessage(ctx));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, HEART_COLLECTION_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -67,7 +68,10 @@ export class HeartCollectionMinigame implements Minigame {
         "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/minigame/valentine-day/valentine-day-3.jpg"
       );
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
     await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION });
     transitionToDefaultTreeView(ctx);
   }
@@ -83,7 +87,10 @@ export class HeartCollectionMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription(`<@${ctx.user.id}>, You missed the hearts. Better luck next time!`);
 
-    ctx.reply(new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons)));
+    safeReply(
+      ctx,
+      new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
+    );
     await minigameFinished(ctx, {
       success: false,
       difficulty: 1,

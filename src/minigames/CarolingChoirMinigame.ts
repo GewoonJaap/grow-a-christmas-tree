@@ -5,6 +5,7 @@ import { Minigame, MinigameConfig } from "../util/types/minigame/MinigameType";
 import { getPremiumUpsellMessage, minigameFinished } from "./MinigameFactory";
 import { SPOOKY_EMOJIS, getRandomEmojiWithExclusion } from "../util/emoji";
 import { getRandomButtonStyle } from "../util/discord/DiscordApiExtensions";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const CAROLING_CHOIR_MINIGAME_MAX_DURATION = 10 * 1000;
 const BUTTON_FAIL_EMOJIS = getRandomElements(SPOOKY_EMOJIS, 3);
@@ -61,7 +62,7 @@ export class CarolingChoirMinigame implements Minigame {
       .addEmbed(embed)
       .addComponents(new ActionRowBuilder().addComponents(...buttons));
 
-    await ctx.reply(message);
+    await safeReply(ctx, message);
 
     const timeoutId = setTimeout(async () => {
       disposeActiveTimeouts(ctx);
@@ -71,7 +72,7 @@ export class CarolingChoirMinigame implements Minigame {
         maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
         failureReason: "Timeout"
       });
-      await ctx.edit(await buildTreeDisplayMessage(ctx as ButtonContext));
+      await safeEdit(ctx, await buildTreeDisplayMessage(ctx as ButtonContext));
     }, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
     disposeActiveTimeouts(ctx);
     ctx.timeouts.set(ctx.interaction.message.id, timeoutId);
@@ -88,7 +89,8 @@ export class CarolingChoirMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription("You led the carolers perfectly! Your tree has grown 1ft!");
 
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
@@ -120,7 +122,8 @@ export class CarolingChoirMinigame implements Minigame {
       .setTitle(ctx.game.name)
       .setDescription(`<@${ctx.user.id}>, You hit a wrong note. Better luck next time!`);
 
-    await ctx.reply(
+    await safeReply(
+      ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 

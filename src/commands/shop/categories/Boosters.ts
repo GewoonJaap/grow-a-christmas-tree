@@ -14,6 +14,7 @@ import { disposeActiveTimeouts } from "../../Tree";
 import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 import humanizeDuration = require("humanize-duration");
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
+import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -34,14 +35,14 @@ export class Boosters implements PartialCommand {
       this.entryButtonName,
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Boosters"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await this.buildBoostersMessage(ctx));
+        return safeReply(ctx, await this.buildBoostersMessage(ctx));
       }
     ),
     new Button(
       "shop.boosters.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return ctx.reply(await this.buildBoostersMessage(ctx));
+        return safeReply(ctx, await this.buildBoostersMessage(ctx));
       }
     ),
     new Button(
@@ -51,7 +52,7 @@ export class Boosters implements PartialCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return ctx.reply(await this.buildBoostersMessage(ctx));
+        return safeReply(ctx, await this.buildBoostersMessage(ctx));
       }
     ),
     new Button(
@@ -61,7 +62,7 @@ export class Boosters implements PartialCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return ctx.reply(await this.buildBoostersMessage(ctx));
+        return safeReply(ctx, await this.buildBoostersMessage(ctx));
       }
     ),
     ...Object.values(BoosterHelper.BOOSTERS).map(
@@ -70,7 +71,7 @@ export class Boosters implements PartialCommand {
           `shop.buy.${booster.name.toLowerCase().replace(/ /g, "_")}`,
           new ButtonBuilder().setEmoji({ name: booster.emoji }).setStyle(1).setLabel(booster.name),
           async (ctx: ButtonContext): Promise<void> => {
-            return ctx.reply(await this.handleBoosterPurchase(ctx, booster));
+            return safeReply(ctx, await this.handleBoosterPurchase(ctx, booster));
           }
         )
     )
@@ -220,7 +221,7 @@ export class Boosters implements PartialCommand {
         try {
           disposeActiveTimeouts(ctx);
 
-          await ctx.edit(await this.buildBoostersMessage(ctx));
+          await safeEdit(ctx, await this.buildBoostersMessage(ctx));
         } catch (e) {
           console.log(e);
         }

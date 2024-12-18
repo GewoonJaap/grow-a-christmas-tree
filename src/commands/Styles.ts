@@ -17,6 +17,7 @@ import { ITreeStyle } from "../models/Guild";
 import { randomUUID } from "crypto";
 import { permissionsExtractor } from "../util/bitfield-permission-calculator";
 import { disposeActiveTimeouts } from "./Tree";
+import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 
 const STYLES_PER_PAGE = 25;
 
@@ -31,7 +32,7 @@ export class Styles implements ISlashCommand {
   );
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return await ctx.reply(await this.buildStylesMessage(ctx));
+    return await safeReply(ctx, await this.buildStylesMessage(ctx));
   };
 
   public components = [
@@ -42,7 +43,7 @@ export class Styles implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return ctx.reply(await this.buildStylesMessage(ctx));
+        return safeReply(ctx, await this.buildStylesMessage(ctx));
       }
     ),
     new Button(
@@ -52,21 +53,21 @@ export class Styles implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return ctx.reply(await this.buildStylesMessage(ctx));
+        return safeReply(ctx, await this.buildStylesMessage(ctx));
       }
     ),
     new Button(
       "styles.toggle",
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Toggle Styles"),
       async (ctx: ButtonContext<StylesButtonState>): Promise<void> => {
-        return ctx.reply(await this.buildToggleStylesMessage(ctx));
+        return safeReply(ctx, await this.buildToggleStylesMessage(ctx));
       }
     ),
     new Button(
       "styles.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1).setLabel("Refresh"),
       async (ctx: ButtonContext<StylesButtonState>): Promise<void> => {
-        return ctx.reply(await this.buildStylesMessage(ctx));
+        return safeReply(ctx, await this.buildStylesMessage(ctx));
       }
     )
   ];
@@ -165,7 +166,7 @@ export class Styles implements ISlashCommand {
 
         ctx.manager.components.unregister(name);
 
-        return ctx.reply(await this.buildStylesMessage(ctx));
+        return safeReply(ctx, await this.buildStylesMessage(ctx));
       }
     );
 
@@ -194,7 +195,7 @@ export class Styles implements ISlashCommand {
       setTimeout(async () => {
         try {
           disposeActiveTimeouts(ctx);
-          await ctx.edit(await this.buildStylesMessage(ctx));
+          await safeEdit(ctx, await this.buildStylesMessage(ctx));
         } catch (e) {
           console.log(e);
         }

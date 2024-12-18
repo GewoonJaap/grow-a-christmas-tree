@@ -16,6 +16,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const builder = new SlashCommandBuilder(
   "leaderboard",
@@ -35,9 +36,10 @@ export class Leaderboard implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.game === null) return await ctx.reply("Use /plant to plant a christmas tree for your server first.");
+    if (ctx.game === null)
+      return await safeReply(ctx, SimpleError("Use /plant to plant a christmas tree for your server first."));
 
-    return await ctx.reply(await buildLeaderboardMessage(ctx));
+    return await safeReply(ctx, await buildLeaderboardMessage(ctx));
   };
 
   public components = [
@@ -49,7 +51,7 @@ export class Leaderboard implements ISlashCommand {
           ctx.state = { page: 1 };
         }
 
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -59,7 +61,7 @@ export class Leaderboard implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page--;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -69,7 +71,7 @@ export class Leaderboard implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page++;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -79,7 +81,7 @@ export class Leaderboard implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page = 1;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
     new Button(
@@ -91,7 +93,7 @@ export class Leaderboard implements ISlashCommand {
         const contributors = ctx.game?.contributors.length ?? 0;
         const maxPages = Math.ceil(contributors / 10);
         ctx.state.page = maxPages;
-        return await ctx.reply(await buildLeaderboardMessage(ctx));
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     )
   ];

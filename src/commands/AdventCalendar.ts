@@ -14,6 +14,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { AdventCalendarHelper, WonPresent } from "../util/adventCalendar/AdventCalendarHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { getRandomElement } from "../util/helpers/arrayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const CHRISTMAS_DAY_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/christmas-day/advent-calendar-christmasday-1.jpg"
@@ -26,7 +27,7 @@ export class AdventCalendar implements ISlashCommand {
   );
 
   public handler = async (ctx: SlashCommandContext | ButtonContext): Promise<void> => {
-    return await ctx.reply(await buildAdventCalendarMessage(ctx));
+    return await safeReply(ctx, await buildAdventCalendarMessage(ctx));
   };
 
   public components = [
@@ -34,7 +35,7 @@ export class AdventCalendar implements ISlashCommand {
       "adventcalendar.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await buildAdventCalendarMessage(ctx));
+        return await safeReply(ctx, await buildAdventCalendarMessage(ctx));
       }
     )
   ];

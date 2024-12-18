@@ -16,6 +16,7 @@ import { getRandomElement } from "../util/helpers/arrayHelper";
 import humanizeDuration = require("humanize-duration");
 import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { safeReply } from "../util/discord/MessageExtenstions";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/server-info/server-info-1.jpg",
@@ -31,7 +32,7 @@ export class ServerInfo implements ISlashCommand {
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
         const message = await this.buildServerInfoEmbed(ctx);
-        await ctx.reply(message);
+        await safeReply(ctx, message);
       }
     )
   ];
@@ -43,15 +44,15 @@ export class ServerInfo implements ISlashCommand {
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     if (ctx.isDM) {
-      return await ctx.reply("This command can only be used in a server.");
+      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
     }
     if (!ctx.game) {
-      return await ctx.reply("No game data found for this server.");
+      return await safeReply(ctx, new MessageBuilder().setContent("No game data found for this server."));
     }
 
     const embed = await this.buildServerInfoEmbed(ctx);
 
-    return await ctx.reply(embed);
+    return await safeReply(ctx, embed);
   };
 
   private getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): string {

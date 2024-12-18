@@ -16,6 +16,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../../util/unleash/UnleashHelpe
 import { Boosters } from "./categories/Boosters";
 import { Cosmetics } from "./categories/Cosmetics";
 import { DynamicButtonsCommandType } from "../../util/types/command/DynamicButtonsCommandType";
+import { safeReply } from "../../util/discord/MessageExtenstions";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -33,7 +34,7 @@ export class Shop implements ISlashCommand, DynamicButtonsCommandType {
   );
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return ctx.reply(await buildShopMessage(ctx));
+    return safeReply(ctx, await buildShopMessage(ctx));
   };
 
   public components = [
@@ -46,16 +47,16 @@ export class Shop implements ISlashCommand, DynamicButtonsCommandType {
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
-          return await ctx.reply(BanHelper.getBanEmbed(ctx.user.username));
+          return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
         }
-        return await ctx.reply(await buildShopMessage(ctx));
+        return await safeReply(ctx, await buildShopMessage(ctx));
       }
     ),
     new Button(
       "shop.main",
       new ButtonBuilder().setEmoji({ name: "🏠" }).setStyle(2).setLabel("Shop menu"),
       async (ctx: ButtonContext): Promise<void> => {
-        return await ctx.reply(await buildShopMessage(ctx));
+        return await safeReply(ctx, await buildShopMessage(ctx));
       }
     )
   ];
