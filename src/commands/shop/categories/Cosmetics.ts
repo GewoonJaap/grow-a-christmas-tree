@@ -16,7 +16,7 @@ import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { DynamicButtonsCommandType } from "../../../util/types/command/DynamicButtonsCommandType";
 import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/FestiveStyleResponseType";
-import { StyleItemShopApi } from "../../../util/api/item-shop/StyleItemShopApi";
+import { StyleItemShopApi, DailyItemShopStylesResult } from "../../../util/api/item-shop/StyleItemShopApi";
 import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
 import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
 import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
@@ -102,8 +102,20 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
   }
 
   public async registerDynamicButtons(componentManager: ComponentManager): Promise<void> {
-    const allStyles = await this.getAllStyles();
+    const allStyles = await this.getAllStyles(componentManager);
     await this.registerStyleButtons(componentManager, allStyles);
+  }
+
+  private async unregisterStyleButtons(
+    componentManager: ComponentManager,
+    styles: (FestiveImageStyle | ItemShopStyleItem)[]
+  ): Promise<void> {
+    const buttons = styles.map((_, index) => `shop.cosmetics.buy.style_${index + 1}`);
+    buttons.forEach((button) => {
+      if (componentManager.has(button)) {
+        componentManager.unregister(button);
+      }
+    });
   }
 
   private async registerStyleButtons(
@@ -142,7 +154,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       );
     }
 
-    const allStyles = await this.getAllStyles();
+    const allStyles = await this.getAllStyles(ctx.manager.components);
     const paginatedStyles = this.paginateStyles(allStyles, state.page);
 
     const localeTimeString = this.refreshTime.toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), {
@@ -251,7 +263,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       );
     }
 
-    const allStyles = await this.getAllStyles();
+    const allStyles = await this.getAllStyles(ctx.manager.components);
     const defaultStyles = await imageStyleApi.getImageStyles();
 
     const styleAvailable =
@@ -335,17 +347,25 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     return response.success ? response.styles : [];
   }
 
-  private async getItemShopStyles(): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
-    const response = await styleItemShopApi.getDailyItemShopStyles();
-    this.refreshTime = new Date(response.refreshTime);
-    return response.items;
+  private async getItemShopStyles(): Promise<DailyItemShopStylesResult> {
+    const response: DailyItemShopStylesResult = await styleItemShopApi.getDailyItemShopStyles();
+    this.refreshTime = new Date(response.data.refreshTime);
+
+    return response;
   }
 
-  private async getAllStyles(): Promise<(FestiveImageStyle | ItemShopStyleItem)[]> {
+  private async getAllStyles(componentManager: ComponentManager): Promise<(FestiveImageStyle | ItemShopStyleItem)[]> {
     const festiveStyles = await this.getFestiveTreeStyles();
     const itemShopStyles = await this.getItemShopStyles();
-    const flatItemShop = Object.values(itemShopStyles).flat();
-    return [...festiveStyles, ...flatItemShop];
+    const flatItemShop = Object.values(itemShopStyles.data.items).flat();
+    const allStyle = [...festiveStyles, ...flatItemShop];
+
+    if (!itemShopStyles.fromCache) {
+      console.log("Refreshing item shop styles...");
+      await this.unregisterStyleButtons(componentManager, allStyle);
+      await this.registerStyleButtons(componentManager, allStyle);
+    }
+    return allStyle;
   }
 
   private transitionBackToDefaultShopViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
