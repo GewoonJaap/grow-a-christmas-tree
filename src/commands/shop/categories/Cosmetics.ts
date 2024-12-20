@@ -361,6 +361,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     const allStyle = [...festiveStyles, ...flatItemShop];
 
     if (!itemShopStyles.fromCache) {
+      console.log("Refreshing item shop styles...");
       await this.unregisterStyleButtons(componentManager, allStyle);
       await this.registerStyleButtons(componentManager, allStyle);
     }
