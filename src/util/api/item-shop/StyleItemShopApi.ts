@@ -1,6 +1,11 @@
 import { CachedResponse } from "../../types/api/CachedResponseType";
 import { DailyItemShopResponse } from "../../types/api/ItemShopApi/DailyItemShopResponseType";
 
+export type DailyItemShopStylesResult = {
+  data: DailyItemShopResponse;
+  fromCache: boolean;
+};
+
 export class StyleItemShopApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
   private cachedDailyItems: CachedResponse<DailyItemShopResponse> | undefined;
@@ -11,9 +16,9 @@ export class StyleItemShopApi {
     }
   }
 
-  public async getDailyItemShopStyles(): Promise<DailyItemShopResponse> {
+  public async getDailyItemShopStyles(): Promise<DailyItemShopStylesResult> {
     if (this.cachedDailyItems != undefined && this.isCacheValid(this.cachedDailyItems)) {
-      return this.cachedDailyItems.data;
+      return { data: this.cachedDailyItems.data, fromCache: true };
     }
     try {
       const response = await fetch(`${this.apiUrl}/api/item-shop/styles/daily-items`, {
@@ -21,13 +26,16 @@ export class StyleItemShopApi {
       });
       const jsonData = await response.json();
       this.cacheDailyItemsResponse(jsonData);
-      return jsonData;
+      return { data: jsonData, fromCache: false };
     } catch (error) {
       console.error(error);
       return {
-        success: false,
-        items: { Common: [], Rare: [], Epic: [], Legendary: [] },
-        refreshTime: new Date().toUTCString()
+        data: {
+          success: false,
+          items: { Common: [], Rare: [], Epic: [], Legendary: [] },
+          refreshTime: new Date().toUTCString()
+        },
+        fromCache: false
       };
     }
   }

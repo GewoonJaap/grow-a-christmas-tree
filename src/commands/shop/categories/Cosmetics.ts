@@ -102,8 +102,21 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
   }
 
   public async registerDynamicButtons(componentManager: ComponentManager): Promise<void> {
-    const allStyles = await this.getAllStyles();
+    const allStyles = await this.getAllStyles(componentManager);
+    await this.unregisterStyleButtons(componentManager, allStyles);
     await this.registerStyleButtons(componentManager, allStyles);
+  }
+
+  private async unregisterStyleButtons(
+    componentManager: ComponentManager,
+    styles: (FestiveImageStyle | ItemShopStyleItem)[]
+  ): Promise<void> {
+    const buttons = styles.map((_, index) => `shop.cosmetics.buy.style_${index + 1}`);
+    buttons.forEach((button) => {
+      if (componentManager.has(button)) {
+        componentManager.unregister(button);
+      }
+    });
   }
 
   private async registerStyleButtons(
@@ -142,7 +155,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       );
     }
 
-    const allStyles = await this.getAllStyles();
+    const allStyles = await this.getAllStyles(ctx.manager.components);
     const paginatedStyles = this.paginateStyles(allStyles, state.page);
 
     const localeTimeString = this.refreshTime.toLocaleString(getLocaleFromTimezone(ctx.game.timeZone), {
@@ -251,7 +264,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       );
     }
 
-    const allStyles = await this.getAllStyles();
+    const allStyles = await this.getAllStyles(ctx.manager.components);
     const defaultStyles = await imageStyleApi.getImageStyles();
 
     const styleAvailable =
@@ -335,15 +348,20 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     return response.success ? response.styles : [];
   }
 
-  private async getItemShopStyles(): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
+  private async getItemShopStyles(
+    componentManager: ComponentManager
+  ): Promise<Record<StyleItemRarity, ItemShopStyleItem[]>> {
     const response = await styleItemShopApi.getDailyItemShopStyles();
-    this.refreshTime = new Date(response.refreshTime);
-    return response.items;
+    this.refreshTime = new Date(response.data.refreshTime);
+    if (!response.fromCache) {
+      this.registerDynamicButtons(componentManager);
+    }
+    return response.data.items;
   }
 
-  private async getAllStyles(): Promise<(FestiveImageStyle | ItemShopStyleItem)[]> {
+  private async getAllStyles(componentManager: ComponentManager): Promise<(FestiveImageStyle | ItemShopStyleItem)[]> {
     const festiveStyles = await this.getFestiveTreeStyles();
-    const itemShopStyles = await this.getItemShopStyles();
+    const itemShopStyles = await this.getItemShopStyles(componentManager);
     const flatItemShop = Object.values(itemShopStyles).flat();
     return [...festiveStyles, ...flatItemShop];
   }
