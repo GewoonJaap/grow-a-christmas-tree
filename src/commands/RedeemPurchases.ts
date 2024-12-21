@@ -16,6 +16,7 @@ import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { Metrics } from "../tracing/metrics"; // Import Metrics
 
 const builder = new SlashCommandBuilder("redeempurchases", "Redeem all your purchases from the shop");
 
@@ -92,6 +93,8 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
       if (reward.booster) {
         boostersToApply.push(reward.booster);
       }
+      // Log item name and other relevant details when a purchase is redeemed
+      Metrics.recordShopPurchaseMetric(entitlement.sku_id, userId, ctx.interaction.guild_id ?? ctx.game?.id);
     }
   }
 

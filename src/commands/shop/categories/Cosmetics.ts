@@ -23,6 +23,7 @@ import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
 import { getLocaleFromTimezone } from "../../../util/timezones";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
+import { Metrics } from "../../../tracing/metrics"; // Import Metrics
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -300,6 +301,9 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     await WalletHelper.removeCoins(ctx.user.id, cost);
 
     await TreeStyleHelper.addNewStyle(ctx, styleName);
+
+    // Log item name and other relevant details when a cosmetic purchase is made
+    Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id);
 
     const embed = await this.getTreeStyleEmbed(styleName);
 

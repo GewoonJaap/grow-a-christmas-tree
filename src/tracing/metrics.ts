@@ -37,4 +37,36 @@ export class Metrics {
 
     commandMetric.add(1, { command: commandName, user: userId, guild: guildId ?? "unknown" });
   }
+
+  static recordShopPurchaseMetric(itemName: string, userId: string, guildId?: string): void {
+    const shopPurchaseMetric = meter.createCounter("shop_purchases", {
+      description: "Counts the number of shop purchases"
+    });
+
+    shopPurchaseMetric.add(1, { item: itemName, user: userId, guild: guildId ?? "unknown" });
+  }
+
+  static recordCosmeticPurchaseMetric(itemName: string, userId: string, guildId?: string): void {
+    const cosmeticPurchaseMetric = meter.createCounter("cosmetic_purchases", {
+      description: "Counts the number of cosmetic purchases"
+    });
+
+    cosmeticPurchaseMetric.add(1, { item: itemName, user: userId, guild: guildId ?? "unknown" });
+  }
+
+  static recordWheelSpinMetric(userId: string, guildId: string, rewardType: string, rewardAmount: number): void {
+    const wheelSpinMetric = meter.createCounter("wheel_spins", {
+      description: "Counts the number of wheel spins"
+    });
+
+    wheelSpinMetric.add(1, { user: userId, guild: guildId, rewardType, rewardAmount });
+  }
+
+  static recordAdventCalendarWinMetric(userId: string, rewardDetails: string): void {
+    const adventCalendarWinMetric = meter.createCounter("advent_calendar_wins", {
+      description: "Counts the number of advent calendar wins"
+    });
+
+    adventCalendarWinMetric.add(1, { user: userId, reward: rewardDetails });
+  }
 }
