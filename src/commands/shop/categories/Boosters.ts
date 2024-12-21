@@ -227,7 +227,7 @@ export class Boosters implements PartialCommand {
       embed.setFooter({ text: festiveMessages.message });
     }
 
-    return new MessageBuilder().addEmbed().addComponents(actionRow);
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
   private transitionBackToDefaultShopViewWithTimeout(ctx: ButtonContext, delay = 4000): void {

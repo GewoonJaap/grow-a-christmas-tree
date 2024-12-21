@@ -17,7 +17,7 @@ import { DynamicButtonsCommandType } from "../../../util/types/command/DynamicBu
 import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/FestiveStyleResponseType";
 import { StyleItemShopApi, DailyItemShopStylesResult } from "../../../util/api/item-shop/StyleItemShopApi";
-import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
+import { ItemShopStyleItem } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
 import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
 import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
 import { getLocaleFromTimezone } from "../../../util/timezones";
