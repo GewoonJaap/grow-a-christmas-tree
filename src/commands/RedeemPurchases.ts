@@ -95,10 +95,10 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
     }
   }
 
-  const multiplier = SpecialDayHelper.shopPurchaseMultiplier();
-  if (multiplier !== 1) {
-    totalCoins = Math.floor(totalCoins * multiplier);
-    totalLuckyTickets = Math.floor(totalLuckyTickets * multiplier);
+  const shopPurchaseMultiplierData = SpecialDayHelper.getSpecialDayMultipliers();
+  if (shopPurchaseMultiplierData.isActive) {
+    totalCoins = Math.floor(totalCoins * shopPurchaseMultiplierData.realMoneyShop.multiplier);
+    totalLuckyTickets = Math.floor(totalLuckyTickets * shopPurchaseMultiplierData.realMoneyShop.multiplier);
   }
 
   if (totalCoins > 0) {
@@ -123,7 +123,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
         `🎟️ **${totalLuckyTickets} lucky tickets**\n` +
         `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}` +
         `${
-          multiplier !== 1 ? `\n\n🎉 **Special Day Multiplier Applied!** You received ${multiplier}x more rewards!` : ""
+          shopPurchaseMultiplierData.isActive
+            ? `\n\n🎉 **Special Day Multiplier Applied!** ${shopPurchaseMultiplierData.realMoneyShop.reason}`
+            : ""
         }`
     )
     .setColor(0x00ff00)

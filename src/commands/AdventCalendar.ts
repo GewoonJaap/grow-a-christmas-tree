@@ -132,6 +132,7 @@ async function buildPresentOpenedMessage(
   ctx: SlashCommandContext | ButtonContext,
   present: WonPresent
 ): Promise<MessageBuilder> {
+  const festiveMessage = SpecialDayHelper.getFestiveMessage();
   const embed = new EmbedBuilder()
     .setTitle("🎁 Santa's Advent Calendar 🎄")
     .setDescription(
@@ -145,6 +146,8 @@ async function buildPresentOpenedMessage(
       `🎁 <@${ctx.user.id}>, you've unwrapped your special advent calendar gift and received **${present.displayText}**! 🎄✨\n\n🎅 Wishing you a magical and Merry Christmas! 🎅`
     );
     embed.setFooter({ text: "We wish you a Merry Christmas!🎅" });
+  } else if (festiveMessage.isPresent) {
+    embed.setFooter({ text: festiveMessage.message });
   }
 
   const actionRow = new ActionRowBuilder().addComponents(

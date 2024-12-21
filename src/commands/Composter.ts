@@ -18,6 +18,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
 import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -109,6 +110,7 @@ function upsellText(hasPremium: boolean): MessageUpsellType {
 }
 
 async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+  const festiveMessage = SpecialDayHelper.getFestiveMessage();
   if (!ctx.game) {
     return new MessageBuilder().addEmbed(
       new EmbedBuilder()
@@ -141,10 +143,14 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
   const embed = new EmbedBuilder()
     .setTitle("Santa's Magic Composter")
     .setDescription(
-      `Upgrade the composter to make your tree grow faster!\n\n🧝 **Elf-Powered Efficiency:** Increases the chance that Santa’s workshop elves give your tree an extra magical boost!\n✨ **Sparkling Spirit:** Enhances the growth boost your tree receives each time you water it!\n\n🧝 **Current Efficiency Level:** ${efficiencyLevel}\n🪙 **Efficiency Upgrade Cost:** ${efficiencyUpgradeCost} coins\n\n✨ **Current Quality Level:** ${qualityLevel}\n🪙 **Quality Upgrade Cost:** ${qualityUpgradeCost} coins\n\n**Extra Growth Chance:** ${growthChance}%\n**Growth Amount:** ${growthAmount}ft`
+      `Upgrade the composter to make your tree grow faster!\n\n🧝 **Elf-Powered Efficiency:** Increases the chance that Santa's workshop elves give your tree an extra magical boost!\n✨ **Sparkling Spirit:** Enhances the growth boost your tree receives each time you water it!\n\n🧝 **Current Efficiency Level:** ${efficiencyLevel}\n🪙 **Efficiency Upgrade Cost:** ${efficiencyUpgradeCost} coins\n\n✨ **Current Quality Level:** ${qualityLevel}\n🪙 **Quality Upgrade Cost:** ${qualityUpgradeCost} coins\n\n**Extra Growth Chance:** ${growthChance}%\n**Growth Amount:** ${growthAmount}ft`
     )
     .setImage(getRandomElement(composterImages) ?? "")
     .setFooter({ text: upsellData.message });
+
+  if (festiveMessage.isPresent) {
+    embed.setFooter({ text: festiveMessage.message });
+  }
 
   const actionRow = new ActionRowBuilder();
 

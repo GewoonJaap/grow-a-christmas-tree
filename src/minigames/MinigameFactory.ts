@@ -24,6 +24,7 @@ import { buildTreeDisplayMessage, disposeActiveTimeouts } from "../commands";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -182,6 +183,8 @@ export async function handleMinigameCoins(
 ): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
 
+  const festiveDayModifier = SpecialDayHelper.getSpecialDayMultipliers();
+
   const baseCoins = success ? 30 : -5;
   const difficultyBonus = difficulty * (success ? 1 : -1);
   const timeBonus = 0;
@@ -189,6 +192,10 @@ export async function handleMinigameCoins(
   const ramdomBonus = Math.floor(Math.random() * 20);
 
   let totalCoins = Math.abs(baseCoins + difficultyBonus + timeBonus + premiumBonus + ramdomBonus);
+
+  if (festiveDayModifier.isActive) {
+    totalCoins = Math.floor(totalCoins * festiveDayModifier.coins.multiplier);
+  }
 
   if (totalCoins > 0) {
     totalCoins = BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Coin Booster", totalCoins);

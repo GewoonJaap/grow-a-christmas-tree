@@ -17,11 +17,12 @@ import { DynamicButtonsCommandType } from "../../../util/types/command/DynamicBu
 import { ImageStylesApi } from "../../../util/api/image-styles/ImageStyleApi";
 import { FestiveImageStyle } from "../../../util/types/api/ImageStylesApi/FestiveStyleResponseType";
 import { StyleItemShopApi, DailyItemShopStylesResult } from "../../../util/api/item-shop/StyleItemShopApi";
-import { ItemShopStyleItem, StyleItemRarity } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
+import { ItemShopStyleItem } from "../../../util/types/api/ItemShopApi/DailyItemShopResponseType";
 import { ImageStyle } from "../../../util/types/api/ImageStylesApi/ImageStylesResponseType";
 import { TreeStyleHelper } from "../../../util/tree-styles/TreeStyleHelper";
 import { getLocaleFromTimezone } from "../../../util/timezones";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
+import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -389,6 +390,8 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     showPremiumButton = false,
     styleName?: string
   ): Promise<MessageBuilder> {
+    const festiveMessage = SpecialDayHelper.getFestiveMessage();
+
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.cosmetics.refresh")
     );
@@ -396,14 +399,15 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       actionRow.addComponents(PremiumButtons.FestiveForestButton);
     }
     this.transitionBackToDefaultShopViewWithTimeout(ctx);
-    return new MessageBuilder()
-      .addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎅 Purchase Failed! ❄️")
-          .setDescription(description)
-          .setImage(await this.getTreeImageUrl(styleName))
-      )
-      .addComponents(actionRow);
+    const embed = new EmbedBuilder()
+      .setTitle("🎅 Purchase Failed! ❄️")
+      .setDescription(description)
+      .setImage(await this.getTreeImageUrl(styleName));
+
+    if (festiveMessage.isPresent) {
+      embed.setFooter({ text: festiveMessage.message });
+    }
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
   private async buildNotEnoughCoinsMessage(
@@ -411,6 +415,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     cost: number,
     styleName: string
   ): Promise<MessageBuilder> {
+    const festiveMessage = SpecialDayHelper.getFestiveMessage();
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.cosmetics.refresh")
     );
@@ -419,15 +424,16 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       actionRow.addComponents(PremiumButtons.LuckyCoinBagButton);
     }
     this.transitionBackToDefaultShopViewWithTimeout(ctx);
-    return new MessageBuilder()
-      .addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎅 Not Enough Coins! ❄️")
-          .setDescription(
-            `You need **${cost}** coins to purchase the **${styleName}** tree style. Keep earning and come back soon! 🎄`
-          )
-          .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0])
+    const embed = new EmbedBuilder()
+      .setTitle("🎅 Not Enough Coins! ❄️")
+      .setDescription(
+        `You need **${cost}** coins to purchase the **${styleName}** tree style. Keep earning and come back soon! 🎄`
       )
-      .addComponents(actionRow);
+      .setImage(getRandomElement(COSMETIC_IMAGES) ?? COSMETIC_IMAGES[0]);
+
+    if (festiveMessage.isPresent) {
+      embed.setFooter({ text: festiveMessage.message });
+    }
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 }

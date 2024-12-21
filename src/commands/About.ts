@@ -11,6 +11,7 @@ import {
 } from "interactions.ts";
 import { SUPPORT_SERVER_INVITE } from "../util/const";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 
 export class About implements ISlashCommand {
   public builder = new SlashCommandBuilder("about", "Learn about all the magical commands!");
@@ -30,6 +31,7 @@ export class About implements ISlashCommand {
   ];
 
   private async buildAboutMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+    const festiveMessage = SpecialDayHelper.getFestiveMessage();
     const embed = new EmbedBuilder()
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/about/about-1.jpg")
       .setTitle("🎅 About Christmas Tree")
@@ -76,6 +78,10 @@ export class About implements ISlashCommand {
         🛒 **[Visit the store](https://discord.com/application-directory/1050722873569968128/store)** to support the bot by purchasing items.
         `
       );
+
+    if (festiveMessage.isPresent) {
+      embed.setFooter({ text: festiveMessage.message });
+    }
 
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("about.refresh")

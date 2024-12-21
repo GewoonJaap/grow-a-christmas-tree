@@ -130,6 +130,8 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
     actionRow.addComponents(await ctx.manager.components.createInstance("profile.next", { id, nick, page }));
   }
 
+  const festiveMessage = SpecialDayHelper.getFestiveMessage();
+
   const description = `${ctx.user.id === id ? `You have` : `This user has`} ${
     contributor
       ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
@@ -140,13 +142,12 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
     wallet ? wallet.streak : 0
   } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`;
 
-  const christmasMessage = SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy the festive season! 🎄" : "";
-
   return new MessageBuilder()
     .addEmbed(
       new EmbedBuilder()
         .setTitle(`${isBanned ? CHEATER_CLOWN_EMOJI : ""}${nick}'s Contributions`)
-        .setDescription(description + christmasMessage)
+        .setDescription(description)
+        .setFooter({ text: festiveMessage.isPresent ? festiveMessage.message : "" })
     )
     .addComponents(actionRow);
 }

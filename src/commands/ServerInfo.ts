@@ -91,6 +91,8 @@ export class ServerInfo implements ISlashCommand {
     const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
     const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
 
+    const festiveMessage = SpecialDayHelper.getFestiveMessage();
+
     const messageBuilder = new MessageBuilder();
     const embed = new EmbedBuilder()
       .setTitle("🎇 The Sparkling Christmas Tree")
@@ -100,8 +102,8 @@ export class ServerInfo implements ISlashCommand {
           `**🧝 Composter Efficiency Level:** ${efficiencyLevel} 🛠️\n` +
           `**✨ Composter Quality Level:** ${qualityLevel} 🌟\n\n` +
           `**Active Boosters:**\n${this.getActiveBoostersText(ctx)}\n` +
-          `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}\n\n` +
-          `${SpecialDayHelper.isChristmas() ? "🎄 Merry Christmas! Enjoy the festive season! 🎄" : ""}`
+          `**Unlocked Tree Styles:**\n${this.getUnlockedTreeStylesText(ctx)}` +
+          `${festiveMessage.isPresent ? `\n\n${festiveMessage.message}` : ""}`
       )
       .setColor(0x00ff00)
       .setImage(getRandomElement(IMAGES) ?? IMAGES[0])

@@ -17,6 +17,7 @@ import { Boosters } from "./categories/Boosters";
 import { Cosmetics } from "./categories/Cosmetics";
 import { DynamicButtonsCommandType } from "../../util/types/command/DynamicButtonsCommandType";
 import { safeReply } from "../../util/discord/MessageExtenstions";
+import { SpecialDayHelper } from "../../util/special-days/SpecialDayHelper";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -71,12 +72,17 @@ export class Shop implements ISlashCommand, DynamicButtonsCommandType {
 }
 
 async function buildShopMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
   const embed = new EmbedBuilder()
     .setTitle("🎄 **The Christmas Shop** 🎁")
     .setDescription(
       "🎄 Welcome to the Christmas Shop! Discover limited-time boosters and cosmetics to power up your tree and make it the star of the season! 🌟\n\nUse **`/serverinfo`** to view your active boosters."
     )
     .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("shop.boosters"),

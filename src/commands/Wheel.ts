@@ -64,6 +64,7 @@ export class Wheel implements ISlashCommand {
 async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
   const wheelState = await WheelStateHelper.getWheelState(userId);
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
 
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
@@ -73,6 +74,10 @@ async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Prom
       } to win coins, tickets, and festive composter upgrades! 🎅✨`
     )
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
@@ -88,6 +93,8 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     return new MessageBuilder().setContent("This command can only be used in a server with a tree.");
   }
 
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
+
   const userId = ctx.user.id;
   const wheelState = await WheelStateHelper.getWheelState(userId);
 
@@ -97,6 +104,10 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       .setDescription("🎟️ **You need at least one ticket to give the wheel a spin!** 🎄")
       .setColor(0xff0000)
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+    if (festiveMessages.isPresent) {
+      embed.setFooter({ text: festiveMessages.message });
+    }
 
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("wheel.refresh"));
 
@@ -114,6 +125,10 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       .setColor(0xff0000)
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
 
+    if (festiveMessages.isPresent) {
+      embed.setFooter({ text: festiveMessages.message });
+    }
+
     return new MessageBuilder().addEmbed(embed);
   }
 
@@ -128,13 +143,13 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       : REWARDS[reward.type].displayName;
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
-    .setDescription(
-      `🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁${
-        SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy double rewards today! 🎄" : ""
-      }`
-    )
+    .setDescription(`🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁`)
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
@@ -146,11 +161,16 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 }
 
 async function showWinChances(ctx: ButtonContext): Promise<MessageBuilder> {
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
   const chancesDescription = Object.entries(REWARDS)
     .map(([key, { displayName, probability }]) => `**${displayName}:** ${(probability * 100).toFixed(2)}%`)
     .join("\n");
 
   const embed = new EmbedBuilder().setTitle("🎰 Win Chances").setDescription(chancesDescription).setColor(0x00ff00);
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   return new MessageBuilder().addEmbed(embed);
 }
@@ -159,24 +179,32 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
   const random = Math.random();
   let cumulativeProbability = 0;
 
+  const festiveMultiplier = SpecialDayHelper.getSpecialDayMultipliers();
+
   for (const [reward, { probability }] of Object.entries(REWARDS) as [RewardType, Reward][]) {
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
         const amount = Math.floor(Math.random() * (isPremium ? 65 : 15)) + 10;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount };
+        return {
+          type: reward,
+          amount: festiveMultiplier.isActive ? amount * festiveMultiplier.coins.multiplier : amount
+        };
       } else if (reward === "tickets") {
         const amount = Math.floor(Math.random() * (isPremium ? 3 : 1)) + 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount };
+        return {
+          type: reward,
+          amount: festiveMultiplier.isActive ? amount * festiveMultiplier.tickets.multiplier : amount
+        };
       } else if (reward === "composterEfficiencyUpgrade") {
         const amount = 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Always 1 level upgrade
+        return { type: reward, amount: festiveMultiplier.isActive ? amount * 2 : amount }; // Always 1 level upgrade
       } else if (reward === "composterQualityUpgrade") {
         const amount = 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Always 1 level upgrade
+        return { type: reward, amount: festiveMultiplier.isActive ? amount * 2 : amount }; // Always 1 level upgrade
       } else if (reward === "treeSize") {
         const amount = Math.floor(Math.random() * (isPremium ? 25 : 10)) + 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
+        return { type: reward, amount: festiveMultiplier.isActive ? amount * 2 : amount }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
       }
       return { type: reward };
     }
