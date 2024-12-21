@@ -62,8 +62,8 @@ export class SpecialDayHelper {
           reason: "🎅🎄 Ho-Ho-Ho! It's Christmas! Enjoy **25%** more coins on your purchases! 🎁✨"
         },
         tickets: {
-          multiplier: 1.5,
-          reason: "🎅🎄 Ho-Ho-Ho! It's Christmas! Enjoy **50%** more tickets and spread the festive cheer! 🎁✨"
+          multiplier: 2,
+          reason: "🎅🎄 Ho-Ho-Ho! It's Christmas! Enjoy **100%** more tickets and spread the festive cheer! 🎁✨"
         },
         coins: {
           multiplier: 1.5,
@@ -92,7 +92,7 @@ export class SpecialDayHelper {
           reason: "🎉🥂 Happy New Year's Eve! Enjoy **25%** more coins on your purchases! ✨"
         },
         tickets: {
-          multiplier: 1.5,
+          multiplier: 2,
           reason:
             "🎉🥂 Happy New Year's Eve! Enjoy **50%** more tickets and ring in the new year with a festive boost! ✨"
         },
@@ -122,7 +122,7 @@ export class SpecialDayHelper {
           reason: "💖🌹 Happy Valentine's Day! Enjoy **25%** more coins on your purchases! 💝✨"
         },
         tickets: {
-          multiplier: 1.5,
+          multiplier: 2,
           reason: "💖🌹 Happy Valentine's Day! Enjoy **50%** more tickets and spread the love! 💝✨"
         },
         coins: {
@@ -150,7 +150,7 @@ export class SpecialDayHelper {
           reason: "🦃🍂 Happy Thanksgiving! Enjoy **25%** more coins on your purchases! 🍁✨"
         },
         tickets: {
-          multiplier: 1.5,
+          multiplier: 2,
           reason: "🦃🍂 Happy Thanksgiving! Enjoy **50%** more tickets and give thanks for all the blessings! 🍁✨"
         },
         coins: {
@@ -178,7 +178,7 @@ export class SpecialDayHelper {
           reason: "🛍️💸 It's Black Friday! Enjoy **25%** more coins on your purchases! 🛒✨"
         },
         tickets: {
-          multiplier: 1.5,
+          multiplier: 2,
           reason: "🛍️💸 It's Black Friday! Enjoy **50%** more tickets and grab the best deals! 🛒✨"
         },
         coins: {
