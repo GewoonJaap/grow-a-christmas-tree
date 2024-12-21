@@ -15,6 +15,7 @@ import { AdventCalendarHelper, WonPresent } from "../util/adventCalendar/AdventC
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { Metrics } from "../tracing/metrics"; // Import Metrics
 
 const CHRISTMAS_DAY_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/christmas-day/advent-calendar-christmasday-1.jpg"
@@ -74,6 +75,9 @@ async function buildAdventCalendarMessage(ctx: SlashCommandContext | ButtonConte
   if (!present) {
     return new MessageBuilder().setContent("An error occurred while opening your present. Please try again later.");
   }
+
+  // Log user ID and reward details when a present is opened
+  Metrics.recordAdventCalendarWinMetric(userId, present.displayText);
 
   return buildPresentOpenedMessage(ctx, present);
 }

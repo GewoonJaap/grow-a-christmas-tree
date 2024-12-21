@@ -1,9 +1,14 @@
 import "dotenv/config";
+
+// Import and initialize telemetry and metrics
+import "./tracing/sdk";
+
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
 import * as nacl from "tweetnacl";
 import {
   AutocompleteContext,
+  ButtonContext,
   DiscordApplication,
   InteractionContext,
   InteractionHandlerTimedOut,
@@ -51,6 +56,7 @@ import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
 import { runMigrations } from "./migrations";
 import { safeReply } from "./util/discord/MessageExtenstions";
+import { Metrics } from "./tracing/metrics";
 
 const VERSION = "2.0";
 
@@ -94,6 +100,16 @@ if (keys.some((key) => !(key in process.env))) {
         if (!ctx.interaction.guild_id) return;
 
         let game;
+
+        if (ctx instanceof SlashCommandContext) {
+          Metrics.recordCommandMetric(ctx.interaction.data.name, ctx.user.id, ctx.interaction.guild_id);
+        } else if (ctx instanceof ButtonContext) {
+          Metrics.recordCommandMetric(
+            ctx.interaction.data.custom_id.split(".")[0].split("_")[0].trim(),
+            ctx.user.id,
+            ctx.interaction.guild_id
+          );
+        }
 
         try {
           game = await Guild.findOne({ id: ctx.interaction.guild_id });
