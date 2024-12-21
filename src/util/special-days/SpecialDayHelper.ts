@@ -94,7 +94,7 @@ export class SpecialDayHelper {
         tickets: {
           multiplier: 2,
           reason:
-            "🎉🥂 Happy New Year's Eve! Enjoy **50%** more tickets and ring in the new year with a festive boost! ✨"
+            "🎉🥂 Happy New Year's Eve! Enjoy **100%** more tickets and ring in the new year with a festive boost! ✨"
         },
         coins: {
           multiplier: 1.5,
@@ -123,7 +123,7 @@ export class SpecialDayHelper {
         },
         tickets: {
           multiplier: 2,
-          reason: "💖🌹 Happy Valentine's Day! Enjoy **50%** more tickets and spread the love! 💝✨"
+          reason: "💖🌹 Happy Valentine's Day! Enjoy **100%** more tickets and spread the love! 💝✨"
         },
         coins: {
           multiplier: 1.5,
@@ -151,7 +151,7 @@ export class SpecialDayHelper {
         },
         tickets: {
           multiplier: 2,
-          reason: "🦃🍂 Happy Thanksgiving! Enjoy **50%** more tickets and give thanks for all the blessings! 🍁✨"
+          reason: "🦃🍂 Happy Thanksgiving! Enjoy **100%** more tickets and give thanks for all the blessings! 🍁✨"
         },
         coins: {
           multiplier: 1.5,
@@ -179,7 +179,7 @@ export class SpecialDayHelper {
         },
         tickets: {
           multiplier: 2,
-          reason: "🛍️💸 It's Black Friday! Enjoy **50%** more tickets and grab the best deals! 🛒✨"
+          reason: "🛍️💸 It's Black Friday! Enjoy **100%** more tickets and grab the best deals! 🛒✨"
         },
         coins: {
           multiplier: 1.5,
