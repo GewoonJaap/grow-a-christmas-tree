@@ -15,6 +15,7 @@ import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 import humanizeDuration = require("humanize-duration");
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
+import { PremiumButtons } from "../../../util/buttons/PremiumButtons";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -159,6 +160,8 @@ export class Boosters implements PartialCommand {
       );
     }
 
+    const festiveMessages = SpecialDayHelper.getFestiveMessage();
+
     const specialDayMultipliers = SpecialDayHelper.getSpecialDayMultipliers();
     const discountModifier = specialDayMultipliers.isActive
       ? specialDayMultipliers.inGameShop.boosters.priceMultiplier
@@ -172,16 +175,22 @@ export class Boosters implements PartialCommand {
         await ctx.manager.components.createInstance("shop.boosters.refresh")
       );
       this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder()
-        .addEmbed(
-          new EmbedBuilder()
-            .setTitle("🎅 Not Enough Coins! ❄️")
-            .setDescription(
-              `You need **${discountedCost}** coins to purchase: **${booster.name}**. Keep earning and come back soon! 🎄`
-            )
-            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+      const embed = new EmbedBuilder()
+        .setTitle("🎅 Not Enough Coins! ❄️")
+        .setDescription(
+          `You need **${discountedCost}** coins to purchase: **${booster.name}**. Keep earning and come back soon! 🎄`
         )
-        .addComponents(actionRow);
+        .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
+
+      if (festiveMessages.isPresent) {
+        embed.setFooter({ text: festiveMessages.message });
+      }
+
+      if (!process.env.DEV_MODE) {
+        actionRow.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
+      }
+
+      return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     }
 
     const result = await BoosterHelper.purchaseBooster(ctx, booster.name);
@@ -190,14 +199,16 @@ export class Boosters implements PartialCommand {
         await ctx.manager.components.createInstance("shop.boosters.refresh")
       );
       this.transitionBackToDefaultShopViewWithTimeout(ctx);
-      return new MessageBuilder()
-        .addEmbed(
-          new EmbedBuilder()
-            .setTitle("🎅 Purchase Failed! ❄️")
-            .setDescription(`Sorry, something went wrong. Please try again later. 🎄`)
-            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
-        )
-        .addComponents(actionRow);
+      const embed = new EmbedBuilder()
+        .setTitle("🎅 Purchase Failed! ❄️")
+        .setDescription(`Sorry, something went wrong. Please try again later. 🎄`)
+        .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
+
+      if (festiveMessages.isPresent) {
+        embed.setFooter({ text: festiveMessages.message });
+      }
+
+      return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     }
     await ctx.game.save();
 
@@ -207,14 +218,16 @@ export class Boosters implements PartialCommand {
       await ctx.manager.components.createInstance("shop.boosters.refresh")
     );
 
-    return new MessageBuilder()
-      .addEmbed(
-        new EmbedBuilder()
-          .setTitle("🎁 Purchase Complete!")
-          .setDescription(`You've successfully acquired **${booster.name}**! Let the magic begin! 🎄✨`)
-          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
-      )
-      .addComponents(actionRow);
+    const embed = new EmbedBuilder()
+      .setTitle("🎁 Purchase Complete!")
+      .setDescription(`You've successfully acquired **${booster.name}**! Let the magic begin! 🎄✨`)
+      .setImage(getRandomElement(IMAGES) ?? IMAGES[0]);
+
+    if (festiveMessages.isPresent) {
+      embed.setFooter({ text: festiveMessages.message });
+    }
+
+    return new MessageBuilder().addEmbed().addComponents(actionRow);
   }
 
   private transitionBackToDefaultShopViewWithTimeout(ctx: ButtonContext, delay = 4000): void {

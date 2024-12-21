@@ -64,6 +64,7 @@ export class Wheel implements ISlashCommand {
 async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
   const wheelState = await WheelStateHelper.getWheelState(userId);
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
 
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
@@ -73,6 +74,10 @@ async function buildWheelMessage(ctx: SlashCommandContext | ButtonContext): Prom
       } to win coins, tickets, and festive composter upgrades! 🎅✨`
     )
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
@@ -88,6 +93,8 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     return new MessageBuilder().setContent("This command can only be used in a server with a tree.");
   }
 
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
+
   const userId = ctx.user.id;
   const wheelState = await WheelStateHelper.getWheelState(userId);
 
@@ -97,6 +104,10 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       .setDescription("🎟️ **You need at least one ticket to give the wheel a spin!** 🎄")
       .setColor(0xff0000)
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+    if (festiveMessages.isPresent) {
+      embed.setFooter({ text: festiveMessages.message });
+    }
 
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("wheel.refresh"));
 
@@ -114,6 +125,10 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       .setColor(0xff0000)
       .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
 
+    if (festiveMessages.isPresent) {
+      embed.setFooter({ text: festiveMessages.message });
+    }
+
     return new MessageBuilder().addEmbed(embed);
   }
 
@@ -122,21 +137,19 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 
   await wheelState.save();
 
-  const festiveMessages = SpecialDayHelper.getFestiveMessage();
-
   const rewardDescription =
     reward.amount != undefined
       ? `${reward.amount} ${REWARDS[reward.type].displayName}`
       : REWARDS[reward.type].displayName;
   const embed = new EmbedBuilder()
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
-    .setDescription(
-      `🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁${
-        festiveMessages.isPresent ? `\n\n${festiveMessages.message}` : ""
-      }`
-    )
+    .setDescription(`🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁`)
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
@@ -148,11 +161,16 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 }
 
 async function showWinChances(ctx: ButtonContext): Promise<MessageBuilder> {
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
   const chancesDescription = Object.entries(REWARDS)
     .map(([key, { displayName, probability }]) => `**${displayName}:** ${(probability * 100).toFixed(2)}%`)
     .join("\n");
 
   const embed = new EmbedBuilder().setTitle("🎰 Win Chances").setDescription(chancesDescription).setColor(0x00ff00);
+
+  if (festiveMessages.isPresent) {
+    embed.setFooter({ text: festiveMessages.message });
+  }
 
   return new MessageBuilder().addEmbed(embed);
 }
