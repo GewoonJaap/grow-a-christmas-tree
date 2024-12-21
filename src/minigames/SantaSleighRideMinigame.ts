@@ -97,11 +97,12 @@ export class SantaSleighRideMinigame implements Minigame {
 
     const buttons = [await ctx.manager.components.createInstance("minigame.refresh")];
 
+    const specialDayMessage = SpecialDayHelper.getFestiveMessage();
     const embed = new EmbedBuilder()
       .setTitle(ctx.game.name)
       .setDescription(`You helped Santa deliver presents! Your tree has grown ${extraTreeSize}ft!`)
       .setImage(getRandomElement(this.sleighRideImagesFinished) ?? this.sleighRideImagesFinished[0])
-      .setFooter({ text: SpecialDayHelper.isChristmas() ? "🎄Merry Christmas!🎄🎅" : "Thanks for helping Santa!🎅" });
+      .setFooter({ text: specialDayMessage.isPresent ? specialDayMessage.message : "Thanks for helping Santa!🎅" });
 
     await safeReply(
       ctx,

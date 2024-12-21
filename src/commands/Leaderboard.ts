@@ -125,6 +125,8 @@ async function buildLeaderboardMessage(
   const end = Math.min(start + 10, contributors.length);
   const maxPages = Math.ceil(contributors.length / 10);
 
+  const festiveMessage = SpecialDayHelper.getFestiveMessage();
+
   // Get user IDs for the current page
   const userIds = contributors.slice(start, end).map((contributor) => contributor.userId);
 
@@ -142,9 +144,8 @@ async function buildLeaderboardMessage(
       i < 3 ? `${MEDAL_EMOJIS[i]}${isBanned ? CHEATER_CLOWN_EMOJI : ""}` : `${i + 1}${i < 9 ? " " : ""}`
     } - 💧${contributor.count} - 🪙 ${wallet?.coins ?? 0} - 🔥${wallet?.streak ?? 0} <@${contributor.userId}>\n`;
   }
-
-  if (SpecialDayHelper.isChristmas()) {
-    description += "\n🎄 Merry Christmas! Enjoy the festive season! 🎄";
+  if (festiveMessage.isPresent) {
+    description += `\n${festiveMessage.message}`;
   }
 
   const actionRow = new ActionRowBuilder().addComponents(

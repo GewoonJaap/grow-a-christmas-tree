@@ -97,9 +97,11 @@ export class Boosters implements PartialCommand {
         ? { page: 1 }
         : (ctx.state as BoostersButtonState);
 
-    const isChristmas = SpecialDayHelper.isChristmas();
-    const discount = isChristmas ? 0.75 : 1;
-    const discountText = isChristmas ? "\n\n🎄 **Christmas Special: 25% off on all boosters!** 🎄" : "";
+    const specialDayMultipliers = SpecialDayHelper.getSpecialDayMultipliers();
+    const discountModifier = specialDayMultipliers.isActive
+      ? specialDayMultipliers.inGameShop.boosters.priceMultiplier
+      : 1;
+    const discountText = specialDayMultipliers ? `\n\n${specialDayMultipliers.inGameShop.boosters.reason}` : "";
 
     const embed = new EmbedBuilder()
       .setTitle("🎄 **Boosters Shop** 🎁")
@@ -117,7 +119,7 @@ export class Boosters implements PartialCommand {
     const fields = paginatedBoosters.map((booster) => ({
       name: `${booster.name} ${booster.emoji}`,
       value: `**Effect:** ${booster.effect}\n**Cost:** ${Math.floor(
-        booster.cost * discount
+        booster.cost * discountModifier
       )} coins\n**Duration:** ${humanizeDuration(booster.duration * 1000, { largest: 1 })}`,
       inline: false
     }));
@@ -157,9 +159,11 @@ export class Boosters implements PartialCommand {
       );
     }
 
-    const isChristmas = SpecialDayHelper.isChristmas();
-    const discount = isChristmas ? 0.75 : 1;
-    const discountedCost = Math.floor(booster.cost * discount);
+    const specialDayMultipliers = SpecialDayHelper.getSpecialDayMultipliers();
+    const discountModifier = specialDayMultipliers.isActive
+      ? specialDayMultipliers.inGameShop.boosters.priceMultiplier
+      : 1;
+    const discountedCost = Math.floor(booster.cost * discountModifier);
 
     const wallet = await WalletHelper.getWallet(ctx.user.id);
 

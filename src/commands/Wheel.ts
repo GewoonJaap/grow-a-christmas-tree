@@ -122,6 +122,8 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 
   await wheelState.save();
 
+  const festiveMessages = SpecialDayHelper.getFestiveMessage();
+
   const rewardDescription =
     reward.amount != undefined
       ? `${reward.amount} ${REWARDS[reward.type].displayName}`
@@ -130,7 +132,7 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     .setTitle("🎅 Santa's Lucky Spin! 🎁")
     .setDescription(
       `🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁${
-        SpecialDayHelper.isChristmas() ? "\n\n🎄 Merry Christmas! Enjoy double rewards today! 🎄" : ""
+        festiveMessages.isPresent ? `\n\n${festiveMessages.message}` : ""
       }`
     )
     .setColor(0x00ff00)
@@ -159,24 +161,32 @@ function determineReward(isPremium: boolean): { type: RewardType; amount?: numbe
   const random = Math.random();
   let cumulativeProbability = 0;
 
+  const festiveMultiplier = SpecialDayHelper.getSpecialDayMultipliers();
+
   for (const [reward, { probability }] of Object.entries(REWARDS) as [RewardType, Reward][]) {
     cumulativeProbability += probability;
     if (random < cumulativeProbability) {
       if (reward === "coins") {
         const amount = Math.floor(Math.random() * (isPremium ? 65 : 15)) + 10;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount };
+        return {
+          type: reward,
+          amount: festiveMultiplier.isActive ? amount * festiveMultiplier.coins.multiplier : amount
+        };
       } else if (reward === "tickets") {
         const amount = Math.floor(Math.random() * (isPremium ? 3 : 1)) + 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount };
+        return {
+          type: reward,
+          amount: festiveMultiplier.isActive ? amount * festiveMultiplier.tickets.multiplier : amount
+        };
       } else if (reward === "composterEfficiencyUpgrade") {
         const amount = 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Always 1 level upgrade
+        return { type: reward, amount: festiveMultiplier.isActive ? amount * 2 : amount }; // Always 1 level upgrade
       } else if (reward === "composterQualityUpgrade") {
         const amount = 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Always 1 level upgrade
+        return { type: reward, amount: festiveMultiplier.isActive ? amount * 2 : amount }; // Always 1 level upgrade
       } else if (reward === "treeSize") {
         const amount = Math.floor(Math.random() * (isPremium ? 25 : 10)) + 1;
-        return { type: reward, amount: SpecialDayHelper.isChristmas() ? amount * 2 : amount }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
+        return { type: reward, amount: festiveMultiplier.isActive ? amount * 2 : amount }; // Random 1 to 10 ft for free users, 1 to 25 ft for premium users
       }
       return { type: reward };
     }
