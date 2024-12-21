@@ -69,4 +69,12 @@ export class Metrics {
 
     adventCalendarWinMetric.add(1, { user: userId, reward: rewardDetails });
   }
+
+  static recordMongooseOperationMetric(operation: string, duration: number): void {
+    const mongooseOperationMetric = meter.createHistogram("mongoose_operations", {
+      description: "Records the duration of Mongoose operations"
+    });
+
+    mongooseOperationMetric.record(duration, { operation });
+  }
 }
