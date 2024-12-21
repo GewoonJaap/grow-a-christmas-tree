@@ -352,7 +352,7 @@ function getActiveBoostersText(ctx: SlashCommandContext | ButtonContext | Button
 
 function getNewsMessages(): string {
   const newsMessages = NewsMessageHelper.getMessages(1);
-  return newsMessages.join("\n");
+  return newsMessages.join("\n\n");
 }
 
 function removeWateringReadyTimeout(ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>): void {

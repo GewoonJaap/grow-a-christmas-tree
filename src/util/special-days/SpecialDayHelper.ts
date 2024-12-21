@@ -50,7 +50,7 @@ export class SpecialDayHelper {
         inGameShop: {
           boosters: {
             priceMultiplier: 0.75,
-            reason: "🎅🎄 Ho-Ho-Ho! It's Christmas! Enjoy **25%** more rewards and spread the festive cheer! 🎁✨"
+            reason: "🎅🎄 Ho-Ho-Ho! It's Christmas! Enjoy a **25%** sale on boosters! 🎁✨"
           },
           styles: {
             priceMultiplier: 1,
