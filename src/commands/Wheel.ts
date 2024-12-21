@@ -13,6 +13,7 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { Metrics } from "../tracing/metrics"; // Import Metrics
 
 type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade" | "treeSize";
 
@@ -150,6 +151,9 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
   if (festiveMessages.isPresent) {
     embed.setFooter({ text: festiveMessages.message });
   }
+
+  // Log number of spins, rewards won, tickets used, user participation, and spin success rate
+  Metrics.recordWheelSpinMetric(userId, ctx.interaction.guild_id ?? "unknown", reward.type, reward.amount ?? 1);
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),

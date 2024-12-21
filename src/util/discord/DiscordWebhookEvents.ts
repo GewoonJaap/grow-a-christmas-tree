@@ -2,6 +2,7 @@ import { consumeEntitlement, SKU, SKU_REWARDS } from "./DiscordApiExtensions";
 import { EntitlementCreateData } from "../types/discord/DiscordTypeExtension";
 import { WalletHelper } from "../wallet/WalletHelper";
 import { WheelStateHelper } from "../wheel/WheelStateHelper";
+import { Metrics } from "../tracing/metrics";
 
 export async function handleEntitlementCreate(data: EntitlementCreateData) {
   console.log("Entitlement created:", data);
@@ -21,6 +22,9 @@ export async function handleEntitlementCreate(data: EntitlementCreateData) {
       await WheelStateHelper.addTickets(userId, reward.luckyTickets);
       console.log(`Added ${reward.luckyTickets} lucky tickets to user ${userId}`);
     }
+
+    // Log item name and other relevant details when a purchase is made
+    Metrics.recordShopPurchaseMetric(skuId, userId, data.guild_id ?? "unknown");
   } else {
     console.log(`No reward found for SKU ID: ${skuId}`);
   }
