@@ -1,4 +1,9 @@
 import "dotenv/config";
+
+// Import and initialize telemetry and metrics
+import "./tracing/sdk";
+import { Metrics } from "./tracing/metrics";
+
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
 import * as nacl from "tweetnacl";
