@@ -25,7 +25,7 @@
     "fastify-raw-body": "^3.2.0",
     "humanize-duration": "^3.27.3",
     "interactions.ts": "^1.0.23",
-    "mongoose": "^8.0.1",
+    "mongoose": "^8.8.3",
     "pino": "^9.5.0",
     "pino-pretty": "^13.0.0",
     "redis": "^4.1.0",
