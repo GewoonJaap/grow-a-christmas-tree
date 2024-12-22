@@ -2,6 +2,7 @@ import "dotenv/config";
 
 // Import and initialize telemetry and metrics
 import "./tracing/sdk";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
@@ -101,44 +102,56 @@ if (keys.some((key) => !(key in process.env))) {
 
     hooks: {
       interaction: async (ctx: InteractionContext) => {
-        if (ctx instanceof PingContext) return;
-        if (!ctx.interaction.guild_id) return;
+        const tracer = trace.getTracer("grow-a-tree");
+        return tracer.startActiveSpan("interactionHandler", async (span) => {
+          try {
+            if (ctx instanceof PingContext) return;
+            if (!ctx.interaction.guild_id) return;
 
-        let game;
+            let game;
 
-        if (ctx instanceof SlashCommandContext) {
-          Metrics.recordCommandMetric(ctx.interaction.data.name, ctx.user.id, ctx.interaction.guild_id);
-        } else if (ctx instanceof ButtonContext) {
-          Metrics.recordCommandMetric(
-            ctx.interaction.data.custom_id.split(".")[0].split("_")[0].trim(),
-            ctx.user.id,
-            ctx.interaction.guild_id
-          );
-        }
+            if (ctx instanceof SlashCommandContext) {
+              Metrics.recordCommandMetric(ctx.interaction.data.name, ctx.user.id, ctx.interaction.guild_id);
+            } else if (ctx instanceof ButtonContext) {
+              Metrics.recordCommandMetric(
+                ctx.interaction.data.custom_id.split(".")[0].split("_")[0].trim(),
+                ctx.user.id,
+                ctx.interaction.guild_id
+              );
+            }
 
-        try {
-          game = await Guild.findOne({ id: ctx.interaction.guild_id });
+            try {
+              game = await Guild.findOne({ id: ctx.interaction.guild_id });
 
-          if (game) await game.populate("contributors");
-        } catch (err) {
-          logger.error(err);
+              if (game) await game.populate("contributors");
+            } catch (err) {
+              logger.error(err);
 
-          if (ctx instanceof AutocompleteContext) {
-            await safeReply(ctx, []);
-          } else {
-            await safeReply(ctx, SimpleError("There was an error loading your game data"));
+              if (ctx instanceof AutocompleteContext) {
+                await safeReply(ctx, []);
+              } else {
+                await safeReply(ctx, SimpleError("There was an error loading your game data"));
+              }
+
+              return true;
+            }
+
+            ctx.decorate("game", game);
+            ctx.decorate("timeouts", timeouts);
+            try {
+              flagPotentialAutoClickers(ctx as SlashCommandContext);
+            } catch (err) {
+              logger.error(err);
+            }
+            span.setStatus({ code: SpanStatusCode.OK });
+          } catch (error) {
+            span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+            span.recordException(error as Error);
+            throw error;
+          } finally {
+            span.end();
           }
-
-          return true;
-        }
-
-        ctx.decorate("game", game);
-        ctx.decorate("timeouts", timeouts);
-        try {
-          flagPotentialAutoClickers(ctx as SlashCommandContext);
-        } catch (err) {
-          logger.error(err);
-        }
+        });
       }
     }
   });

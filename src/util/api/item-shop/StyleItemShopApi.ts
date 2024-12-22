@@ -1,4 +1,5 @@
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -22,27 +23,41 @@ export class StyleItemShopApi {
   }
 
   public async getDailyItemShopStyles(): Promise<DailyItemShopStylesResult> {
-    if (this.cachedDailyItems != undefined && this.isCacheValid(this.cachedDailyItems)) {
-      return { data: this.cachedDailyItems.data, fromCache: true };
-    }
-    try {
-      const response = await fetch(`${this.apiUrl}/api/item-shop/styles/daily-items`, {
-        method: "GET"
-      });
-      const jsonData = await response.json();
-      this.cacheDailyItemsResponse(jsonData);
-      return { data: jsonData, fromCache: false };
-    } catch (error) {
-      logger.error(error);
-      return {
-        data: {
-          success: false,
-          items: { Common: [], Rare: [], Epic: [], Legendary: [] },
-          refreshTime: new Date().toUTCString()
-        },
-        fromCache: false
-      };
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("getDailyItemShopStyles", async (span) => {
+      try {
+        if (this.cachedDailyItems != undefined && this.isCacheValid(this.cachedDailyItems)) {
+          return { data: this.cachedDailyItems.data, fromCache: true };
+        }
+        try {
+          const response = await fetch(`${this.apiUrl}/api/item-shop/styles/daily-items`, {
+            method: "GET"
+          });
+          const jsonData = await response.json();
+          this.cacheDailyItemsResponse(jsonData);
+          span.setStatus({ code: SpanStatusCode.OK });
+          return { data: jsonData, fromCache: false };
+        } catch (error) {
+          logger.error(error);
+          span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+          span.recordException(error as Error);
+          return {
+            data: {
+              success: false,
+              items: { Common: [], Rare: [], Epic: [], Legendary: [] },
+              refreshTime: new Date().toUTCString()
+            },
+            fromCache: false
+          };
+        }
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   }
 
   private isCacheValid(cachedData: CachedResponse<unknown> | undefined): boolean {
