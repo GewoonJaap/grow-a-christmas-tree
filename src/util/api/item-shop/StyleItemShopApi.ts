@@ -1,3 +1,8 @@
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 import { CachedResponse } from "../../types/api/CachedResponseType";
 import { DailyItemShopResponse } from "../../types/api/ItemShopApi/DailyItemShopResponseType";
 
@@ -28,7 +33,7 @@ export class StyleItemShopApi {
       this.cacheDailyItemsResponse(jsonData);
       return { data: jsonData, fromCache: false };
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return {
         data: {
           success: false,

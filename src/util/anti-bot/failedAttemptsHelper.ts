@@ -1,5 +1,10 @@
 import { FailedAttempt } from "../../models/FailedAttempt";
 import { SlashCommandContext, ButtonContext } from "interactions.ts";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export const AUTOCLICKER_TIMEFRAME = 1000 * 60 * 60; // 1 hour
 
@@ -43,5 +48,5 @@ export async function cleanOldFailedAttempts(): Promise<void> {
     timestamp: { $lt: cutoffTime }
   });
 
-  console.log("Old failed attempts cleaned up.");
+  logger.info("Old failed attempts cleaned up.");
 }

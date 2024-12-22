@@ -1,3 +1,8 @@
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 import { CachedResponse } from "../../types/api/CachedResponseType";
 import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
 import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
@@ -27,7 +32,7 @@ export class ImageStylesApi {
       this.cacheStylesResponse(jsonData);
       return jsonData;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, styles: [] };
     }
   }
@@ -39,7 +44,7 @@ export class ImageStylesApi {
       });
       return await response.json();
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false };
     }
   }
@@ -51,7 +56,7 @@ export class ImageStylesApi {
       });
       return await response.json();
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { exists: false };
     }
   }
@@ -63,7 +68,7 @@ export class ImageStylesApi {
       });
       return await response.json();
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return [];
     }
   }
@@ -80,7 +85,7 @@ export class ImageStylesApi {
       this.cacheFestiveStylesResponse(data);
       return data;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false, styles: [] };
     }
   }

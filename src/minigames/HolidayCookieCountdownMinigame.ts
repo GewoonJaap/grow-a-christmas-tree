@@ -89,7 +89,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
     await minigameFinished(ctx, {
       success: true,
       difficulty: 1,
-      maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION
+      maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION,
+      minigameName: "Holiday Cookie Countdown"
     });
 
     transitionToDefaultTreeView(ctx as ButtonContext);
@@ -123,7 +124,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Holiday Cookie Countdown"
       });
     } else {
       await safeReply(
@@ -134,7 +136,8 @@ export class HolidayCookieCountdownMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: HOLIDAY_COOKIE_COUNTDOWN_MINIGAME_MAX_DURATION,
-        failureReason: "Wrong button"
+        failureReason: "Wrong button",
+        minigameName: "Holiday Cookie Countdown"
       });
     }
 

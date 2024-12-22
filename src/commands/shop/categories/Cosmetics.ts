@@ -24,6 +24,11 @@ import { getLocaleFromTimezone } from "../../../util/timezones";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 import { Metrics } from "../../../tracing/metrics"; // Import Metrics
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -303,7 +308,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     await TreeStyleHelper.addNewStyle(ctx, styleName);
 
     // Log item name and other relevant details when a cosmetic purchase is made
-    Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id);
+    Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown");
 
     const embed = await this.getTreeStyleEmbed(styleName);
 
@@ -366,7 +371,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     const allStyle = [...festiveStyles, ...flatItemShop];
 
     if (!itemShopStyles.fromCache) {
-      console.log("Refreshing item shop styles...");
+      logger.info("Refreshing item shop styles...");
       await this.unregisterStyleButtons(componentManager, allStyle);
       await this.registerStyleButtons(componentManager, allStyle);
     }
@@ -382,7 +387,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
           disposeActiveTimeouts(ctx);
           await safeEdit(ctx, await this.buildCosmeticsMessage(ctx));
         } catch (e) {
-          console.log(e);
+          logger.info(e);
         }
       }, delay)
     );

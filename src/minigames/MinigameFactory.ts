@@ -25,6 +25,12 @@ import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { Metrics } from "../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export interface MinigameEndedType {
   success: boolean;
@@ -32,6 +38,7 @@ export interface MinigameEndedType {
   maxDuration: number;
   failureReason?: string;
   penalty?: boolean;
+  minigameName: string;
 }
 
 export const minigameButtons = [
@@ -163,12 +170,12 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
 export async function startPenaltyMinigame(ctx: ButtonContext): Promise<boolean> {
   if (UnleashHelper.isEnabled(UNLEASH_FEATURES.antiAutoClickerPenalty, ctx)) {
     try {
-      console.log(`Starting penalty minigame for user ${ctx.user.id}`);
+      logger.info(`Starting penalty minigame for user ${ctx.user.id}`);
       const minigame = new GrinchHeistMinigame();
       await minigame.start(ctx, true);
       return true;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return false;
     }
   }
@@ -210,7 +217,7 @@ export async function minigameFinished(
   data: MinigameEndedType
 ): Promise<void> {
   if (data.penalty) {
-    console.log(
+    logger.info(
       `Penalty minigame finished for user ${ctx.user.id}, success: ${data.success}, reason: ${data.failureReason}`
     );
   }
@@ -219,6 +226,9 @@ export async function minigameFinished(
   }
   if (!data.success) {
     await logFailedMinigameAttempt(ctx, data.failureReason ?? "Unknown");
+    Metrics.recordMinigameLossMetric(ctx.user.id, data.minigameName);
+  } else {
+    Metrics.recordMinigameWinMetric(ctx.user.id, data.minigameName);
   }
 }
 

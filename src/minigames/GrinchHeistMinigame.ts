@@ -111,7 +111,8 @@ export class GrinchHeistMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Grinch Heist"
       });
       await safeEdit(
         ctx,
@@ -122,7 +123,8 @@ export class GrinchHeistMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
-        failureReason: "Wrong button"
+        failureReason: "Wrong button",
+        minigameName: "Grinch Heist"
       });
       await safeReply(
         ctx,
@@ -167,7 +169,8 @@ export class GrinchHeistMinigame implements Minigame {
           success: true,
           difficulty: 1,
           maxDuration: GRINCH_HEIST_MINIGAME_MAX_DURATION,
-          penalty: ctx.state?.isPenalty ?? false
+          penalty: ctx.state?.isPenalty ?? false,
+          minigameName: "Grinch Heist"
         });
       }
     ),

@@ -18,6 +18,11 @@ import { randomUUID } from "crypto";
 import { permissionsExtractor } from "../util/bitfield-permission-calculator";
 import { disposeActiveTimeouts } from "./Tree";
 import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const STYLES_PER_PAGE = 25;
 
@@ -197,7 +202,7 @@ export class Styles implements ISlashCommand {
           disposeActiveTimeouts(ctx);
           await safeEdit(ctx, await this.buildStylesMessage(ctx));
         } catch (e) {
-          console.log(e);
+          logger.info(e);
         }
       }, delay)
     );

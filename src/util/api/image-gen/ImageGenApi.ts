@@ -1,6 +1,11 @@
 import { ITreeStyle } from "../../../models/Guild";
 import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
 import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export class ImageGenApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
@@ -13,7 +18,7 @@ export class ImageGenApi {
 
   public async getGeneratedImage(guildId: string, treeLevel: number, treeStyles: ITreeStyle[]): Promise<ImageReponse> {
     treeLevel = Math.floor(treeLevel);
-    console.log(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
+    logger.info(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
     try {
       const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/image`, {
         method: "POST",
@@ -24,20 +29,20 @@ export class ImageGenApi {
       });
       return await response.json();
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return { success: false };
     }
   }
 
   public async getHasGeneratedImage(guildId: string, treeLevel: number): Promise<boolean> {
     treeLevel = Math.floor(treeLevel);
-    console.log(`Checking if image exists for guild ${guildId} and tree level ${treeLevel}`);
+    logger.info(`Checking if image exists for guild ${guildId} and tree level ${treeLevel}`);
     try {
       const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/has-image`);
       const jsonResponse = (await response.json()) as HasImageReponseType;
       return jsonResponse.exists;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return false;
     }
   }

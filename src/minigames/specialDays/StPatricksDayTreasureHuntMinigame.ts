@@ -44,7 +44,8 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "St. Patrick's Day Treasure Hunt"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION);
@@ -75,7 +76,8 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
     await minigameFinished(ctx, {
       success: true,
       difficulty: 1,
-      maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION
+      maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION,
+      minigameName: "St. Patrick's Day Treasure Hunt"
     });
     transitionToDefaultTreeView(ctx);
   }
@@ -99,7 +101,8 @@ export class StPatricksDayTreasureHuntMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: STPATRICKS_TREASURE_HUNT_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "St. Patrick's Day Treasure Hunt"
     });
     transitionToDefaultTreeView(ctx);
   }

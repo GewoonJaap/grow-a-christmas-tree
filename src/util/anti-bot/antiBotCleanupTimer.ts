@@ -1,5 +1,10 @@
 import { WateringEvent } from "../../models/WateringEvent";
 import { cleanOldFailedAttempts } from "./failedAttemptsHelper";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const WATERING_EVENT_TTL = 2 * 24 * 60 * 60 * 1000; // 2 days
 
@@ -20,5 +25,5 @@ async function cleanOldWateringEvents() {
     timestamp: { $lt: cutoffTime }
   });
 
-  console.log("Old watering events cleaned up.");
+  logger.info("Old watering events cleaned up.");
 }

@@ -16,6 +16,12 @@ import humanizeDuration = require("humanize-duration");
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { PremiumButtons } from "../../../util/buttons/PremiumButtons";
+import { Metrics } from "../../../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -218,6 +224,8 @@ export class Boosters implements PartialCommand {
       await ctx.manager.components.createInstance("shop.boosters.refresh")
     );
 
+    Metrics.recordBoosterPurchaseMetric(booster.name, ctx.user.id, ctx.game.id);
+
     const embed = new EmbedBuilder()
       .setTitle("🎁 Purchase Complete!")
       .setDescription(`You've successfully acquired **${booster.name}**! Let the magic begin! 🎄✨`)
@@ -240,7 +248,7 @@ export class Boosters implements PartialCommand {
 
           await safeEdit(ctx, await this.buildBoostersMessage(ctx));
         } catch (e) {
-          console.log(e);
+          logger.info(e);
         }
       }, delay)
     );

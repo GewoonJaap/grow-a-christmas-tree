@@ -11,6 +11,11 @@ import {
   EXCESSIVE_WATERING_THRESHOLD
 } from "./antiBotHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../unleash/UnleashHelper";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 5; //Number of flags last day to ban
 export const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours
@@ -20,7 +25,7 @@ export async function banAutoClicker(ctx: SlashCommandContext | ButtonContext<un
   const guildId = ctx.game?.id;
 
   if (!(await BanHelper.isUserBanned(userId))) {
-    console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
+    logger.info(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
     const banReason = await getFlagReasons(ctx);
     BanHelper.banUser(userId, `Auto ban for: ${banReason.join(",")}`, AUTOBAN_TIME);
   }
@@ -86,7 +91,7 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
   ) {
     const isFlagged = await isUserFlagged(ctx);
     if (!isFlagged) {
-      console.log(
+      logger.info(
         `User ${userId} in guild ${guildId} flagged as potential auto-clicker. User has ${failedAttempts} failed attempts, while only ${AUTOCLICKER_THRESHOLD} are allowed.`
       );
       const flaggedUser = new FlaggedUser({
@@ -106,7 +111,7 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
   ) {
     const isFlagged = await isUserFlagged(ctx, EXCESSIVE_WATERING_REFLAG_TIMEFRAME);
     if (!isFlagged) {
-      console.log(
+      logger.info(
         `User ${userId} in guild ${guildId} flagged as potential auto-clicker. User has ${excessiveWatering} excessive watering events, while only ${EXCESSIVE_WATERING_THRESHOLD} are allowed.`
       );
       const flaggedUser = new FlaggedUser({
@@ -124,7 +129,7 @@ export async function flagPotentialAutoClickers(ctx: SlashCommandContext | Butto
     flaggedTimes >= AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD &&
     UnleashHelper.isEnabled(UNLEASH_FEATURES.autoBan, ctx)
   ) {
-    console.log(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
+    logger.info(`User ${userId} in guild ${guildId} banned for auto-clicking.`);
     banAutoClicker(ctx);
   }
 }

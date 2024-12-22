@@ -74,7 +74,12 @@ export class SnowballFightMinigame implements Minigame {
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
-    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION });
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
+      minigameName: "Snowball Fight"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -95,7 +100,8 @@ export class SnowballFightMinigame implements Minigame {
         success: true,
         difficulty: 1,
         maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Snowball Fight"
       });
       await safeEdit(
         ctx,
@@ -106,7 +112,8 @@ export class SnowballFightMinigame implements Minigame {
         success: true,
         difficulty: 1,
         maxDuration: SNOWBALL_FIGHT_MINIGAME_MAX_DURATION,
-        failureReason: "Wrong button"
+        failureReason: "Wrong button",
+        minigameName: "Snowball Fight"
       });
       await safeReply(
         ctx,

@@ -19,7 +19,12 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
 import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { Metrics } from "../tracing/metrics";
+import pino from "pino";
 
+const logger = pino({
+  level: "info"
+});
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
 const MAX_LEVEL = 100;
@@ -219,6 +224,13 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
       actions.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
     }
 
+    Metrics.recordComposterUpgradeMetric(
+      ctx.user.id,
+      ctx.game.id,
+      upgradeType,
+      upgradeType === "efficiency" ? efficiencyLevel : qualityLevel
+    );
+
     const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 
     transitionBackToDefaultComposterViewWithTimeout(ctx);
@@ -249,7 +261,7 @@ function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, del
 
         await safeEdit(ctx, await buildComposterMessage(ctx));
       } catch (e) {
-        console.log(e);
+        logger.info(e);
       }
     }, delay)
   );

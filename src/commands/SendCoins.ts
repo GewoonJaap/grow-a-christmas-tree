@@ -14,6 +14,12 @@ import { WalletHelper } from "../util/wallet/WalletHelper";
 import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { Metrics } from "../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
@@ -94,10 +100,12 @@ export class SendCoinsCommand implements ISlashCommand {
         }`
       });
 
+    Metrics.recordSendCoinsMetric(sender.userId, recipient.userId, amount);
+
     await safeReply(ctx, new MessageBuilder().addEmbed(embed));
 
     // Log the transfer details for auditing purposes
-    console.log(
+    logger.info(
       `Coin Transfer: Sender: ${
         ctx.user.id
       }, Recipient: ${recipientId}, Amount: ${amount}, Timestamp: ${new Date().toISOString()}`

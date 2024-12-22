@@ -1,4 +1,4 @@
-import { metrics } from "@opentelemetry/api";
+import { metrics, SpanStatusCode, trace } from "@opentelemetry/api";
 import { MeterProvider, PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { Resource } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
@@ -6,7 +6,8 @@ import { OTLPMetricExporter } from "@opentelemetry/exporter-metrics-otlp-http";
 
 // Common resource attributes
 const resource = new Resource({
-  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME
+  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME,
+  ["deployment.environment.name"]: process.env.DEV_MODE ? "development" : "production"
 });
 
 // Metric exporter setup
@@ -46,6 +47,51 @@ export class Metrics {
     shopPurchaseMetric.add(1, { item: itemName, user: userId, guild: guildId ?? "unknown" });
   }
 
+  static recordBoosterPurchaseMetric(boosterName: string, userId: string, guildId?: string): void {
+    const boosterPurchaseMetric = meter.createCounter("booster_purchases", {
+      description: "Counts the number of booster purchases"
+    });
+
+    boosterPurchaseMetric.add(1, { booster: boosterName, user: userId, guild: guildId ?? "unknown" });
+  }
+
+  static recordComposterUpgradeMetric(
+    userId: string,
+    guildId: string,
+    upgradeType: string,
+    upgradeLevel: number
+  ): void {
+    const composterUpgradeMetric = meter.createCounter("composter_upgrades", {
+      description: "Counts the number of composter upgrades"
+    });
+
+    composterUpgradeMetric.add(1, { user: userId, guild: guildId, upgradeType, upgradeLevel });
+  }
+
+  static recordSendCoinsMetric(senderId: string, recipientId: string, amount: number): void {
+    const sendCoinsMetric = meter.createCounter("coins_sent", {
+      description: "Counts the number of coins sent"
+    });
+
+    sendCoinsMetric.add(1, { sender: senderId, recipient: recipientId, amount });
+  }
+
+  static recordMinigameWinMetric(userId: string, minigameName: string): void {
+    const minigameWinMetric = meter.createCounter("minigame_wins", {
+      description: "Counts the number of minigame wins"
+    });
+
+    minigameWinMetric.add(1, { user: userId, minigame: minigameName });
+  }
+
+  static recordMinigameLossMetric(userId: string, minigameName: string): void {
+    const minigameLossMetric = meter.createCounter("minigame_losses", {
+      description: "Counts the number of minigame losses"
+    });
+
+    minigameLossMetric.add(1, { user: userId, minigame: minigameName });
+  }
+
   static recordCosmeticPurchaseMetric(itemName: string, userId: string, guildId?: string): void {
     const cosmeticPurchaseMetric = meter.createCounter("cosmetic_purchases", {
       description: "Counts the number of cosmetic purchases"
@@ -59,7 +105,7 @@ export class Metrics {
       description: "Counts the number of wheel spins"
     });
 
-    wheelSpinMetric.add(1, { user: userId, guild: guildId, rewardType, rewardAmount });
+    wheelSpinMetric.add(1, { user: userId, guild: guildId, rewardType: rewardType, rewardAmount: rewardAmount });
   }
 
   static recordAdventCalendarWinMetric(userId: string, rewardDetails: string): void {
@@ -76,5 +122,30 @@ export class Metrics {
     });
 
     mongooseOperationMetric.record(duration, { operation });
+  }
+
+  static recordWateringEvent(userId: string, guildId: string, failed: boolean, failReason?: string): void {
+    const wateringEventMetric = meter.createCounter("watering_events", {
+      description: "Counts the number of watering events"
+    });
+
+    wateringEventMetric.add(1, { user: userId, guild: guildId, failed, failReason });
+  }
+
+  static recordDiscordSendWebhookMessage(content: string): void {
+    const discordWebhookMessageMetric = meter.createCounter("discord_webhook_messages_sent", {
+      description: "Counts the number of Discord webhook messages sent"
+    });
+
+    discordWebhookMessageMetric.add(1, { content });
+  }
+
+  static logError(error: Error | string, spanName: string): void {
+    const tracer = trace.getTracer(process.env.OTEL_SERVICE_NAME ?? "christmas-tree-bot");
+    const span = tracer.startSpan(spanName);
+    const errorString = typeof error === "string" ? error : error.message;
+    span.setStatus({ code: SpanStatusCode.ERROR, message: errorString });
+    span.recordException(error);
+    span.end();
   }
 }

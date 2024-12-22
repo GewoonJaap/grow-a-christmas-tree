@@ -1,4 +1,10 @@
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
+
 export async function runMigrations(): Promise<void> {
-  console.log("Running migrations...");
-  console.log("Migrations completed.");
+  logger.info("Running migrations...");
+  logger.info("Migrations completed.");
 }

@@ -70,7 +70,8 @@ export class CarolingChoirMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Caroling Choir"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx as ButtonContext));
     }, CAROLING_CHOIR_MINIGAME_MAX_DURATION);
@@ -99,7 +100,8 @@ export class CarolingChoirMinigame implements Minigame {
     await minigameFinished(ctx as ButtonContext, {
       success: true,
       difficulty: 1,
-      maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION
+      maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
+      minigameName: "Caroling Choir"
     });
   }
 
@@ -133,7 +135,8 @@ export class CarolingChoirMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: CAROLING_CHOIR_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Caroling Choir"
     });
   }
 

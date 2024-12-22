@@ -75,7 +75,8 @@ export class SantaSleighRideMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Santa's Sleigh Ride"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx as ButtonContext));
     }, SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION);
@@ -114,7 +115,8 @@ export class SantaSleighRideMinigame implements Minigame {
     await minigameFinished(ctx as ButtonContext, {
       success: true,
       difficulty: 1,
-      maxDuration: SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION
+      maxDuration: SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION,
+      minigameName: "Santa's Sleigh Ride"
     });
   }
 
@@ -148,7 +150,8 @@ export class SantaSleighRideMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: SANTA_SLEIGH_RIDE_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Santa's Sleigh Ride"
     });
   }
 

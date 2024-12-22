@@ -1,4 +1,9 @@
 import axios from "axios";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export async function postFeedback(feedback: FeedbackPost) {
   try {
@@ -12,11 +17,11 @@ export async function postFeedback(feedback: FeedbackPost) {
             content: contentPart,
             username: "Christmas Tree Feedback"
           })
-          .catch((e) => console.error(e));
+          .catch((e) => logger.error(e));
       }, index * 500);
     });
   } catch (e: unknown) {
-    console.error(e);
+    logger.error(e);
   }
 }
 

@@ -46,7 +46,8 @@ export class ThanksgivingFeastMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: THANKSGIVING_FEAST_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Thanksgiving Feast"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, THANKSGIVING_FEAST_MINIGAME_MAX_DURATION);
@@ -77,7 +78,8 @@ export class ThanksgivingFeastMinigame implements Minigame {
     await minigameFinished(ctx, {
       success: true,
       difficulty: 1,
-      maxDuration: THANKSGIVING_FEAST_MINIGAME_MAX_DURATION
+      maxDuration: THANKSGIVING_FEAST_MINIGAME_MAX_DURATION,
+      minigameName: "Thanksgiving Feast"
     });
     transitionToDefaultTreeView(ctx);
   }
@@ -101,7 +103,8 @@ export class ThanksgivingFeastMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: THANKSGIVING_FEAST_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Thanksgiving Feast"
     });
     transitionToDefaultTreeView(ctx);
   }
