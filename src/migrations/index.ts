@@ -1,4 +1,6 @@
+import { logger } from "../tracing/pinoLogger";
+
 export async function runMigrations(): Promise<void> {
-  console.log("Running migrations...");
-  console.log("Migrations completed.");
+  logger.info("Running migrations...");
+  logger.info("Migrations completed.");
 }

@@ -2,12 +2,6 @@ import "dotenv/config";
 
 // Import and initialize telemetry and metrics
 import "./tracing/sdk";
-import pino from "pino";
-
-const logger = pino({
-  level: process.env.LOG_LEVEL || 'info',
-  prettyPrint: { colorize: true }
-});
 
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
@@ -63,10 +57,11 @@ import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCo
 import { runMigrations } from "./migrations";
 import { safeReply } from "./util/discord/MessageExtenstions";
 import { Metrics } from "./tracing/metrics";
+import { logger } from "./tracing/pinoLogger";
 
 const VERSION = "2.0";
 
-unleash.on("ready", console.log.bind(console, "Unleash ready"));
+unleash.on("ready", logger.info.bind(logger, "Unleash ready"));
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {
@@ -218,7 +213,7 @@ if (keys.some((key) => !(key in process.env))) {
         err instanceof UnknownComponentType
       ) {
         logger.error("Unknown Interaction - Library may be out of date.");
-        logger.dir(err.interaction);
+        logger.error(err.interaction);
 
         return reply.code(400).send();
       }

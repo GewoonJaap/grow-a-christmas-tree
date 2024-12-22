@@ -1,3 +1,4 @@
+import { logger } from "../tracing/pinoLogger";
 import { sendWebhookMessage, deleteWebhookMessage } from "../util/discord/DiscordWebhookHelper";
 
 export async function sendAndDeleteWebhookMessage(
@@ -15,6 +16,6 @@ export async function sendAndDeleteWebhookMessage(
       await deleteWebhookMessage(webhookId, webhookToken, result.id);
     }, 10 * 1000); // 10 seconds
   } catch (error) {
-    console.error(error);
+    logger.error(error);
   }
 }

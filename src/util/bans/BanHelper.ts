@@ -2,6 +2,7 @@ import { EmbedBuilder, MessageBuilder } from "interactions.ts";
 import { BannedUser, IBannedUser } from "../../models/BannedUser";
 import { getRandomElement } from "../helpers/arrayHelper";
 import { CHEATER_CLOWN_EMOJI, SUPPORT_SERVER_INVITE } from "../const";
+import { logger } from "../../tracing/pinoLogger";
 
 const BAN_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/banned/ban-1.jpg",
@@ -25,7 +26,7 @@ export class BanHelper {
       { upsert: true }
     );
 
-    console.log(`User ${userId} has been banned for reason: ${reason}`);
+    logger.info(`User ${userId} has been banned for reason: ${reason}`);
   }
 
   static async getUserBan(userId: string): Promise<IBannedUser | null> {
@@ -86,7 +87,7 @@ export class BanHelper {
       { userId, $or: [{ timeEnd: { $gte: now } }, { timeEnd: null }] },
       { $set: { timeEnd: now } }
     );
-    console.log(`User ${userId} has been unbanned.`);
+    logger.info(`User ${userId} has been unbanned.`);
   }
 
   static getBanEmbed(username: string): MessageBuilder {

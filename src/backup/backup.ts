@@ -2,6 +2,7 @@ import { Guild, IGuild } from "../models/Guild";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { unlinkSync } from "fs";
 import path = require("path");
+import { logger } from "../tracing/pinoLogger";
 
 let backupTimerStarted = false;
 
@@ -37,7 +38,7 @@ async function createBackup() {
 
     removeOldBackups();
   } catch (err) {
-    console.error(err);
+    logger.error(err);
   }
 }
 
@@ -63,7 +64,7 @@ async function removeOldBackups() {
           unlinkSync(filePath);
         }
       } catch (err) {
-        console.error(err);
+        logger.error(err);
       }
     }
   });

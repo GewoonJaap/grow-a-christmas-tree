@@ -17,6 +17,7 @@ import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics"; // Import Metrics
+import { logger } from "../tracing/pinoLogger";
 
 const builder = new SlashCommandBuilder("redeempurchases", "Redeem all your purchases from the shop");
 
@@ -83,7 +84,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
   for (const entitlement of consumableEntitlements) {
     const reward = SKU_REWARDS[entitlement.sku_id as SKU];
     if (!reward) {
-      console.error(`No reward found for SKU ${entitlement.sku_id}`);
+      logger.error(`No reward found for SKU ${entitlement.sku_id}`);
       continue;
     }
     const success = await consumeEntitlement(entitlement.id, entitlement.sku_id as SKU);

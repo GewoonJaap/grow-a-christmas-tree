@@ -19,6 +19,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
 import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { logger } from "../tracing/pinoLogger";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -249,7 +250,7 @@ function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, del
 
         await safeEdit(ctx, await buildComposterMessage(ctx));
       } catch (e) {
-        console.log(e);
+        logger.info(e);
       }
     }, delay)
   );

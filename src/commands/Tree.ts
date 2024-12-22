@@ -27,6 +27,7 @@ import { getLocaleFromTimezone } from "../util/timezones";
 import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
+import { logger } from "../tracing/pinoLogger";
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -235,12 +236,12 @@ export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<u
         disposeActiveTimeouts(ctx);
         await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
       } catch (e) {
-        console.error(e);
+        logger.error(e);
         try {
           //One last retry
           await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
         } catch (e) {
-          console.error(e);
+          logger.error(e);
         }
       }
     }, delay)

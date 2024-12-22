@@ -16,6 +16,7 @@ import humanizeDuration = require("humanize-duration");
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { PremiumButtons } from "../../../util/buttons/PremiumButtons";
+import { logger } from "../../../tracing/pinoLogger";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -240,7 +241,7 @@ export class Boosters implements PartialCommand {
 
           await safeEdit(ctx, await this.buildBoostersMessage(ctx));
         } catch (e) {
-          console.log(e);
+          logger.info(e);
         }
       }, delay)
     );

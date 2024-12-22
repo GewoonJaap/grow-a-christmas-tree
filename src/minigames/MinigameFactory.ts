@@ -25,6 +25,7 @@ import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { logger } from "../tracing/pinoLogger";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -163,12 +164,12 @@ export function getPremiumUpsellMessage(ctx: ButtonContext, textSuffix = "\n", a
 export async function startPenaltyMinigame(ctx: ButtonContext): Promise<boolean> {
   if (UnleashHelper.isEnabled(UNLEASH_FEATURES.antiAutoClickerPenalty, ctx)) {
     try {
-      console.log(`Starting penalty minigame for user ${ctx.user.id}`);
+      logger.info(`Starting penalty minigame for user ${ctx.user.id}`);
       const minigame = new GrinchHeistMinigame();
       await minigame.start(ctx, true);
       return true;
     } catch (error) {
-      console.error(error);
+      logger.error(error);
       return false;
     }
   }
@@ -210,7 +211,7 @@ export async function minigameFinished(
   data: MinigameEndedType
 ): Promise<void> {
   if (data.penalty) {
-    console.log(
+    logger.info(
       `Penalty minigame finished for user ${ctx.user.id}, success: ${data.success}, reason: ${data.failureReason}`
     );
   }

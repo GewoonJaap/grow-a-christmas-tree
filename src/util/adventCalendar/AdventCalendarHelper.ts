@@ -117,7 +117,6 @@ export class AdventCalendarHelper {
 
   static getNextClaimDay(claimDate: Date): Date {
     const nextDay = new Date(claimDate.getTime() + SECONDS_IN_A_DAY * MILLISECONDS_IN_A_SECOND);
-    console.log(nextDay, nextDay.getTime());
     return new Date(nextDay.getFullYear(), nextDay.getMonth(), nextDay.getDate(), 0, 0, 0);
   }
 
