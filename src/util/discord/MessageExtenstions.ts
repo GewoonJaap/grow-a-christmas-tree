@@ -8,7 +8,11 @@ import {
   MessageCommandContext
 } from "interactions.ts";
 import { APIMessage } from "discord-api-types/v10";
-import { logger } from "../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 async function retryOperation<T>(operation: () => Promise<T>, retries = 1): Promise<T | undefined> {
   for (let attempt = 0; attempt <= retries; attempt++) {

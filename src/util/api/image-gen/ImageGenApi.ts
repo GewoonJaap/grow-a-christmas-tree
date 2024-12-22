@@ -1,7 +1,11 @@
 import { ITreeStyle } from "../../../models/Guild";
-import { logger } from "../../../tracing/pinoLogger";
 import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageResponseType";
 import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export class ImageGenApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;

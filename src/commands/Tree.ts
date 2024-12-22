@@ -27,7 +27,12 @@ import { getLocaleFromTimezone } from "../util/timezones";
 import { NewsMessageHelper } from "../util/news/NewsMessageHelper";
 import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
-import { logger } from "../tracing/pinoLogger";
+import { Metrics } from "../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const MINIGAME_CHANCE = 0.4;
 const MINIGAME_DELAY_SECONDS = 5 * 60;
@@ -180,6 +185,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
 
 async function logWateringEvent(ctx: ButtonContext): Promise<void> {
   if (!ctx.game) return;
+  Metrics.recordWateringEvent(ctx.user.id, ctx.game.id, false);
   const wateringEvent = new WateringEvent({
     userId: ctx.user.id,
     guildId: ctx.game.id,
@@ -198,7 +204,7 @@ function shouldStartMinigame(ctx: ButtonContext | SlashCommandContext | ButtonCo
 
 async function logFailedWateringAttempt(ctx: ButtonContext, failureReason: string): Promise<void> {
   if (!ctx.game) throw new Error("Game data missing.");
-
+  Metrics.recordWateringEvent(ctx.user.id, ctx.game.id, true, failureReason);
   await saveFailedAttempt(ctx, "watering", failureReason);
 }
 

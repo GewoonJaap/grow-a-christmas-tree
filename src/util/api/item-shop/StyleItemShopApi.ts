@@ -1,4 +1,8 @@
-import { logger } from "../../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 import { CachedResponse } from "../../types/api/CachedResponseType";
 import { DailyItemShopResponse } from "../../types/api/ItemShopApi/DailyItemShopResponseType";
 

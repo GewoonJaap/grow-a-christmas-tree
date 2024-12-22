@@ -16,8 +16,12 @@ import humanizeDuration = require("humanize-duration");
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { PremiumButtons } from "../../../util/buttons/PremiumButtons";
-import { logger } from "../../../tracing/pinoLogger";
 import { Metrics } from "../../../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",

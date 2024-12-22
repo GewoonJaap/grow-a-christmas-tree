@@ -25,8 +25,12 @@ import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
-import { logger } from "../tracing/pinoLogger";
 import { Metrics } from "../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export interface MinigameEndedType {
   success: boolean;

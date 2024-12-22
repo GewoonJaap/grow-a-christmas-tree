@@ -1,4 +1,9 @@
-import { logger } from "../tracing/pinoLogger";
+import { Metrics } from "../tracing/metrics";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 import { sendWebhookMessage, deleteWebhookMessage } from "../util/discord/DiscordWebhookHelper";
 
 export async function sendAndDeleteWebhookMessage(
@@ -8,6 +13,7 @@ export async function sendAndDeleteWebhookMessage(
   content: string
 ): Promise<void> {
   try {
+    Metrics.recordDiscordSendWebhookMessage(content);
     // Send the webhook message
     const messageContent = `<@&${roleId}> ${content}`;
     const result = await sendWebhookMessage(webhookId, webhookToken, messageContent);

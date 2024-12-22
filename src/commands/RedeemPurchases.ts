@@ -17,7 +17,11 @@ import { BoosterHelper, BoosterName } from "../util/booster/BoosterHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics"; // Import Metrics
-import { logger } from "../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const builder = new SlashCommandBuilder("redeempurchases", "Redeem all your purchases from the shop");
 

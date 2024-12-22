@@ -8,11 +8,16 @@ import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { MongooseInstrumentation } from "@opentelemetry/instrumentation-mongoose";
 import { UndiciInstrumentation } from "@opentelemetry/instrumentation-undici";
 import { PinoInstrumentation } from "@opentelemetry/instrumentation-pino";
-import { logger } from "./pinoLogger";
+import pino from "pino";
+
+export const logger = pino({
+  level: "info"
+});
 
 // Common resource attributes
 const resource = new Resource({
-  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME
+  [ATTR_SERVICE_NAME]: process.env.OTEL_SERVICE_NAME,
+  ["deployment.environment.name"]: process.env.DEV_MODE ? "development" : "production"
 });
 
 // Trace exporter setup

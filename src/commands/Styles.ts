@@ -18,7 +18,11 @@ import { randomUUID } from "crypto";
 import { permissionsExtractor } from "../util/bitfield-permission-calculator";
 import { disposeActiveTimeouts } from "./Tree";
 import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
-import { logger } from "../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const STYLES_PER_PAGE = 25;
 

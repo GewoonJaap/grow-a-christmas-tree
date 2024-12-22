@@ -19,9 +19,12 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions";
 import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
-import { logger } from "../tracing/pinoLogger";
 import { Metrics } from "../tracing/metrics";
+import pino from "pino";
 
+const logger = pino({
+  level: "info"
+});
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
 const MAX_LEVEL = 100;

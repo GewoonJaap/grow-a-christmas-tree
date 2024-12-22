@@ -2,7 +2,11 @@ import { EmbedBuilder, MessageBuilder } from "interactions.ts";
 import { BannedUser, IBannedUser } from "../../models/BannedUser";
 import { getRandomElement } from "../helpers/arrayHelper";
 import { CHEATER_CLOWN_EMOJI, SUPPORT_SERVER_INVITE } from "../const";
-import { logger } from "../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const BAN_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/banned/ban-1.jpg",

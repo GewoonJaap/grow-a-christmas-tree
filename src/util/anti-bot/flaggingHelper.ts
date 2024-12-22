@@ -11,7 +11,11 @@ import {
   EXCESSIVE_WATERING_THRESHOLD
 } from "./antiBotHelper";
 import { UNLEASH_FEATURES, UnleashHelper } from "../unleash/UnleashHelper";
-import { logger } from "../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export const AUTOCLICKER_FAILED_ATTEMPTS_BAN_THRESHOLD = 5; //Number of flags last day to ban
 export const AUTOCLICKER_FLAGGED_TIMEFRAME = 1000 * 60 * 60 * 24; // 24 hours

@@ -2,7 +2,11 @@ import { Guild, IGuild } from "../models/Guild";
 import { readFileSync, readdirSync, writeFileSync } from "fs";
 import { unlinkSync } from "fs";
 import path = require("path");
-import { logger } from "../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 let backupTimerStarted = false;
 

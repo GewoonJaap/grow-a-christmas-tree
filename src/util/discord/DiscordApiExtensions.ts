@@ -4,7 +4,11 @@ import { ButtonBuilder as OriginalButtonBuilder } from "interactions.ts";
 import { ButtonStyle } from "discord-api-types/v10";
 import axios from "axios";
 import { BoosterName } from "../booster/BoosterHelper";
-import { logger } from "../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export enum SKU {
   FESTIVE_ENTITLEMENT = "1298016263687110697",

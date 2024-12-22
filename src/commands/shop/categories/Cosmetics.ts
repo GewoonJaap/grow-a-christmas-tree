@@ -24,7 +24,11 @@ import { getLocaleFromTimezone } from "../../../util/timezones";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 import { Metrics } from "../../../tracing/metrics"; // Import Metrics
-import { logger } from "../../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",

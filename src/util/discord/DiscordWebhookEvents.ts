@@ -3,7 +3,11 @@ import { EntitlementCreateData } from "../types/discord/DiscordTypeExtension";
 import { WalletHelper } from "../wallet/WalletHelper";
 import { WheelStateHelper } from "../wheel/WheelStateHelper";
 import { Metrics } from "../../tracing/metrics";
-import { logger } from "../../tracing/pinoLogger";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 export async function handleEntitlementCreate(data: EntitlementCreateData) {
   logger.info("Entitlement created:", data);
