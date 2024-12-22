@@ -6,6 +6,8 @@ import { Resource } from "@opentelemetry/resources";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { PeriodicExportingMetricReader } from "@opentelemetry/sdk-metrics";
 import { MongooseInstrumentation } from '@opentelemetry/instrumentation-mongoose';
+import { UndiciInstrumentation } from '@opentelemetry/instrumentation-undici';
+import { PinoInstrumentation } from '@opentelemetry/instrumentation-pino';
 
 // Common resource attributes
 const resource = new Resource({
@@ -31,7 +33,12 @@ const metricReader = new PeriodicExportingMetricReader({
 // SDK setup
 const sdk = new NodeSDK({
   traceExporter,
-  instrumentations: [getNodeAutoInstrumentations(), new MongooseInstrumentation()],
+  instrumentations: [
+    getNodeAutoInstrumentations(),
+    new MongooseInstrumentation(),
+    new UndiciInstrumentation(),
+    new PinoInstrumentation()
+  ],
   resource: resource
 });
 

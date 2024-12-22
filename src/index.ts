@@ -2,6 +2,12 @@ import "dotenv/config";
 
 // Import and initialize telemetry and metrics
 import "./tracing/sdk";
+import pino from "pino";
+
+const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  prettyPrint: { colorize: true }
+});
 
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
@@ -73,7 +79,7 @@ const timeouts = new Map();
 const keys = ["CLIENT_ID", "TOKEN", "PUBLIC_KEY", "PORT"];
 
 if (keys.some((key) => !(key in process.env))) {
-  console.error(`Missing Environment Variables`);
+  logger.error(`Missing Environment Variables`);
   process.exit(1);
 }
 
@@ -116,7 +122,7 @@ if (keys.some((key) => !(key in process.env))) {
 
           if (game) await game.populate("contributors");
         } catch (err) {
-          console.error(err);
+          logger.error(err);
 
           if (ctx instanceof AutocompleteContext) {
             await safeReply(ctx, []);
@@ -132,7 +138,7 @@ if (keys.some((key) => !(key in process.env))) {
         try {
           flagPotentialAutoClickers(ctx as SlashCommandContext);
         } catch (err) {
-          console.error(err);
+          logger.error(err);
         }
       }
     }
@@ -196,12 +202,12 @@ if (keys.some((key) => !(key in process.env))) {
       );
     } catch (err) {
       if (err instanceof UnauthorizedInteraction) {
-        console.error("Unauthorized Interaction");
+        logger.error("Unauthorized Interaction");
         return reply.code(401).send();
       }
 
       if (err instanceof InteractionHandlerTimedOut) {
-        console.error("Interaction Handler Timed Out");
+        logger.error("Interaction Handler Timed Out");
 
         return reply.code(408).send();
       }
@@ -211,13 +217,13 @@ if (keys.some((key) => !(key in process.env))) {
         err instanceof UnknownApplicationCommandType ||
         err instanceof UnknownComponentType
       ) {
-        console.error("Unknown Interaction - Library may be out of date.");
-        console.dir(err.interaction);
+        logger.error("Unknown Interaction - Library may be out of date.");
+        logger.dir(err.interaction);
 
         return reply.code(400).send();
       }
 
-      console.error(err);
+      logger.error(err);
       reply.code(500).send({ error: "Internal Server Error" });
     }
   });
@@ -234,7 +240,7 @@ if (keys.some((key) => !(key in process.env))) {
 
     const body = JSON.parse(request.rawBody);
 
-    console.log(body, signature, timestamp);
+    logger.info(body, signature, timestamp);
 
     if (body.type === WebhookEventType.PING) {
       return reply.code(204).send();
@@ -260,7 +266,7 @@ if (keys.some((key) => !(key in process.env))) {
           await handleEntitlementCreate(event.data);
           break;
         default:
-          console.warn(`Unhandled event type: ${event.type}`);
+          logger.warn(`Unhandled event type: ${event.type}`);
       }
 
       return reply.code(204).send();
@@ -278,7 +284,7 @@ if (keys.some((key) => !(key in process.env))) {
       reply.code(200).send(stats);
       return;
     } catch (err: unknown) {
-      console.error(err);
+      logger.error(err);
       reply.code(500).send();
       return;
     }
@@ -297,14 +303,14 @@ if (keys.some((key) => !(key in process.env))) {
       await runMigrations();
 
       server.listen({ port: parseInt(port), host: address });
-      console.log(`Listening for interactions on http://${address}:${port}.`);
+      logger.info(`Listening for interactions on http://${address}:${port}.`);
     })
     .catch((err: unknown) => {
-      console.error(err);
+      logger.error(err);
     });
 })();
 
-console.log(`Grow a christmas tree - V${VERSION}`);
+logger.info(`Grow a christmas tree - V${VERSION}`);
 
 startBackupTimer();
 startAntiBotCleanupTimer();
