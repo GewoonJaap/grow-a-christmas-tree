@@ -21,6 +21,7 @@ import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { Metrics } from "../tracing/metrics";
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -115,65 +116,77 @@ function upsellText(hasPremium: boolean): MessageUpsellType {
 }
 
 async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
-  const festiveMessage = SpecialDayHelper.getFestiveMessage();
-  if (!ctx.game) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("buildComposterMessage", async (span) => {
+    try {
+      const festiveMessage = SpecialDayHelper.getFestiveMessage();
+      if (!ctx.game) {
+        return new MessageBuilder().addEmbed(
+          new EmbedBuilder()
+            .setTitle("Santa's Magic Composter")
+            .setDescription("You need to plant a tree first before you can upgrade the composter.")
+            .setColor(0xff0000)
+            .setImage(getRandomElement(composterImages) ?? "")
+        );
+      }
+
+      if (ctx.isDM) {
+        return new MessageBuilder().addEmbed(
+          new EmbedBuilder()
+            .setTitle("Santa's Magic Composter")
+            .setDescription("You can only upgrade the composter in a server.")
+            .setColor(0xff0000)
+            .setImage(getRandomElement(composterImages) ?? "")
+        );
+      }
+
+      const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
+      const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
+
+      const efficiencyUpgradeCost = BASE_COST + efficiencyLevel * COST_INCREMENT;
+      const qualityUpgradeCost = BASE_COST + qualityLevel * COST_INCREMENT;
+      const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game?.hasAiAccess ?? false);
+      const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game?.hasAiAccess ?? false);
+      const upsellData = upsellText(ctx.game.hasAiAccess ?? false);
+
+      const embed = new EmbedBuilder()
         .setTitle("Santa's Magic Composter")
-        .setDescription("You need to plant a tree first before you can upgrade the composter.")
-        .setColor(0xff0000)
+        .setDescription(
+          `Upgrade the composter to make your tree grow faster!\n\n🧝 **Elf-Powered Efficiency:** Increases the chance that Santa's workshop elves give your tree an extra magical boost!\n✨ **Sparkling Spirit:** Enhances the growth boost your tree receives each time you water it!\n\n🧝 **Current Efficiency Level:** ${efficiencyLevel}\n🪙 **Efficiency Upgrade Cost:** ${efficiencyUpgradeCost} coins\n\n✨ **Current Quality Level:** ${qualityLevel}\n🪙 **Quality Upgrade Cost:** ${qualityUpgradeCost} coins\n\n**Extra Growth Chance:** ${growthChance}%\n**Growth Amount:** ${growthAmount}ft`
+        )
         .setImage(getRandomElement(composterImages) ?? "")
-    );
-  }
+        .setFooter({ text: upsellData.message });
 
-  if (ctx.isDM) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("Santa's Magic Composter")
-        .setDescription("You can only upgrade the composter in a server.")
-        .setColor(0xff0000)
-        .setImage(getRandomElement(composterImages) ?? "")
-    );
-  }
+      if (festiveMessage.isPresent) {
+        embed.setFooter({ text: festiveMessage.message });
+      }
 
-  const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
-  const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
+      const actionRow = new ActionRowBuilder();
 
-  const efficiencyUpgradeCost = BASE_COST + efficiencyLevel * COST_INCREMENT;
-  const qualityUpgradeCost = BASE_COST + qualityLevel * COST_INCREMENT;
-  const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game?.hasAiAccess ?? false);
-  const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game?.hasAiAccess ?? false);
-  const upsellData = upsellText(ctx.game.hasAiAccess ?? false);
+      if (upsellData.isUpsell && upsellData.buttonSku && !process.env.DEV_MODE) {
+        actionRow.addComponents(new PremiumButtonBuilder().setSkuId(upsellData.buttonSku));
+      }
 
-  const embed = new EmbedBuilder()
-    .setTitle("Santa's Magic Composter")
-    .setDescription(
-      `Upgrade the composter to make your tree grow faster!\n\n🧝 **Elf-Powered Efficiency:** Increases the chance that Santa's workshop elves give your tree an extra magical boost!\n✨ **Sparkling Spirit:** Enhances the growth boost your tree receives each time you water it!\n\n🧝 **Current Efficiency Level:** ${efficiencyLevel}\n🪙 **Efficiency Upgrade Cost:** ${efficiencyUpgradeCost} coins\n\n✨ **Current Quality Level:** ${qualityLevel}\n🪙 **Quality Upgrade Cost:** ${qualityUpgradeCost} coins\n\n**Extra Growth Chance:** ${growthChance}%\n**Growth Amount:** ${growthAmount}ft`
-    )
-    .setImage(getRandomElement(composterImages) ?? "")
-    .setFooter({ text: upsellData.message });
+      if (efficiencyLevel < MAX_LEVEL) {
+        actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.efficiency"));
+      }
 
-  if (festiveMessage.isPresent) {
-    embed.setFooter({ text: festiveMessage.message });
-  }
+      if (qualityLevel < MAX_LEVEL) {
+        actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.quality"));
+      }
 
-  const actionRow = new ActionRowBuilder();
+      actionRow.addComponents(await ctx.manager.components.createInstance("composter.refresh"));
 
-  if (upsellData.isUpsell && upsellData.buttonSku && !process.env.DEV_MODE) {
-    actionRow.addComponents(new PremiumButtonBuilder().setSkuId(upsellData.buttonSku));
-  }
-
-  if (efficiencyLevel < MAX_LEVEL) {
-    actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.efficiency"));
-  }
-
-  if (qualityLevel < MAX_LEVEL) {
-    actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.quality"));
-  }
-
-  actionRow.addComponents(await ctx.manager.components.createInstance("composter.refresh"));
-
-  return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+      span.setStatus({ code: SpanStatusCode.OK });
+      return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "quality"): Promise<MessageBuilder> {

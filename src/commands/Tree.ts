@@ -29,6 +29,7 @@ import { BoosterHelper } from "../util/booster/BoosterHelper";
 import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics";
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -91,96 +92,105 @@ export class Tree implements ISlashCommand {
 }
 
 async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
-  if (!ctx.game) throw new Error("Game data missing.");
-  if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-    await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-    transitionToDefaultTreeView(ctx);
-    return;
-  }
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("handleTreeGrow", async (span) => {
+    try {
+      if (!ctx.game) throw new Error("Game data missing.");
+      if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+        await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+        transitionToDefaultTreeView(ctx);
+        return;
+      }
 
-  if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
-    disposeActiveTimeouts(ctx);
-    await logFailedWateringAttempt(ctx, "user watered last");
-    if (await isUserFlagged(ctx)) {
-      const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
-      if (penaltyMinigameStarted) return;
-    }
-    const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
-    await safeReply(
-      ctx,
-      SimpleError("You watered this tree last, you must let someone else water it first.")
-        .setEphemeral(true)
-        .addComponents(actions)
-    );
+      if (ctx.game.lastWateredBy === ctx.user.id && process.env.DEV_MODE !== "true") {
+        disposeActiveTimeouts(ctx);
+        await logFailedWateringAttempt(ctx, "user watered last");
+        if (await isUserFlagged(ctx)) {
+          const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+          if (penaltyMinigameStarted) return;
+        }
+        const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
+        await safeReply(
+          ctx,
+          SimpleError("You watered this tree last, you must let someone else water it first.")
+            .setEphemeral(true)
+            .addComponents(actions)
+        );
 
-    transitionToDefaultTreeView(ctx);
+        transitionToDefaultTreeView(ctx);
+        return;
+      }
 
-    return;
-  }
+      const wateringInterval = getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false),
+        time = Math.floor(Date.now() / 1000);
+      if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
+        disposeActiveTimeouts(ctx);
+        await logFailedWateringAttempt(ctx, "tree not ready");
+        if (await isUserFlagged(ctx)) {
+          const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+          if (penaltyMinigameStarted) return;
+        }
 
-  const wateringInterval = getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false),
-    time = Math.floor(Date.now() / 1000);
-  if (ctx.game.lastWateredAt + wateringInterval > time && process.env.DEV_MODE !== "true") {
-    disposeActiveTimeouts(ctx);
-    await logFailedWateringAttempt(ctx, "tree not ready");
-    if (await isUserFlagged(ctx)) {
-      const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
-      if (penaltyMinigameStarted) return;
-    }
-
-    const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
-    await safeReply(
-      ctx,
-      new MessageBuilder()
-        .addEmbed(
-          new EmbedBuilder()
-            .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
-            .setDescription(
-              `It was recently watered by <@${ctx.game.lastWateredBy}>.\n\nYou can next water it: <t:${
-                ctx.game.lastWateredAt + wateringInterval
-              }:R>`
+        const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
+        await safeReply(
+          ctx,
+          new MessageBuilder()
+            .addEmbed(
+              new EmbedBuilder()
+                .setTitle(`\`\`${ctx.game.name}\`\` is growing already.`)
+                .setDescription(
+                  `It was recently watered by <@${ctx.game.lastWateredBy}>.\n\nYou can next water it: <t:${
+                    ctx.game.lastWateredAt + wateringInterval
+                  }:R>`
+                )
             )
-        )
-        .addComponents(actions)
-    );
+            .addComponents(actions)
+        );
 
-    transitionToDefaultTreeView(ctx);
+        transitionToDefaultTreeView(ctx);
+        return;
+      }
 
-    return;
-  }
+      ctx.game.lastWateredAt = time;
+      ctx.game.lastWateredBy = ctx.user.id;
 
-  ctx.game.lastWateredAt = time;
-  ctx.game.lastWateredBy = ctx.user.id;
+      applyGrowthBoost(ctx);
 
-  applyGrowthBoost(ctx);
+      const contributor = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
 
-  const contributor = ctx.game.contributors.find((contributor) => contributor.userId === ctx.user.id);
+      if (contributor) {
+        contributor.count++;
+        contributor.lastWateredAt = time;
+      } else {
+        ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
+      }
 
-  if (contributor) {
-    contributor.count++;
-    contributor.lastWateredAt = time;
-  } else {
-    ctx.game.contributors.push({ userId: ctx.user.id, count: 1, lastWateredAt: time });
-  }
+      await logWateringEvent(ctx);
 
-  // Log the watering event
-  await logWateringEvent(ctx);
+      await ctx.game.save();
 
-  await ctx.game.save();
+      if (await isUserFlagged(ctx)) {
+        const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
+        if (penaltyMinigameStarted) return;
+      }
 
-  if (await isUserFlagged(ctx)) {
-    const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
-    if (penaltyMinigameStarted) return;
-  }
+      if (shouldStartMinigame(ctx)) {
+        ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
+        await ctx.game.save();
+        const minigameStarted = await startRandomMinigame(ctx);
+        if (minigameStarted) return;
+      }
 
-  if (shouldStartMinigame(ctx)) {
-    ctx.game.lastEventAt = Math.floor(Date.now() / 1000);
-    await ctx.game.save();
-    const minigameStarted = await startRandomMinigame(ctx);
-    if (minigameStarted) return;
-  }
-
-  return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+      span.setStatus({ code: SpanStatusCode.OK });
+      return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 async function logWateringEvent(ctx: ButtonContext): Promise<void> {
@@ -216,7 +226,6 @@ function applyGrowthBoost(ctx: ButtonContext): void {
   const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game.hasAiAccess);
 
   let growthToAdd = BoosterHelper.tryApplyBoosterEffectOnNumber(ctx, "Growth Booster", 1);
-  // Apply growth chance and amount
   if (Math.random() * 100 < growthChance) {
     growthToAdd += growthAmount;
   }
@@ -244,7 +253,6 @@ export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<u
       } catch (e) {
         logger.error(e);
         try {
-          //One last retry
           await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
         } catch (e) {
           logger.error(e);
