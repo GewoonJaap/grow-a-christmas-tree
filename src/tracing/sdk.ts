@@ -10,7 +10,7 @@ import { UndiciInstrumentation } from "@opentelemetry/instrumentation-undici";
 import { PinoInstrumentation } from "@opentelemetry/instrumentation-pino";
 import pino from "pino";
 
-export const logger = pino({
+const logger = pino({
   level: "info"
 });
 

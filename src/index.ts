@@ -57,7 +57,11 @@ import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCo
 import { runMigrations } from "./migrations";
 import { safeReply } from "./util/discord/MessageExtenstions";
 import { Metrics } from "./tracing/metrics";
-import { logger } from "./tracing/sdk";
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 const VERSION = "2.0";
 
