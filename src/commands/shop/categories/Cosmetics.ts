@@ -304,7 +304,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     await TreeStyleHelper.addNewStyle(ctx, styleName);
 
     // Log item name and other relevant details when a cosmetic purchase is made
-    Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id);
+    Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown");
 
     const embed = await this.getTreeStyleEmbed(styleName);
 

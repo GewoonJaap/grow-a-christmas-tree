@@ -44,7 +44,8 @@ export class HeartCollectionMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Heart Collection"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, HEART_COLLECTION_MINIGAME_MAX_DURATION);
@@ -72,7 +73,12 @@ export class HeartCollectionMinigame implements Minigame {
       ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
-    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION });
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
+      minigameName: "Heart Collection"
+    });
     transitionToDefaultTreeView(ctx);
   }
 
@@ -95,7 +101,8 @@ export class HeartCollectionMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: HEART_COLLECTION_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Heart Collection"
     });
     transitionToDefaultTreeView(ctx);
   }

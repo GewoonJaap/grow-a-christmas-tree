@@ -44,7 +44,8 @@ export class EarthDayCleanupMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Earth Day Cleanup"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION);
@@ -73,7 +74,12 @@ export class EarthDayCleanupMinigame implements Minigame {
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
-    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION });
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION,
+      minigameName: "Earth Day Cleanup"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -98,7 +104,8 @@ export class EarthDayCleanupMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: EARTH_DAY_CLEANUP_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Earth Day Cleanup"
     });
 
     transitionToDefaultTreeView(ctx);

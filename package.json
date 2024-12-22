@@ -27,6 +27,7 @@
     "interactions.ts": "^1.0.23",
     "mongoose": "^8.0.1",
     "pino": "^9.5.0",
+    "pino-pretty": "^13.0.0",
     "redis": "^4.1.0",
     "tweetnacl": "^1.0.3",
     "unleash-client": "^6.1.3"

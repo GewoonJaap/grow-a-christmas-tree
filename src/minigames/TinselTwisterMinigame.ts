@@ -68,7 +68,8 @@ export class TinselTwisterMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Tinsel Twister"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx as ButtonContext));
     }, TINSEL_TWISTER_MINIGAME_MAX_DURATION);
@@ -91,7 +92,12 @@ export class TinselTwisterMinigame implements Minigame {
       ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
-    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION });
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
+      minigameName: "Tinsel Twister"
+    });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }
 
@@ -133,7 +139,8 @@ export class TinselTwisterMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: TINSEL_TWISTER_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Tinsel Twister"
     });
     transitionToDefaultTreeView(ctx as ButtonContext);
   }

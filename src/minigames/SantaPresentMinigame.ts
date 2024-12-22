@@ -49,7 +49,8 @@ export class SantaPresentMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: SANTA_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Santa Present"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, SANTA_MINIGAME_MAX_DURATION);
@@ -76,7 +77,12 @@ export class SantaPresentMinigame implements Minigame {
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
 
-    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: SANTA_MINIGAME_MAX_DURATION });
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: SANTA_MINIGAME_MAX_DURATION,
+      minigameName: "Santa Present"
+    });
 
     transitionToDefaultTreeView(ctx);
   }
@@ -102,7 +108,8 @@ export class SantaPresentMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: SANTA_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Santa Present"
     });
 
     transitionToDefaultTreeView(ctx);

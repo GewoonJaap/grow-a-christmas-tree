@@ -47,7 +47,8 @@ export class HotCocoaMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Hot Cocoa Making"
       });
 
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
@@ -76,7 +77,8 @@ export class HotCocoaMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Hot Cocoa Making"
     });
 
     transitionToDefaultTreeView(ctx);
@@ -104,7 +106,12 @@ export class HotCocoaMinigame implements Minigame {
           ctx,
           new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
         );
-        await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION });
+        await minigameFinished(ctx, {
+          success: true,
+          difficulty: 1,
+          maxDuration: HOT_COCOA_MINIGAME_MAX_DURATION,
+          minigameName: "Hot Cocoa Making"
+        });
 
         transitionToDefaultTreeView(ctx);
       }

@@ -44,7 +44,8 @@ export class PumpkinHuntMinigame implements Minigame {
         success: false,
         difficulty: 1,
         maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION,
-        failureReason: "Timeout"
+        failureReason: "Timeout",
+        minigameName: "Pumpkin Hunt"
       });
       await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
     }, PUMPKIN_HUNT_MINIGAME_MAX_DURATION);
@@ -70,7 +71,12 @@ export class PumpkinHuntMinigame implements Minigame {
       ctx,
       new MessageBuilder().addEmbed(embed).addComponents(new ActionRowBuilder().addComponents(...buttons))
     );
-    await minigameFinished(ctx, { success: true, difficulty: 1, maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION });
+    await minigameFinished(ctx, {
+      success: true,
+      difficulty: 1,
+      maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION,
+      minigameName: "Pumpkin Hunt"
+    });
     transitionToDefaultTreeView(ctx);
   }
 
@@ -93,7 +99,8 @@ export class PumpkinHuntMinigame implements Minigame {
       success: false,
       difficulty: 1,
       maxDuration: PUMPKIN_HUNT_MINIGAME_MAX_DURATION,
-      failureReason: "Wrong button"
+      failureReason: "Wrong button",
+      minigameName: "Pumpkin Hunt"
     });
     transitionToDefaultTreeView(ctx);
   }

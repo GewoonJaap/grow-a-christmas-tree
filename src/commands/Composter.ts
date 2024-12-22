@@ -20,6 +20,7 @@ import { PremiumButtonBuilder, SKU } from "../util/discord/DiscordApiExtensions"
 import { safeEdit, safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { logger } from "../tracing/pinoLogger";
+import { Metrics } from "../tracing/metrics";
 
 const BASE_COST = 100;
 const COST_INCREMENT = 50;
@@ -219,6 +220,13 @@ async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "qu
     if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
       actions.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
     }
+
+    Metrics.recordComposterUpgradeMetric(
+      ctx.user.id,
+      ctx.game.id,
+      upgradeType,
+      upgradeType === "efficiency" ? efficiencyLevel : qualityLevel
+    );
 
     const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 

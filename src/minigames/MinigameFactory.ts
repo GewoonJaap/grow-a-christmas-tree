@@ -26,6 +26,7 @@ import { SantaSleighRideMinigame } from "./SantaSleighRideMinigame";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { logger } from "../tracing/pinoLogger";
+import { Metrics } from "../tracing/metrics";
 
 export interface MinigameEndedType {
   success: boolean;
@@ -33,6 +34,7 @@ export interface MinigameEndedType {
   maxDuration: number;
   failureReason?: string;
   penalty?: boolean;
+  minigameName: string;
 }
 
 export const minigameButtons = [
@@ -220,6 +222,9 @@ export async function minigameFinished(
   }
   if (!data.success) {
     await logFailedMinigameAttempt(ctx, data.failureReason ?? "Unknown");
+    Metrics.recordMinigameLossMetric(ctx.user.id, data.minigameName);
+  } else {
+    Metrics.recordMinigameWinMetric(ctx.user.id, data.minigameName);
   }
 }
 

@@ -15,6 +15,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { logger } from "../tracing/pinoLogger";
+import { Metrics } from "../tracing/metrics";
 
 const builder = new SlashCommandBuilder("sendcoins", "Transfer coins to another player.")
   .addUserOption(new SlashCommandUserOption("recipient", "The player to transfer coins to.").setRequired(true))
@@ -94,6 +95,8 @@ export class SendCoinsCommand implements ISlashCommand {
           ctx.game.hasAiAccess ? "" : " Premium servers earn more coins, have access to more minigames and much more!"
         }`
       });
+
+    Metrics.recordSendCoinsMetric(sender.userId, recipient.userId, amount);
 
     await safeReply(ctx, new MessageBuilder().addEmbed(embed));
 

@@ -17,6 +17,7 @@ import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { safeReply, safeEdit } from "../../../util/discord/MessageExtenstions";
 import { PremiumButtons } from "../../../util/buttons/PremiumButtons";
 import { logger } from "../../../tracing/pinoLogger";
+import { Metrics } from "../../../tracing/metrics";
 
 const IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/shop/shop-1.jpg",
@@ -218,6 +219,8 @@ export class Boosters implements PartialCommand {
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("shop.boosters.refresh")
     );
+
+    Metrics.recordBoosterPurchaseMetric(booster.name, ctx.user.id, ctx.game.id);
 
     const embed = new EmbedBuilder()
       .setTitle("🎁 Purchase Complete!")

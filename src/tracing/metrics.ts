@@ -46,6 +46,51 @@ export class Metrics {
     shopPurchaseMetric.add(1, { item: itemName, user: userId, guild: guildId ?? "unknown" });
   }
 
+  static recordBoosterPurchaseMetric(boosterName: string, userId: string, guildId?: string): void {
+    const boosterPurchaseMetric = meter.createCounter("booster_purchases", {
+      description: "Counts the number of booster purchases"
+    });
+
+    boosterPurchaseMetric.add(1, { booster: boosterName, user: userId, guild: guildId ?? "unknown" });
+  }
+
+  static recordComposterUpgradeMetric(
+    userId: string,
+    guildId: string,
+    upgradeType: string,
+    upgradeLevel: number
+  ): void {
+    const composterUpgradeMetric = meter.createCounter("composter_upgrades", {
+      description: "Counts the number of composter upgrades"
+    });
+
+    composterUpgradeMetric.add(1, { user: userId, guild: guildId, upgradeType, upgradeLevel });
+  }
+
+  static recordSendCoinsMetric(senderId: string, recipientId: string, amount: number): void {
+    const sendCoinsMetric = meter.createCounter("coins_sent", {
+      description: "Counts the number of coins sent"
+    });
+
+    sendCoinsMetric.add(1, { sender: senderId, recipient: recipientId, amount });
+  }
+
+  static recordMinigameWinMetric(userId: string, minigameName: string): void {
+    const minigameWinMetric = meter.createCounter("minigame_wins", {
+      description: "Counts the number of minigame wins"
+    });
+
+    minigameWinMetric.add(1, { user: userId, minigame: minigameName });
+  }
+
+  static recordMinigameLossMetric(userId: string, minigameName: string): void {
+    const minigameLossMetric = meter.createCounter("minigame_losses", {
+      description: "Counts the number of minigame losses"
+    });
+
+    minigameLossMetric.add(1, { user: userId, minigame: minigameName });
+  }
+
   static recordCosmeticPurchaseMetric(itemName: string, userId: string, guildId?: string): void {
     const cosmeticPurchaseMetric = meter.createCounter("cosmetic_purchases", {
       description: "Counts the number of cosmetic purchases"
@@ -59,7 +104,7 @@ export class Metrics {
       description: "Counts the number of wheel spins"
     });
 
-    wheelSpinMetric.add(1, { user: userId, guild: guildId, rewardType, rewardAmount });
+    wheelSpinMetric.add(1, { user: userId, guild: guildId, rewardType: rewardType, rewardAmount: rewardAmount });
   }
 
   static recordAdventCalendarWinMetric(userId: string, rewardDetails: string): void {
