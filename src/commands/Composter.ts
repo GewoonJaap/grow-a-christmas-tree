@@ -41,10 +41,25 @@ export class Composter implements ISlashCommand {
   public builder = new SlashCommandBuilder("composter", "View and upgrade Santa's Magic Composter.");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-    }
-    return await safeReply(ctx, await buildComposterMessage(ctx));
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("ComposterCommandHandler", async (span) => {
+      try {
+        if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+          const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+          span.setStatus({ code: SpanStatusCode.OK });
+          return result;
+        }
+        const result = await safeReply(ctx, await buildComposterMessage(ctx));
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   public components = [
@@ -52,41 +67,85 @@ export class Composter implements ISlashCommand {
       "composter.upgrade.efficiency",
       new ButtonBuilder().setEmoji({ name: "🧝" }).setStyle(1).setLabel("Elf-Powered Efficiency"),
       async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-          transitionBackToDefaultComposterViewWithTimeout(ctx);
-          return;
-        }
-        return await safeReply(ctx, await handleUpgrade(ctx, "efficiency"));
+        const tracer = trace.getTracer("grow-a-tree");
+        return tracer.startActiveSpan("ComposterUpgradeEfficiencyButtonHandler", async (span) => {
+          try {
+            if (
+              UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+              (await BanHelper.isUserBanned(ctx.user.id))
+            ) {
+              const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+              transitionBackToDefaultComposterViewWithTimeout(ctx);
+              span.setStatus({ code: SpanStatusCode.OK });
+              return result;
+            }
+            const result = await safeReply(ctx, await handleUpgrade(ctx, "efficiency"));
+            span.setStatus({ code: SpanStatusCode.OK });
+            return result;
+          } catch (error) {
+            span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+            span.recordException(error as Error);
+            throw error;
+          } finally {
+            span.end();
+          }
+        });
       }
     ),
     new Button(
       "composter.upgrade.quality",
       new ButtonBuilder().setEmoji({ name: "✨" }).setStyle(1).setLabel("Sparkling Spirit"),
       async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-        }
-        return await safeReply(ctx, await handleUpgrade(ctx, "quality"));
+        const tracer = trace.getTracer("grow-a-tree");
+        return tracer.startActiveSpan("ComposterUpgradeQualityButtonHandler", async (span) => {
+          try {
+            if (
+              UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+              (await BanHelper.isUserBanned(ctx.user.id))
+            ) {
+              const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+              span.setStatus({ code: SpanStatusCode.OK });
+              return result;
+            }
+            const result = await safeReply(ctx, await handleUpgrade(ctx, "quality"));
+            span.setStatus({ code: SpanStatusCode.OK });
+            return result;
+          } catch (error) {
+            span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+            span.recordException(error as Error);
+            throw error;
+          } finally {
+            span.end();
+          }
+        });
       }
     ),
     new Button(
       "composter.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(2).setLabel("Refresh"),
       async (ctx: ButtonContext): Promise<void> => {
-        if (
-          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
-          (await BanHelper.isUserBanned(ctx.user.id))
-        ) {
-          return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-        }
-        return await safeReply(ctx, await buildComposterMessage(ctx));
+        const tracer = trace.getTracer("grow-a-tree");
+        return tracer.startActiveSpan("ComposterRefreshButtonHandler", async (span) => {
+          try {
+            if (
+              UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+              (await BanHelper.isUserBanned(ctx.user.id))
+            ) {
+              const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+              span.setStatus({ code: SpanStatusCode.OK });
+              return result;
+            }
+            const result = await safeReply(ctx, await buildComposterMessage(ctx));
+            span.setStatus({ code: SpanStatusCode.OK });
+            return result;
+          } catch (error) {
+            span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+            span.recordException(error as Error);
+            throw error;
+          } finally {
+            span.end();
+          }
+        });
       }
     )
   ];
@@ -121,23 +180,27 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
     try {
       const festiveMessage = SpecialDayHelper.getFestiveMessage();
       if (!ctx.game) {
-        return new MessageBuilder().addEmbed(
+        const result = new MessageBuilder().addEmbed(
           new EmbedBuilder()
             .setTitle("Santa's Magic Composter")
             .setDescription("You need to plant a tree first before you can upgrade the composter.")
             .setColor(0xff0000)
             .setImage(getRandomElement(composterImages) ?? "")
         );
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
       }
 
       if (ctx.isDM) {
-        return new MessageBuilder().addEmbed(
+        const result = new MessageBuilder().addEmbed(
           new EmbedBuilder()
             .setTitle("Santa's Magic Composter")
             .setDescription("You can only upgrade the composter in a server.")
             .setColor(0xff0000)
             .setImage(getRandomElement(composterImages) ?? "")
         );
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
       }
 
       const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
@@ -177,8 +240,9 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
 
       actionRow.addComponents(await ctx.manager.components.createInstance("composter.refresh"));
 
+      const result = new MessageBuilder().addEmbed(embed).addComponents(actionRow);
       span.setStatus({ code: SpanStatusCode.OK });
-      return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+      return result;
     } catch (error) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
       span.recordException(error as Error);
@@ -190,78 +254,96 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
 }
 
 async function handleUpgrade(ctx: ButtonContext, upgradeType: "efficiency" | "quality"): Promise<MessageBuilder> {
-  if (!ctx.game) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("Santa's Magic Composter")
-        .setDescription("You need to plant a tree first before you can upgrade the composter.")
-        .setColor(0xff0000)
-        .setImage(getRandomElement(composterImages) ?? "")
-    );
-  }
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("handleUpgrade", async (span) => {
+    try {
+      if (!ctx.game) {
+        const result = new MessageBuilder().addEmbed(
+          new EmbedBuilder()
+            .setTitle("Santa's Magic Composter")
+            .setDescription("You need to plant a tree first before you can upgrade the composter.")
+            .setColor(0xff0000)
+            .setImage(getRandomElement(composterImages) ?? "")
+        );
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      }
 
-  if (ctx.isDM) {
-    return new MessageBuilder().addEmbed(
-      new EmbedBuilder()
-        .setTitle("Santa's Magic Composter")
-        .setColor(0xff0000)
-        .setImage(getRandomElement(composterImages) ?? "")
-        .setDescription("You can only upgrade the composter in a server.")
-    );
-  }
+      if (ctx.isDM) {
+        const result = new MessageBuilder().addEmbed(
+          new EmbedBuilder()
+            .setTitle("Santa's Magic Composter")
+            .setColor(0xff0000)
+            .setImage(getRandomElement(composterImages) ?? "")
+            .setDescription("You can only upgrade the composter in a server.")
+        );
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      }
 
-  const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
-  const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
+      const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
+      const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
 
-  const upgradeCost =
-    upgradeType === "efficiency"
-      ? BASE_COST + efficiencyLevel * COST_INCREMENT
-      : BASE_COST + qualityLevel * COST_INCREMENT;
+      const upgradeCost =
+        upgradeType === "efficiency"
+          ? BASE_COST + efficiencyLevel * COST_INCREMENT
+          : BASE_COST + qualityLevel * COST_INCREMENT;
 
-  const wallet = await WalletHelper.getWallet(ctx.user.id);
+      const wallet = await WalletHelper.getWallet(ctx.user.id);
 
-  if (wallet.coins < upgradeCost) {
-    const coinUpsellData = coinUpsell(upgradeCost);
-    const embed = new EmbedBuilder()
-      .setTitle("Upgrade Failed")
-      .setDescription(`You need ${upgradeCost} coins to upgrade the composter.`)
-      .setImage(getRandomElement(composterImages) ?? "")
-      .setColor(0xff0000)
-      .setFooter({ text: coinUpsellData.message });
+      if (wallet.coins < upgradeCost) {
+        const coinUpsellData = coinUpsell(upgradeCost);
+        const embed = new EmbedBuilder()
+          .setTitle("Upgrade Failed")
+          .setDescription(`You need ${upgradeCost} coins to upgrade the composter.`)
+          .setImage(getRandomElement(composterImages) ?? "")
+          .setColor(0xff0000)
+          .setFooter({ text: coinUpsellData.message });
 
-    const actions = new ActionRowBuilder().addComponents(
-      await ctx.manager.components.createInstance("composter.refresh")
-    );
+        const actions = new ActionRowBuilder().addComponents(
+          await ctx.manager.components.createInstance("composter.refresh")
+        );
 
-    if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
-      actions.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
+        if (coinUpsellData.isUpsell && coinUpsellData.buttonSku && !process.env.DEV_MODE) {
+          actions.addComponents(new PremiumButtonBuilder().setSkuId(coinUpsellData.buttonSku));
+        }
+
+        Metrics.recordComposterUpgradeMetric(
+          ctx.user.id,
+          ctx.game.id,
+          upgradeType,
+          upgradeType === "efficiency" ? efficiencyLevel : qualityLevel
+        );
+
+        const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
+
+        transitionBackToDefaultComposterViewWithTimeout(ctx);
+
+        span.setStatus({ code: SpanStatusCode.OK });
+        return message;
+      }
+
+      await WalletHelper.removeCoins(ctx.user.id, upgradeCost);
+
+      if (upgradeType === "efficiency") {
+        ctx.game.composter.efficiencyLevel++;
+      } else {
+        ctx.game.composter.qualityLevel++;
+      }
+
+      await ctx.game.save();
+
+      const result = await buildComposterMessage(ctx);
+      span.setStatus({ code: SpanStatusCode.OK });
+      return result;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
     }
-
-    Metrics.recordComposterUpgradeMetric(
-      ctx.user.id,
-      ctx.game.id,
-      upgradeType,
-      upgradeType === "efficiency" ? efficiencyLevel : qualityLevel
-    );
-
-    const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
-
-    transitionBackToDefaultComposterViewWithTimeout(ctx);
-
-    return message;
-  }
-
-  await WalletHelper.removeCoins(ctx.user.id, upgradeCost);
-
-  if (upgradeType === "efficiency") {
-    ctx.game.composter.efficiencyLevel++;
-  } else {
-    ctx.game.composter.qualityLevel++;
-  }
-
-  await ctx.game.save();
-
-  return await buildComposterMessage(ctx);
+  });
 }
 
 function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, delay = 4000): void {
@@ -269,13 +351,21 @@ function transitionBackToDefaultComposterViewWithTimeout(ctx: ButtonContext, del
   ctx.timeouts.set(
     ctx.interaction.message.id,
     setTimeout(async () => {
-      try {
-        disposeActiveTimeouts(ctx);
+      const tracer = trace.getTracer("grow-a-tree");
+      return tracer.startActiveSpan("transitionBackToDefaultComposterViewWithTimeout", async (span) => {
+        try {
+          disposeActiveTimeouts(ctx);
 
-        await safeEdit(ctx, await buildComposterMessage(ctx));
-      } catch (e) {
-        logger.info(e);
-      }
+          await safeEdit(ctx, await buildComposterMessage(ctx));
+          span.setStatus({ code: SpanStatusCode.OK });
+        } catch (e) {
+          logger.info(e);
+          span.setStatus({ code: SpanStatusCode.ERROR, message: (e as Error).message });
+          span.recordException(e as Error);
+        } finally {
+          span.end();
+        }
+      });
     }, delay)
   );
 }

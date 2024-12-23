@@ -16,6 +16,7 @@ import { BanHelper } from "../util/bans/BanHelper";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 type LeaderboardButtonState = {
   page: number;
@@ -30,7 +31,20 @@ export class Forest implements ISlashCommand {
   );
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return await safeReply(ctx, await buildLeaderboardMessage(ctx));
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("ForestCommandHandler", async (span) => {
+      try {
+        const result = await safeReply(ctx, await buildLeaderboardMessage(ctx));
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   public components = [

@@ -18,6 +18,7 @@ import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics"; // Import Metrics
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -31,11 +32,26 @@ export class RedeemPurchasesCommand implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM || !ctx.game) {
-      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("RedeemPurchasesCommandHandler", async (span) => {
+      try {
+        if (ctx.isDM || !ctx.game) {
+          const result = await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
+          span.setStatus({ code: SpanStatusCode.OK });
+          return result;
+        }
 
-    return await safeReply(ctx, await buildRedeemCoinsMessage(ctx));
+        const result = await safeReply(ctx, await buildRedeemCoinsMessage(ctx));
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   public components = [
@@ -50,99 +66,112 @@ export class RedeemPurchasesCommand implements ISlashCommand {
 }
 
 async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext): Promise<MessageBuilder> {
-  const userId = ctx.user.id;
-  const entitlements = await fetchEntitlementsFromApi(
-    userId,
-    true,
-    ctx.interaction.guild_id ?? ctx.game?.id,
-    Object.keys(SKU_REWARDS) as SKU[]
-  );
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("buildRedeemCoinsMessage", async (span) => {
+    try {
+      const userId = ctx.user.id;
+      const entitlements = await fetchEntitlementsFromApi(
+        userId,
+        true,
+        ctx.interaction.guild_id ?? ctx.game?.id,
+        Object.keys(SKU_REWARDS) as SKU[]
+      );
 
-  const consumableEntitlements = entitlements.filter(
-    (entitlement) => SKU_REWARDS[entitlement.sku_id as SKU]?.isConsumable
-  );
+      const consumableEntitlements = entitlements.filter(
+        (entitlement) => SKU_REWARDS[entitlement.sku_id as SKU]?.isConsumable
+      );
 
-  if (consumableEntitlements.length === 0) {
-    const embed = new EmbedBuilder()
-      .setTitle("🎅 No Purchases to Redeem")
-      .setColor(0xff0000)
-      .setDescription("It looks like you haven't made any purchases yet. Check out the shop for some festive items! 🎄")
-      .setFooter({
-        text: `Click on the bot avatar or the button to visit the store and purchase exciting items for your tree! 🎄✨`
-      });
+      if (consumableEntitlements.length === 0) {
+        const embed = new EmbedBuilder()
+          .setTitle("🎅 No Purchases to Redeem")
+          .setColor(0xff0000)
+          .setDescription("It looks like you haven't made any purchases yet. Check out the shop for some festive items! 🎄")
+          .setFooter({
+            text: `Click on the bot avatar or the button to visit the store and purchase exciting items for your tree! 🎄✨`
+          });
 
-    const message = new MessageBuilder().addEmbed(embed);
-    const actions = new ActionRowBuilder();
-    if (!process.env.DEV_MODE) {
-      actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
-    }
-    actions.addComponents(await ctx.manager.components.createInstance("redeemcoins.refresh"));
-    message.addComponents(actions);
-    return message;
-  }
-
-  let totalCoins = 0;
-  let totalLuckyTickets = 0;
-  const boostersToApply: BoosterName[] = [];
-
-  for (const entitlement of consumableEntitlements) {
-    const reward = SKU_REWARDS[entitlement.sku_id as SKU];
-    if (!reward) {
-      logger.error(`No reward found for SKU ${entitlement.sku_id}`);
-      continue;
-    }
-    const success = await consumeEntitlement(entitlement.id, entitlement.sku_id as SKU);
-    if (success) {
-      totalCoins += reward.coins;
-      totalLuckyTickets += reward.luckyTickets;
-      if (reward.booster) {
-        boostersToApply.push(reward.booster);
+        const message = new MessageBuilder().addEmbed(embed);
+        const actions = new ActionRowBuilder();
+        if (!process.env.DEV_MODE) {
+          actions.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
+        }
+        actions.addComponents(await ctx.manager.components.createInstance("redeemcoins.refresh"));
+        message.addComponents(actions);
+        span.setStatus({ code: SpanStatusCode.OK });
+        return message;
       }
-      // Log item name and other relevant details when a purchase is redeemed
-      Metrics.recordShopPurchaseMetric(entitlement.sku_id, userId, ctx.interaction.guild_id ?? ctx.game?.id);
+
+      let totalCoins = 0;
+      let totalLuckyTickets = 0;
+      const boostersToApply: BoosterName[] = [];
+
+      for (const entitlement of consumableEntitlements) {
+        const reward = SKU_REWARDS[entitlement.sku_id as SKU];
+        if (!reward) {
+          logger.error(`No reward found for SKU ${entitlement.sku_id}`);
+          continue;
+        }
+        const success = await consumeEntitlement(entitlement.id, entitlement.sku_id as SKU);
+        if (success) {
+          totalCoins += reward.coins;
+          totalLuckyTickets += reward.luckyTickets;
+          if (reward.booster) {
+            boostersToApply.push(reward.booster);
+          }
+          // Log item name and other relevant details when a purchase is redeemed
+          Metrics.recordShopPurchaseMetric(entitlement.sku_id, userId, ctx.interaction.guild_id ?? ctx.game?.id);
+        }
+      }
+
+      const shopPurchaseMultiplierData = SpecialDayHelper.getSpecialDayMultipliers();
+      if (shopPurchaseMultiplierData.isActive) {
+        totalCoins = Math.floor(totalCoins * shopPurchaseMultiplierData.realMoneyShop.multiplier);
+        totalLuckyTickets = Math.floor(totalLuckyTickets * shopPurchaseMultiplierData.realMoneyShop.multiplier);
+      }
+
+      if (totalCoins > 0) {
+        await WalletHelper.addCoins(ctx.user.id, totalCoins);
+      }
+
+      if (totalLuckyTickets > 0) {
+        await WheelStateHelper.addTickets(ctx.user.id, totalLuckyTickets);
+      }
+
+      for (const booster of boostersToApply) {
+        await BoosterHelper.addBooster(ctx, booster);
+      }
+
+      const boostersDescription = boostersToApply.map((booster) => `**${booster} Booster**`).join("\n");
+
+      const embed = new EmbedBuilder()
+        .setTitle("🎁 Purchases Redeemed! 🎄")
+        .setDescription(
+          `You have successfully redeemed:\n\n` +
+            `🪙 **${totalCoins} coins**\n` +
+            `🎟️ **${totalLuckyTickets} lucky tickets**\n` +
+            `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}` +
+            `${
+              shopPurchaseMultiplierData.isActive
+                ? `\n\n🎉 **Special Day Multiplier Applied!** ${shopPurchaseMultiplierData.realMoneyShop.reason}`
+                : ""
+            }`
+        )
+        .setColor(0x00ff00)
+        .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
+
+      const message = new MessageBuilder().addEmbed(embed);
+      const actions = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("redeemcoins.refresh")
+      );
+
+      span.setStatus({ code: SpanStatusCode.OK });
+      return message.addComponents(actions);
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
     }
-  }
-
-  const shopPurchaseMultiplierData = SpecialDayHelper.getSpecialDayMultipliers();
-  if (shopPurchaseMultiplierData.isActive) {
-    totalCoins = Math.floor(totalCoins * shopPurchaseMultiplierData.realMoneyShop.multiplier);
-    totalLuckyTickets = Math.floor(totalLuckyTickets * shopPurchaseMultiplierData.realMoneyShop.multiplier);
-  }
-
-  if (totalCoins > 0) {
-    await WalletHelper.addCoins(ctx.user.id, totalCoins);
-  }
-
-  if (totalLuckyTickets > 0) {
-    await WheelStateHelper.addTickets(ctx.user.id, totalLuckyTickets);
-  }
-
-  for (const booster of boostersToApply) {
-    await BoosterHelper.addBooster(ctx, booster);
-  }
-
-  const boostersDescription = boostersToApply.map((booster) => `**${booster} Booster**`).join("\n");
-
-  const embed = new EmbedBuilder()
-    .setTitle("🎁 Purchases Redeemed! 🎄")
-    .setDescription(
-      `You have successfully redeemed:\n\n` +
-        `🪙 **${totalCoins} coins**\n` +
-        `🎟️ **${totalLuckyTickets} lucky tickets**\n` +
-        `${boostersDescription ? `✨ **Boosters:**\n${boostersDescription}` : ""}` +
-        `${
-          shopPurchaseMultiplierData.isActive
-            ? `\n\n🎉 **Special Day Multiplier Applied!** ${shopPurchaseMultiplierData.realMoneyShop.reason}`
-            : ""
-        }`
-    )
-    .setColor(0x00ff00)
-    .setFooter({ text: "Thank you for your purchases! Enjoy the festive season! 🎅" });
-
-  const message = new MessageBuilder().addEmbed(embed);
-  const actions = new ActionRowBuilder().addComponents(
-    await ctx.manager.components.createInstance("redeemcoins.refresh")
-  );
-
-  return message.addComponents(actions);
+  });
 }

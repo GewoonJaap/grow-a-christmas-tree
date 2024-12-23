@@ -46,20 +46,33 @@ export class Tree implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    disposeActiveTimeouts(ctx);
-    if (ctx.isDM)
-      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
-    if (ctx.game === null || !ctx.game)
-      return await safeReply(
-        ctx,
-        new MessageBuilder().setContent("You don't have a christmas tree planted in this server.")
-      );
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("TreeCommandHandler", async (span) => {
+      try {
+        disposeActiveTimeouts(ctx);
+        if (ctx.isDM)
+          return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
+        if (ctx.game === null || !ctx.game)
+          return await safeReply(
+            ctx,
+            new MessageBuilder().setContent("You don't have a christmas tree planted in this server.")
+          );
 
-    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-    }
+        if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+          return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+        }
 
-    return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+        const result = await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   public components = [
