@@ -5,6 +5,7 @@ import { ButtonStyle } from "discord-api-types/v10";
 import axios from "axios";
 import { BoosterName } from "../booster/BoosterHelper";
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -65,63 +66,111 @@ export function getEntitlements(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>,
   withoutExpired = false
 ): Entitlement[] {
-  const interaction = ctx.interaction;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const entitlements: Entitlement[] = (interaction as any).entitlements;
-  if (withoutExpired) {
-    return entitlements.filter((entitlement) => !hasEntitlementExpired(entitlement));
-  }
-  return entitlements;
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("getEntitlements", (span) => {
+    try {
+      const interaction = ctx.interaction;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const entitlements: Entitlement[] = (interaction as any).entitlements;
+      if (withoutExpired) {
+        return entitlements.filter((entitlement) => !hasEntitlementExpired(entitlement));
+      }
+      span.setStatus({ code: SpanStatusCode.OK });
+      return entitlements;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 export function entitlementSkuResolver(skuId: string): EntitlementType {
-  if (skuId === SKU.FESTIVE_ENTITLEMENT) {
-    return EntitlementType.UNLIMITED_LEVELS;
-  }
-  if (skuId === SKU.SUPER_THIRSTY_ENTITLEMENT || skuId === SKU.SUPER_THIRSTY_2_ENTITLEMENT) {
-    return EntitlementType.SUPER_THIRSTY;
-  }
-  return EntitlementType.UNKNOWN;
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("entitlementSkuResolver", (span) => {
+    try {
+      let result: EntitlementType;
+      if (skuId === SKU.FESTIVE_ENTITLEMENT) {
+        result = EntitlementType.UNLIMITED_LEVELS;
+      } else if (skuId === SKU.SUPER_THIRSTY_ENTITLEMENT || skuId === SKU.SUPER_THIRSTY_2_ENTITLEMENT) {
+        result = EntitlementType.SUPER_THIRSTY;
+      } else {
+        result = EntitlementType.UNKNOWN;
+      }
+      span.setStatus({ code: SpanStatusCode.OK });
+      return result;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 export function hasEntitlementExpired(entitlement: Entitlement): boolean {
-  if (entitlement.consumed) {
-    return true;
-  }
-  if (!entitlement.ends_at) {
-    return false;
-  }
-  return new Date(entitlement.ends_at) < new Date();
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("hasEntitlementExpired", (span) => {
+    try {
+      let result: boolean;
+      if (entitlement.consumed) {
+        result = true;
+      } else if (!entitlement.ends_at) {
+        result = false;
+      } else {
+        result = new Date(entitlement.ends_at) < new Date();
+      }
+      span.setStatus({ code: SpanStatusCode.OK });
+      return result;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 export async function updateEntitlementsToGame(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
 ): Promise<void> {
-  try {
-    if (ctx.game == null) return;
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("updateEntitlementsToGame", async (span) => {
+    try {
+      if (ctx.game == null) return;
 
-    const userId = ctx.user.id;
-    const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id);
-    const entitlementsFromInteraction = getEntitlements(ctx, true);
-    const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
+      const userId = ctx.user.id;
+      const entitlementsFromApi = await fetchEntitlementsFromApi(userId, true, ctx.interaction.guild_id ?? ctx.game.id);
+      const entitlementsFromInteraction = getEntitlements(ctx, true);
+      const entitlements = [...entitlementsFromApi, ...entitlementsFromInteraction];
 
-    const hasUnlimitedLevels = entitlements.some(
-      (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
-    );
+      const hasUnlimitedLevels = entitlements.some(
+        (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.UNLIMITED_LEVELS
+      );
 
-    const hasSuperThirsty = entitlements.some(
-      (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
-    );
+      const hasSuperThirsty = entitlements.some(
+        (entitlement) => entitlementSkuResolver(entitlement.sku_id) === EntitlementType.SUPER_THIRSTY
+      );
 
-    ctx.game.hasAiAccess = hasUnlimitedLevels;
-    if (ctx.game.superThirsty === undefined || !ctx.game.superThirsty) {
-      ctx.game.superThirsty = hasSuperThirsty;
+      ctx.game.hasAiAccess = hasUnlimitedLevels;
+      if (ctx.game.superThirsty === undefined || !ctx.game.superThirsty) {
+        ctx.game.superThirsty = hasSuperThirsty;
+      }
+
+      await ctx.game.save();
+      span.setStatus({ code: SpanStatusCode.OK });
+    } catch (error: unknown) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      logger.error(error);
+    } finally {
+      span.end();
     }
-
-    await ctx.game.save();
-  } catch (error: unknown) {
-    logger.error(error);
-  }
+  });
 }
 
 export async function fetchEntitlementsFromApi(
@@ -130,56 +179,89 @@ export async function fetchEntitlementsFromApi(
   guildId: string | null | undefined,
   skuIds?: SKU[]
 ): Promise<Entitlement[]> {
-  if (!guildId) {
-    return [];
-  }
-  try {
-    let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}`;
-    if (skuIds) {
-      url += `&sku_ids=${skuIds.join(",")}`;
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("fetchEntitlementsFromApi", async (span) => {
+    if (!guildId) {
+      return [];
     }
-    const response = await axios.get(url, {
-      headers: {
-        Authorization: `Bot ${process.env.TOKEN}`
+    try {
+      let url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements?user_id=${userId}`;
+      if (skuIds) {
+        url += `&sku_ids=${skuIds.join(",")}`;
       }
-    });
-    let data: Entitlement[] = response.data;
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bot ${process.env.TOKEN}`
+        }
+      });
+      let data: Entitlement[] = response.data;
 
-    data = data.filter((entitlement) => !entitlement.guild_id || entitlement.guild_id === guildId);
+      data = data.filter((entitlement) => !entitlement.guild_id || entitlement.guild_id === guildId);
 
-    if (withoutExpired) {
-      return data.filter((entitlement) => !hasEntitlementExpired(entitlement));
+      if (withoutExpired) {
+        return data.filter((entitlement) => !hasEntitlementExpired(entitlement));
+      }
+      span.setStatus({ code: SpanStatusCode.OK });
+      return data;
+    } catch (error: unknown) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      return [];
+    } finally {
+      span.end();
     }
-    return data;
-  } catch (error: unknown) {
-    return [];
-  }
+  });
 }
 
 export function getRandomButtonStyle(): ButtonStyle {
-  return (Math.floor(Math.random() * 4) + 1) as ButtonStyle;
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("getRandomButtonStyle", (span) => {
+    try {
+      const result = (Math.floor(Math.random() * 4) + 1) as ButtonStyle;
+      span.setStatus({ code: SpanStatusCode.OK });
+      return result;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 export async function consumeEntitlement(entitlementId: string, skuId: SKU): Promise<boolean> {
-  if (!SKU_REWARDS[skuId].isConsumable) {
-    return false;
-  }
-
-  const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
-  const response = await axios.post(
-    url,
-    {},
-    {
-      headers: {
-        Authorization: `Bot ${process.env.TOKEN}`
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("consumeEntitlement", async (span) => {
+    try {
+      if (!SKU_REWARDS[skuId].isConsumable) {
+        return false;
       }
-    }
-  );
 
-  if (response.status !== 204) {
-    return false;
-  }
-  return true;
+      const url = `https://discord.com/api/v10/applications/${process.env.CLIENT_ID}/entitlements/${entitlementId}/consume`;
+      const response = await axios.post(
+        url,
+        {},
+        {
+          headers: {
+            Authorization: `Bot ${process.env.TOKEN}`
+          }
+        }
+      );
+
+      if (response.status !== 204) {
+        return false;
+      }
+      span.setStatus({ code: SpanStatusCode.OK });
+      return true;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 export class PremiumButtonBuilder extends OriginalButtonBuilder {
