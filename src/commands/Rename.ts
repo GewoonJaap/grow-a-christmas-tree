@@ -49,7 +49,7 @@ export class Rename implements ISlashCommand {
         const name = ctx.options.get("name")?.value as string | undefined;
         if (name === undefined) return await safeReply(ctx, SimpleError("Name not found."));
 
-        if (!validateTreeName(name))
+        if (!(await validateTreeName(name)))
           return await safeReply(
             ctx,
             SimpleError(
