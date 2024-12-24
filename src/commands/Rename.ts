@@ -14,7 +14,7 @@ import { permissionsExtractor } from "../util/bitfield-permission-calculator";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const builder = new SlashCommandBuilder("rename", "🎄 Rename your Christmas Tree").addStringOption(
+const builder = new SlashCommandBuilder("rename", "Rename your Christmas Tree").addStringOption(
   new SlashCommandStringOption("name", "Give your tree a new festive name").setRequired(true)
 );
 
@@ -52,8 +52,12 @@ export class Rename implements ISlashCommand {
         if (!(await validateTreeName(name)))
           return await safeReply(
             ctx,
-            SimpleError(
-              "Your Christmas tree name must be between 1-36 characters and can only contain alphanumeric characters, hyphens, and apostrophes. ✨"
+            new MessageBuilder().addEmbed(
+              new EmbedBuilder()
+                .setTitle("Invalid Tree Name")
+                .setDescription(
+                  "Your Christmas tree name must be between 1-36 characters, can only contain alphanumeric characters, hyphens, and apostrophes, and must not contain profanity. ✨"
+                )
             )
           );
 
