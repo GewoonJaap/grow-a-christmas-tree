@@ -14,7 +14,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 
-const builder = new SlashCommandBuilder("plant", "🎄 Plant a Christmas Tree for Your Server").addStringOption(
+const builder = new SlashCommandBuilder("plant", "Plant a Christmas Tree for Your Server").addStringOption(
   new SlashCommandStringOption("name", "Give your server's tree a festive name").setRequired(true)
 );
 
@@ -46,8 +46,12 @@ export class Plant implements ISlashCommand {
         if (!(await validateTreeName(name)))
           return await safeReply(
             ctx,
-            SimpleError(
-              "Your Christmas tree name must be between 1-36 characters and can only contain alphanumeric characters, hyphens, and apostrophes. ✨"
+            new MessageBuilder().addEmbed(
+              new EmbedBuilder()
+                .setTitle("Invalid Tree Name")
+                .setDescription(
+                  "Your Christmas tree name must be between 1-36 characters, can only contain alphanumeric characters, hyphens, and apostrophes, and must not contain profanity. ✨"
+                )
             )
           );
 
