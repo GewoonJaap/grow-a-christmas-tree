@@ -246,79 +246,122 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     ctx: ButtonContext,
     style: FestiveImageStyle | ItemShopStyleItem | ImageStyle | null
   ): Promise<MessageBuilder> {
-    if (!ctx.game || ctx.isDM) {
-      return new MessageBuilder().addEmbed(
-        new EmbedBuilder()
-          .setTitle("Error")
-          .setDescription("Please use /plant to plant a tree first.")
-          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+    const startTime = new Date();
+    const userId = ctx.user.id;
+    const guildId = ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown";
+    let initialCoins = 0;
+
+    try {
+      if (!ctx.game || ctx.isDM) {
+        return new MessageBuilder().addEmbed(
+          new EmbedBuilder()
+            .setTitle("Error")
+            .setDescription("Please use /plant to plant a tree first.")
+            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+        );
+      }
+
+      if (!ctx.game.hasAiAccess) {
+        return await this.buildPurchaseFailedMessage(
+          ctx,
+          "This premium feature is part of the Festive Forest subscription! Upgrade now to enjoy exclusive perks and watch your Christmas tree thrive like never before! 🎅✨",
+          true
+        );
+      }
+
+      if (!style) {
+        return await this.buildPurchaseFailedMessage(
+          ctx,
+          "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
+        );
+      }
+
+      const allStyles = await this.getAllStyles(ctx.manager.components);
+      const defaultStyles = await imageStyleApi.getImageStyles();
+
+      const styleAvailable =
+        defaultStyles.styles.some((x) => x.name === style.name) || allStyles.some((x) => x.name === style.name);
+
+      if (!styleAvailable) {
+        return await this.buildPurchaseFailedMessage(
+          ctx,
+          "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨",
+          false,
+          style.name
+        );
+      }
+
+      const cost = "cost" in style ? style.cost : TREE_STYLE_COST;
+      const styleName = style.name;
+
+      if (TreeStyleHelper.hasStyleUnlocked(ctx, styleName)) {
+        return await this.buildPurchaseFailedMessage(
+          ctx,
+          "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨",
+          false,
+          styleName
+        );
+      }
+
+      const wallet = await WalletHelper.getWallet(ctx.user.id);
+      initialCoins = wallet.coins;
+
+      if (wallet.coins < cost) {
+        return this.buildNotEnoughCoinsMessage(ctx, cost, styleName);
+      }
+
+      await WalletHelper.removeCoins(ctx.user.id, cost);
+
+      await TreeStyleHelper.addNewStyle(ctx, styleName);
+
+      // Log item name and other relevant details when a cosmetic purchase is made
+      Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown");
+
+      const embed = await this.getTreeStyleEmbed(styleName);
+
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("shop.cosmetics.refresh")
       );
+
+      this.transitionBackToDefaultShopViewWithTimeout(ctx, 8 * 1000);
+
+      const endTime = new Date();
+      const finalCoins = wallet.coins;
+
+      logger.info({
+        userId,
+        timestamp: endTime.toISOString(),
+        initialCoins,
+        finalCoins,
+        sku: styleName,
+        displayName: styleName,
+        success: true,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        guildId,
+        duration: endTime.getTime() - startTime.getTime(),
+        message: "Cosmetic purchase operation completed successfully."
+      });
+
+      return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+    } catch (error) {
+      const endTime = new Date();
+      logger.error({
+        userId,
+        timestamp: endTime.toISOString(),
+        initialCoins,
+        finalCoins: "N/A",
+        sku: style?.name ?? "N/A",
+        displayName: style?.name ?? "N/A",
+        success: false,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        guildId,
+        duration: endTime.getTime() - startTime.getTime(),
+        error: (error as Error).message,
+        message: "Cosmetic purchase operation failed."
+      });
+
+      throw error;
     }
-
-    if (!ctx.game.hasAiAccess) {
-      return await this.buildPurchaseFailedMessage(
-        ctx,
-        "This premium feature is part of the Festive Forest subscription! Upgrade now to enjoy exclusive perks and watch your Christmas tree thrive like never before! 🎅✨",
-        true
-      );
-    }
-
-    if (!style) {
-      return await this.buildPurchaseFailedMessage(
-        ctx,
-        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
-      );
-    }
-
-    const allStyles = await this.getAllStyles(ctx.manager.components);
-    const defaultStyles = await imageStyleApi.getImageStyles();
-
-    const styleAvailable =
-      defaultStyles.styles.some((x) => x.name === style.name) || allStyles.some((x) => x.name === style.name);
-
-    if (!styleAvailable) {
-      return await this.buildPurchaseFailedMessage(
-        ctx,
-        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨",
-        false,
-        style.name
-      );
-    }
-
-    const cost = "cost" in style ? style.cost : TREE_STYLE_COST;
-    const styleName = style.name;
-
-    if (TreeStyleHelper.hasStyleUnlocked(ctx, styleName)) {
-      return await this.buildPurchaseFailedMessage(
-        ctx,
-        "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨",
-        false,
-        styleName
-      );
-    }
-
-    const wallet = await WalletHelper.getWallet(ctx.user.id);
-
-    if (wallet.coins < cost) {
-      return this.buildNotEnoughCoinsMessage(ctx, cost, styleName);
-    }
-
-    await WalletHelper.removeCoins(ctx.user.id, cost);
-
-    await TreeStyleHelper.addNewStyle(ctx, styleName);
-
-    // Log item name and other relevant details when a cosmetic purchase is made
-    Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown");
-
-    const embed = await this.getTreeStyleEmbed(styleName);
-
-    const actionRow = new ActionRowBuilder().addComponents(
-      await ctx.manager.components.createInstance("shop.cosmetics.refresh")
-    );
-
-    this.transitionBackToDefaultShopViewWithTimeout(ctx, 8 * 1000);
-
-    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
 
   private async getTreeImageUrl(styleName: string | undefined): Promise<string> {

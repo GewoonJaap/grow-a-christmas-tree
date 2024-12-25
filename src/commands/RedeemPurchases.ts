@@ -34,6 +34,12 @@ export class RedeemPurchasesCommand implements ISlashCommand {
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
     const tracer = trace.getTracer("grow-a-tree");
     return tracer.startActiveSpan("RedeemPurchasesCommandHandler", async (span) => {
+      const startTime = new Date();
+      const userId = ctx.user.id;
+      const guildId = ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown";
+      let initialCoins = 0;
+      let initialLuckyTickets = 0;
+
       try {
         if (ctx.isDM || !ctx.game) {
           const result = await safeReply(
@@ -44,12 +50,60 @@ export class RedeemPurchasesCommand implements ISlashCommand {
           return result;
         }
 
+        const wallet = await WalletHelper.getWallet(userId);
+        initialCoins = wallet.coins;
+
+        const wheelState = await WheelStateHelper.getWheelState(userId);
+        initialLuckyTickets = wheelState.tickets;
+
         const result = await safeReply(ctx, await buildRedeemCoinsMessage(ctx));
         span.setStatus({ code: SpanStatusCode.OK });
+
+        const endTime = new Date();
+        const finalCoins = wallet.coins;
+        const finalLuckyTickets = wheelState.tickets;
+
+        logger.info({
+          userId,
+          timestamp: endTime.toISOString(),
+          initialCoins,
+          finalCoins,
+          initialLuckyTickets,
+          finalLuckyTickets,
+          boostersApplied: ctx.game.activeBoosters.map((booster) => booster.type),
+          success: true,
+          specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+          skuRedeemed: "N/A",
+          displayNameRedeemed: "N/A",
+          guildId,
+          duration: endTime.getTime() - startTime.getTime(),
+          message: "Redemption operation completed successfully."
+        });
+
         return result;
       } catch (error) {
         span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
         span.recordException(error as Error);
+
+        const endTime = new Date();
+        logger.error({
+          userId,
+          timestamp: endTime.toISOString(),
+          initialCoins,
+          finalCoins: "N/A",
+          initialLuckyTickets,
+          finalLuckyTickets: "N/A",
+          boostersApplied: "N/A",
+          success: false,
+          specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+          skuRedeemed: "N/A",
+          displayNameRedeemed: "N/A",
+          guildId,
+          duration: endTime.getTime() - startTime.getTime(),
+          error: (error as Error).message,
+          message: "Redemption operation failed."
+        });
+
         throw error;
       } finally {
         span.end();
@@ -175,10 +229,49 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
       );
 
       span.setStatus({ code: SpanStatusCode.OK });
+
+      // Log the redemption details
+      logger.info({
+        userId,
+        timestamp: new Date().toISOString(),
+        initialCoins: "N/A",
+        finalCoins: totalCoins,
+        initialLuckyTickets: "N/A",
+        finalLuckyTickets: totalLuckyTickets,
+        boostersApplied: boostersToApply,
+        success: true,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        skuRedeemed: consumableEntitlements.map((entitlement) => entitlement.sku_id).join(", "),
+        displayNameRedeemed: consumableEntitlements
+          .map((entitlement) => SKU_REWARDS[entitlement.sku_id as SKU]?.displayName)
+          .join(", "),
+        guildId: ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown",
+        message: "Redemption operation completed successfully."
+      });
+
       return message.addComponents(actions);
     } catch (error) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
       span.recordException(error as Error);
+
+      // Log the error details
+      logger.error({
+        userId: ctx.user.id,
+        timestamp: new Date().toISOString(),
+        initialCoins: "N/A",
+        finalCoins: "N/A",
+        initialLuckyTickets: "N/A",
+        finalLuckyTickets: "N/A",
+        boostersApplied: "N/A",
+        success: false,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        skuRedeemed: "N/A",
+        displayNameRedeemed: "N/A",
+        guildId: ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown",
+        error: (error as Error).message,
+        message: "Redemption operation failed."
+      });
+
       throw error;
     } finally {
       span.end();

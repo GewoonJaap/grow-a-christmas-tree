@@ -14,6 +14,11 @@ import { WheelStateHelper } from "../util/wheel/WheelStateHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics"; // Import Metrics
+import pino from "pino";
+
+const logger = pino({
+  level: "info"
+});
 
 type RewardType = "tickets" | "coins" | "composterEfficiencyUpgrade" | "composterQualityUpgrade" | "treeSize";
 
@@ -99,6 +104,8 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
   const userId = ctx.user.id;
   const wheelState = await WheelStateHelper.getWheelState(userId);
 
+  const ticketsBeforeSpin = wheelState.tickets;
+
   if (wheelState.tickets <= 0) {
     const embed = new EmbedBuilder()
       .setTitle("🎅 Santa's Lucky Spin! 🎁")
@@ -113,6 +120,17 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("wheel.refresh"));
 
     const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
+
+    logger.info({
+      userId,
+      timestamp: new Date().toISOString(),
+      ticketsBeforeSpin,
+      ticketsAfterSpin: wheelState.tickets,
+      premiumAccess: ctx.game.hasAiAccess ?? false,
+      specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+      success: false,
+      message: "User attempted to spin the wheel without enough tickets."
+    });
 
     return message;
   }
@@ -129,6 +147,17 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     if (festiveMessages.isPresent) {
       embed.setFooter({ text: festiveMessages.message });
     }
+
+    logger.info({
+      userId,
+      timestamp: new Date().toISOString(),
+      ticketsBeforeSpin,
+      ticketsAfterSpin: wheelState.tickets,
+      premiumAccess: ctx.game.hasAiAccess ?? false,
+      specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+      success: false,
+      message: "User attempted to spin the wheel but the operation failed."
+    });
 
     return new MessageBuilder().addEmbed(embed);
   }
@@ -154,6 +183,19 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 
   // Log number of spins, rewards won, tickets used, user participation, and spin success rate
   Metrics.recordWheelSpinMetric(userId, ctx.interaction.guild_id ?? "unknown", reward.type, reward.amount ?? 1);
+
+  logger.info({
+    userId,
+    timestamp: new Date().toISOString(),
+    ticketsBeforeSpin,
+    ticketsAfterSpin: wheelState.tickets,
+    rewardType: reward.type,
+    rewardAmount: reward.amount ?? 1,
+    premiumAccess: ctx.game.hasAiAccess ?? false,
+    specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+    success: true,
+    message: "User successfully spun the wheel and won a reward."
+  });
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),

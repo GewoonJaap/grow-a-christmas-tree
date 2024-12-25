@@ -157,6 +157,11 @@ export class Boosters implements PartialCommand {
     ctx: ButtonContext,
     booster: { name: BoosterName; cost: number; duration: number }
   ): Promise<MessageBuilder> {
+    const startTime = new Date();
+    const userId = ctx.user.id;
+    const guildId = ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown";
+    let initialCoins = 0;
+
     if (!ctx.game || ctx.isDM) {
       return new MessageBuilder().addEmbed(
         new EmbedBuilder()
@@ -175,6 +180,7 @@ export class Boosters implements PartialCommand {
     const discountedCost = Math.floor(booster.cost * discountModifier);
 
     const wallet = await WalletHelper.getWallet(ctx.user.id);
+    initialCoins = wallet.coins;
 
     if (wallet.coins < discountedCost) {
       const actionRow = new ActionRowBuilder().addComponents(
@@ -196,6 +202,22 @@ export class Boosters implements PartialCommand {
         actionRow.addComponents(PremiumButtons.SmallPouchOfCoinsButton);
       }
 
+      const endTime = new Date();
+      logger.info({
+        userId,
+        timestamp: endTime.toISOString(),
+        initialCoins,
+        finalCoins: wallet.coins,
+        boosterName: booster.name,
+        boosterCost: discountedCost,
+        boosterDuration: booster.duration,
+        success: false,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        guildId,
+        duration: endTime.getTime() - startTime.getTime(),
+        message: "Booster purchase operation failed due to insufficient coins."
+      });
+
       return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     }
 
@@ -213,6 +235,23 @@ export class Boosters implements PartialCommand {
       if (festiveMessages.isPresent) {
         embed.setFooter({ text: festiveMessages.message });
       }
+
+      const endTime = new Date();
+      logger.error({
+        userId,
+        timestamp: endTime.toISOString(),
+        initialCoins,
+        finalCoins: wallet.coins,
+        boosterName: booster.name,
+        boosterCost: discountedCost,
+        boosterDuration: booster.duration,
+        success: false,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        guildId,
+        duration: endTime.getTime() - startTime.getTime(),
+        error: "Purchase failed",
+        message: "Booster purchase operation failed due to an error."
+      });
 
       return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     }
@@ -234,6 +273,22 @@ export class Boosters implements PartialCommand {
     if (festiveMessages.isPresent) {
       embed.setFooter({ text: festiveMessages.message });
     }
+
+    const endTime = new Date();
+    logger.info({
+      userId,
+      timestamp: endTime.toISOString(),
+      initialCoins,
+      finalCoins: wallet.coins,
+      boosterName: booster.name,
+      boosterCost: discountedCost,
+      boosterDuration: booster.duration,
+      success: true,
+      specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+      guildId,
+      duration: endTime.getTime() - startTime.getTime(),
+      message: "Booster purchase operation completed successfully."
+    });
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
