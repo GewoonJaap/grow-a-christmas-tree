@@ -39,12 +39,12 @@ export class Metrics {
     commandMetric.add(1, { command: commandName, user: userId, guild: guildId ?? "unknown" });
   }
 
-  static recordShopPurchaseMetric(itemName: string, userId: string, guildId?: string): void {
+  static recordShopPurchaseMetric(itemName: string, displayName: string, userId: string, guildId?: string): void {
     const shopPurchaseMetric = meter.createCounter("shop_purchases", {
       description: "Counts the number of shop purchases"
     });
 
-    shopPurchaseMetric.add(1, { item: itemName, user: userId, guild: guildId ?? "unknown" });
+    shopPurchaseMetric.add(1, { item: itemName, displayName, user: userId, guild: guildId ?? "unknown" });
   }
 
   static recordBoosterPurchaseMetric(boosterName: string, userId: string, guildId?: string): void {

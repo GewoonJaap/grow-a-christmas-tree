@@ -34,7 +34,10 @@ export class Rename implements ISlashCommand {
             ctx,
             new MessageBuilder().setContent("You don't have a christmas tree planted in this server.")
           );
-        if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
           return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
         }
 

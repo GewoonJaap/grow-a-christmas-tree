@@ -58,7 +58,10 @@ export class Tree implements ISlashCommand {
             new MessageBuilder().setContent("You don't have a christmas tree planted in this server.")
           );
 
-        if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
           return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
         }
 
@@ -109,7 +112,10 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
   return tracer.startActiveSpan("handleTreeGrow", async (span) => {
     try {
       if (!ctx.game) throw new Error("Game data missing.");
-      if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+      if (
+        UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+        (await BanHelper.isUserBanned(ctx.user.id))
+      ) {
         await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
         transitionToDefaultTreeView(ctx);
         return;
@@ -122,7 +128,9 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
           const penaltyMinigameStarted = await startPenaltyMinigame(ctx);
           if (penaltyMinigameStarted) return;
         }
-        const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
+        const actions = new ActionRowBuilder().addComponents(
+          await ctx.manager.components.createInstance("tree.refresh")
+        );
         await safeReply(
           ctx,
           SimpleError("You watered this tree last, you must let someone else water it first.")
@@ -144,7 +152,9 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
           if (penaltyMinigameStarted) return;
         }
 
-        const actions = new ActionRowBuilder().addComponents(await ctx.manager.components.createInstance("tree.refresh"));
+        const actions = new ActionRowBuilder().addComponents(
+          await ctx.manager.components.createInstance("tree.refresh")
+        );
         await safeReply(
           ctx,
           new MessageBuilder()

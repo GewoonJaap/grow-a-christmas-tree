@@ -44,7 +44,10 @@ export class SendCoinsCommand implements ISlashCommand {
       try {
         if (ctx.isDM || !ctx.game)
           return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
-        if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
           const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
           span.setStatus({ code: SpanStatusCode.OK });
           return result;

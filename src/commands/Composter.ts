@@ -44,7 +44,10 @@ export class Composter implements ISlashCommand {
     const tracer = trace.getTracer("grow-a-tree");
     return tracer.startActiveSpan("ComposterCommandHandler", async (span) => {
       try {
-        if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
           const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
           span.setStatus({ code: SpanStatusCode.OK });
           return result;
