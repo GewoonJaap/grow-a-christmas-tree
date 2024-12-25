@@ -36,7 +36,10 @@ export class RedeemPurchasesCommand implements ISlashCommand {
     return tracer.startActiveSpan("RedeemPurchasesCommandHandler", async (span) => {
       try {
         if (ctx.isDM || !ctx.game) {
-          const result = await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
+          const result = await safeReply(
+            ctx,
+            new MessageBuilder().setContent("This command can only be used in a server.")
+          );
           span.setStatus({ code: SpanStatusCode.OK });
           return result;
         }
@@ -85,7 +88,9 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
         const embed = new EmbedBuilder()
           .setTitle("🎅 No Purchases to Redeem")
           .setColor(0xff0000)
-          .setDescription("It looks like you haven't made any purchases yet. Check out the shop for some festive items! 🎄")
+          .setDescription(
+            "It looks like you haven't made any purchases yet. Check out the shop for some festive items! 🎄"
+          )
           .setFooter({
             text: `Click on the bot avatar or the button to visit the store and purchase exciting items for your tree! 🎄✨`
           });
@@ -119,7 +124,12 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
             boostersToApply.push(reward.booster);
           }
           // Log item name and other relevant details when a purchase is redeemed
-          Metrics.recordShopPurchaseMetric(entitlement.sku_id, userId, ctx.interaction.guild_id ?? ctx.game?.id);
+          Metrics.recordShopPurchaseMetric(
+            entitlement.sku_id,
+            reward.displayName,
+            userId,
+            ctx.interaction.guild_id ?? ctx.game?.id
+          );
         }
       }
 

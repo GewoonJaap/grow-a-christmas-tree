@@ -13,10 +13,10 @@ export async function validateTreeName(name: string): Promise<boolean> {
       if (name.length === 0) return false;
       if (!/^[a-zA-Z0-9\-' ]+$/.test(name)) return false;
 
-      const res = await fetch('https://vector.profanity.dev', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: name + " tree" }),
+      const res = await fetch("https://vector.profanity.dev", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: name + " tree" })
       });
 
       if (!res.ok) {

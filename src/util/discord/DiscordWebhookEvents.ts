@@ -33,7 +33,7 @@ export async function handleEntitlementCreate(data: EntitlementCreateData) {
         }
 
         // Log item name and other relevant details when a purchase is made
-        Metrics.recordShopPurchaseMetric(skuId, userId, "unknown");
+        Metrics.recordShopPurchaseMetric(skuId, reward.displayName, userId, "unknown");
       } else {
         logger.info(`No reward found for SKU ID: ${skuId}`);
       }
