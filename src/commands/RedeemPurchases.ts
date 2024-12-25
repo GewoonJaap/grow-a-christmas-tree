@@ -78,7 +78,7 @@ export class RedeemPurchasesCommand implements ISlashCommand {
           guildId,
           duration: endTime.getTime() - startTime.getTime(),
           message: "Redemption operation completed successfully."
-        });
+        }, `Redemption operation completed successfully for user ${userId} with ${finalCoins - initialCoins} coins and ${finalLuckyTickets - initialLuckyTickets} lucky tickets.`);
 
         return result;
       } catch (error) {
@@ -102,7 +102,7 @@ export class RedeemPurchasesCommand implements ISlashCommand {
           duration: endTime.getTime() - startTime.getTime(),
           error: (error as Error).message,
           message: "Redemption operation failed."
-        });
+        }, `Redemption operation failed for user ${userId}.`);
 
         throw error;
       } finally {
@@ -247,7 +247,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
           .join(", "),
         guildId: ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown",
         message: "Redemption operation completed successfully."
-      });
+      }, `Redemption operation completed successfully for user ${userId} with ${totalCoins} coins and ${totalLuckyTickets} lucky tickets.`);
 
       return message.addComponents(actions);
     } catch (error) {
@@ -270,7 +270,7 @@ async function buildRedeemCoinsMessage(ctx: SlashCommandContext | ButtonContext)
         guildId: ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown",
         error: (error as Error).message,
         message: "Redemption operation failed."
-      });
+      }, `Redemption operation failed for user ${ctx.user.id}.`);
 
       throw error;
     } finally {

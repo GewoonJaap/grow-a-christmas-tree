@@ -130,7 +130,7 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
       success: false,
       message: "User attempted to spin the wheel without enough tickets."
-    });
+    }, `User ${userId} attempted to spin the wheel without enough tickets.`);
 
     return message;
   }
@@ -157,7 +157,7 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
       success: false,
       message: "User attempted to spin the wheel but the operation failed."
-    });
+    }, `User ${userId} attempted to spin the wheel but the operation failed.`);
 
     return new MessageBuilder().addEmbed(embed);
   }
@@ -195,7 +195,7 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
     success: true,
     message: "User successfully spun the wheel and won a reward."
-  });
+  }, `User ${userId} successfully spun the wheel and won ${rewardDescription}.`);
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),

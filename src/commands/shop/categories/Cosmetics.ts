@@ -340,7 +340,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         guildId,
         duration: endTime.getTime() - startTime.getTime(),
         message: "Cosmetic purchase operation completed successfully."
-      });
+      }, `Cosmetic purchase operation completed successfully for user ${userId} with ${finalCoins - initialCoins} coins for ${styleName}.`);
 
       return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     } catch (error) {
@@ -358,7 +358,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         duration: endTime.getTime() - startTime.getTime(),
         error: (error as Error).message,
         message: "Cosmetic purchase operation failed."
-      });
+      }, `Cosmetic purchase operation failed for user ${userId} with ${initialCoins} coins for ${style?.name ?? "N/A"}.`);
 
       throw error;
     }

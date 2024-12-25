@@ -216,7 +216,7 @@ export class Boosters implements PartialCommand {
         guildId,
         duration: endTime.getTime() - startTime.getTime(),
         message: "Booster purchase operation failed due to insufficient coins."
-      });
+      }, `Booster purchase operation failed for user ${userId} due to insufficient coins for ${booster.name}.`);
 
       return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     }
@@ -251,7 +251,7 @@ export class Boosters implements PartialCommand {
         duration: endTime.getTime() - startTime.getTime(),
         error: "Purchase failed",
         message: "Booster purchase operation failed due to an error."
-      });
+      }, `Booster purchase operation failed for user ${userId} due to an error for ${booster.name}.`);
 
       return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     }
@@ -288,7 +288,7 @@ export class Boosters implements PartialCommand {
       guildId,
       duration: endTime.getTime() - startTime.getTime(),
       message: "Booster purchase operation completed successfully."
-    });
+    }, `Booster purchase operation completed successfully for user ${userId} with ${wallet.coins - initialCoins} coins for ${booster.name}.`);
 
     return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
   }
