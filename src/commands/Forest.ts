@@ -20,7 +20,6 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 type LeaderboardButtonState = {
   page: number;
-  cursor: number;
 };
 
 const MEDAL_EMOJIS = ["🥇", "🥈", "🥉"];
@@ -83,7 +82,6 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page = 1;
-        ctx.state.cursor = Number.MAX_SAFE_INTEGER;
         return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
@@ -93,10 +91,9 @@ export class Forest implements ISlashCommand {
       async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
         if (!ctx.state) return;
 
-        const amountOfTrees = await Guild.countDocuments();
+        const amountOfTrees = await Guild.estimatedDocumentCount();
         const maxPages = Math.ceil(amountOfTrees / 10);
         ctx.state.page = maxPages;
-        ctx.state.cursor = 0;
         return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     )
@@ -109,19 +106,20 @@ async function buildLeaderboardMessage(
   const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
   const state: LeaderboardButtonState =
     ctx instanceof SlashCommandContext
-      ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1, cursor: Number.MAX_SAFE_INTEGER }
+      ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
       : (ctx.state as LeaderboardButtonState);
 
-  const amountOfTrees = await Guild.countDocuments();
+  const amountOfTrees = await Guild.estimatedDocumentCount();
 
   let description = `*Christmas Tree forest with ${amountOfTrees} trees*\n\n`;
 
   const start = (state.page - 1) * 10;
 
-  const trees = await Guild.find({ size: { $lt: state.cursor } })
+  const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1, contributors: 1 })
     .sort({ size: -1 })
+    .skip(start)
     .limit(11)
-    .select("name size hasAiAccess isCheating contributors.userId");
+    .lean();
 
   const premiumEmojiVariant = UnleashHelper.getVariant(UNLEASH_FEATURES.premiumServerEmoji, ctx);
 
