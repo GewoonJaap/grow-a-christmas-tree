@@ -20,7 +20,7 @@ export class WheelStateHelper {
     const wheelState = await WheelStateHelper.getWheelState(userId);
     wheelState.tickets += amount;
     wheelState.tickets = Math.max(wheelState.tickets, 0);
-    wheelState.tickets = Math.min(wheelState.tickets, 100);
+    wheelState.tickets = Math.min(wheelState.tickets, 5000);
     await wheelState.save();
   }
 
