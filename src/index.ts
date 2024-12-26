@@ -22,7 +22,7 @@ import {
   UnknownInteractionType
 } from "interactions.ts";
 import { connect, HydratedDocument } from "mongoose";
-import { createClient } from "redis";
+import redisClient from "./util/redisClient";
 import {
   About,
   Forest,
@@ -84,10 +84,6 @@ if (keys.some((key) => !(key in process.env))) {
 }
 
 (async () => {
-  const redisClient = createClient({
-    url: "redis://redis"
-  });
-
   await redisClient.connect();
 
   const app = new DiscordApplication({

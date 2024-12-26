@@ -17,6 +17,7 @@ import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import redisClient from "../util/redisClient";
 
 type LeaderboardButtonState = {
   page: number;
@@ -91,7 +92,7 @@ export class Forest implements ISlashCommand {
       async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
         if (!ctx.state) return;
 
-        const amountOfTrees = await Guild.estimatedDocumentCount();
+        const amountOfTrees = await getCachedTreeCount();
         const maxPages = Math.ceil(amountOfTrees / 10);
         ctx.state.page = maxPages;
         return await safeReply(ctx, await buildLeaderboardMessage(ctx));
@@ -109,17 +110,13 @@ async function buildLeaderboardMessage(
       ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
       : (ctx.state as LeaderboardButtonState);
 
-  const amountOfTrees = await Guild.estimatedDocumentCount();
+  const amountOfTrees = await getCachedTreeCount();
 
   let description = `*Christmas Tree forest with ${amountOfTrees} trees*\n\n`;
 
   const start = (state.page - 1) * 10;
 
-  const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1, contributors: 1 })
-    .sort({ size: -1 })
-    .skip(start)
-    .limit(11)
-    .lean();
+  const trees = await getCachedTrees(start);
 
   const premiumEmojiVariant = UnleashHelper.getVariant(UNLEASH_FEATURES.premiumServerEmoji, ctx);
 
@@ -171,4 +168,37 @@ async function buildLeaderboardMessage(
       })
     )
     .addComponents(actionRow);
+}
+
+async function getCachedTreeCount(): Promise<number> {
+  const cacheKey = "treeCount";
+  const cachedCount = await redisClient.get(cacheKey);
+
+  if (cachedCount) {
+    return parseInt(cachedCount, 10);
+  }
+
+  const count = await Guild.estimatedDocumentCount();
+  await redisClient.setEx(cacheKey, 300, count.toString());
+
+  return count;
+}
+
+async function getCachedTrees(start: number): Promise<Guild[]> {
+  const cacheKey = `trees:${start}`;
+  const cachedTrees = await redisClient.get(cacheKey);
+
+  if (cachedTrees) {
+    return JSON.parse(cachedTrees);
+  }
+
+  const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1, contributors: 1 })
+    .sort({ size: -1 })
+    .skip(start)
+    .limit(11)
+    .lean();
+
+  await redisClient.setEx(cacheKey, 300, JSON.stringify(trees));
+
+  return trees;
 }
