@@ -315,7 +315,11 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       await TreeStyleHelper.addNewStyle(ctx, styleName);
 
       // Log item name and other relevant details when a cosmetic purchase is made
-      Metrics.recordCosmeticPurchaseMetric(styleName, ctx.user.id, ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown");
+      Metrics.recordCosmeticPurchaseMetric(
+        styleName,
+        ctx.user.id,
+        ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown"
+      );
 
       const embed = await this.getTreeStyleEmbed(styleName);
 
@@ -328,37 +332,45 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
       const endTime = new Date();
       const finalCoins = wallet.coins;
 
-      logger.info({
-        userId,
-        timestamp: endTime.toISOString(),
-        initialCoins,
-        finalCoins,
-        sku: styleName,
-        displayName: styleName,
-        success: true,
-        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
-        guildId,
-        duration: endTime.getTime() - startTime.getTime(),
-        message: "Cosmetic purchase operation completed successfully."
-      }, `Cosmetic purchase operation completed successfully for user ${userId} with ${finalCoins - initialCoins} coins for ${styleName}.`);
+      logger.info(
+        {
+          userId,
+          timestamp: endTime.toISOString(),
+          initialCoins,
+          finalCoins,
+          sku: styleName,
+          displayName: styleName,
+          success: true,
+          specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+          guildId,
+          duration: endTime.getTime() - startTime.getTime(),
+          message: "Cosmetic purchase operation completed successfully."
+        },
+        `Cosmetic purchase operation completed successfully for user ${userId} with ${
+          finalCoins - initialCoins
+        } coins for ${styleName}.`
+      );
 
       return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
     } catch (error) {
       const endTime = new Date();
-      logger.error({
-        userId,
-        timestamp: endTime.toISOString(),
-        initialCoins,
-        finalCoins: "N/A",
-        sku: style?.name ?? "N/A",
-        displayName: style?.name ?? "N/A",
-        success: false,
-        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
-        guildId,
-        duration: endTime.getTime() - startTime.getTime(),
-        error: (error as Error).message,
-        message: "Cosmetic purchase operation failed."
-      }, `Cosmetic purchase operation failed for user ${userId} with ${initialCoins} coins for ${style?.name ?? "N/A"}.`);
+      logger.error(
+        {
+          userId,
+          timestamp: endTime.toISOString(),
+          initialCoins,
+          finalCoins: "N/A",
+          sku: style?.name ?? "N/A",
+          displayName: style?.name ?? "N/A",
+          success: false,
+          specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+          guildId,
+          duration: endTime.getTime() - startTime.getTime(),
+          error: (error as Error).message,
+          message: "Cosmetic purchase operation failed."
+        },
+        `Cosmetic purchase operation failed for user ${userId} with ${initialCoins} coins for ${style?.name ?? "N/A"}.`
+      );
 
       throw error;
     }

@@ -121,16 +121,19 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
 
     const message = new MessageBuilder().addEmbed(embed).addComponents(actions);
 
-    logger.info({
-      userId,
-      timestamp: new Date().toISOString(),
-      ticketsBeforeSpin,
-      ticketsAfterSpin: wheelState.tickets,
-      premiumAccess: ctx.game.hasAiAccess ?? false,
-      specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
-      success: false,
-      message: "User attempted to spin the wheel without enough tickets."
-    }, `User ${userId} attempted to spin the wheel without enough tickets.`);
+    logger.info(
+      {
+        userId,
+        timestamp: new Date().toISOString(),
+        ticketsBeforeSpin,
+        ticketsAfterSpin: wheelState.tickets,
+        premiumAccess: ctx.game.hasAiAccess ?? false,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        success: false,
+        message: "User attempted to spin the wheel without enough tickets."
+      },
+      `User ${userId} attempted to spin the wheel without enough tickets.`
+    );
 
     return message;
   }
@@ -148,16 +151,19 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
       embed.setFooter({ text: festiveMessages.message });
     }
 
-    logger.info({
-      userId,
-      timestamp: new Date().toISOString(),
-      ticketsBeforeSpin,
-      ticketsAfterSpin: wheelState.tickets,
-      premiumAccess: ctx.game.hasAiAccess ?? false,
-      specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
-      success: false,
-      message: "User attempted to spin the wheel but the operation failed."
-    }, `User ${userId} attempted to spin the wheel but the operation failed.`);
+    logger.info(
+      {
+        userId,
+        timestamp: new Date().toISOString(),
+        ticketsBeforeSpin,
+        ticketsAfterSpin: wheelState.tickets,
+        premiumAccess: ctx.game.hasAiAccess ?? false,
+        specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+        success: false,
+        message: "User attempted to spin the wheel but the operation failed."
+      },
+      `User ${userId} attempted to spin the wheel but the operation failed.`
+    );
 
     return new MessageBuilder().addEmbed(embed);
   }
@@ -184,18 +190,21 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
   // Log number of spins, rewards won, tickets used, user participation, and spin success rate
   Metrics.recordWheelSpinMetric(userId, ctx.interaction.guild_id ?? "unknown", reward.type, reward.amount ?? 1);
 
-  logger.info({
-    userId,
-    timestamp: new Date().toISOString(),
-    ticketsBeforeSpin,
-    ticketsAfterSpin: wheelState.tickets,
-    rewardType: reward.type,
-    rewardAmount: reward.amount ?? 1,
-    premiumAccess: ctx.game.hasAiAccess ?? false,
-    specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
-    success: true,
-    message: "User successfully spun the wheel and won a reward."
-  }, `User ${userId} successfully spun the wheel and won ${rewardDescription}.`);
+  logger.info(
+    {
+      userId,
+      timestamp: new Date().toISOString(),
+      ticketsBeforeSpin,
+      ticketsAfterSpin: wheelState.tickets,
+      rewardType: reward.type,
+      rewardAmount: reward.amount ?? 1,
+      premiumAccess: ctx.game.hasAiAccess ?? false,
+      specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
+      success: true,
+      message: "User successfully spun the wheel and won a reward."
+    },
+    `User ${userId} successfully spun the wheel and won ${rewardDescription}.`
+  );
 
   const actionRow = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("wheel.spin"),
