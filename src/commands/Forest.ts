@@ -20,6 +20,7 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 type LeaderboardButtonState = {
   page: number;
+  cursor: number;
 };
 
 const MEDAL_EMOJIS = ["🥇", "🥈", "🥉"];
@@ -82,6 +83,7 @@ export class Forest implements ISlashCommand {
         if (!ctx.state) return;
 
         ctx.state.page = 1;
+        ctx.state.cursor = Number.MAX_SAFE_INTEGER;
         return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     ),
@@ -94,6 +96,7 @@ export class Forest implements ISlashCommand {
         const amountOfTrees = await Guild.countDocuments();
         const maxPages = Math.ceil(amountOfTrees / 10);
         ctx.state.page = maxPages;
+        ctx.state.cursor = 0;
         return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
     )
@@ -106,7 +109,7 @@ async function buildLeaderboardMessage(
   const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
   const state: LeaderboardButtonState =
     ctx instanceof SlashCommandContext
-      ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
+      ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1, cursor: Number.MAX_SAFE_INTEGER }
       : (ctx.state as LeaderboardButtonState);
 
   const amountOfTrees = await Guild.countDocuments();
@@ -115,7 +118,10 @@ async function buildLeaderboardMessage(
 
   const start = (state.page - 1) * 10;
 
-  const trees = await Guild.find().sort({ size: -1 }).skip(start).limit(11);
+  const trees = await Guild.find({ size: { $lt: state.cursor } })
+    .sort({ size: -1 })
+    .limit(11)
+    .select("name size hasAiAccess isCheating contributors.userId");
 
   const premiumEmojiVariant = UnleashHelper.getVariant(UNLEASH_FEATURES.premiumServerEmoji, ctx);
 
