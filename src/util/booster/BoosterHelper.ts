@@ -1,6 +1,7 @@
 import { ButtonContext, SlashCommandContext } from "interactions.ts";
 import { IBooster } from "../../models/Guild";
 import { WalletHelper } from "../wallet/WalletHelper";
+import { SpecialDayHelper } from "../special-days/SpecialDayHelper";
 
 export type BoosterName = "Growth Booster" | "Watering Booster" | "Minigame Booster" | "Coin Booster";
 
@@ -134,13 +135,18 @@ export class BoosterHelper {
   ): Promise<boolean> {
     const booster = this.BOOSTERS[boosterName];
     if (!booster) return false;
+    const specialDayMultipliers = SpecialDayHelper.getSpecialDayMultipliers();
+    const discountModifier = specialDayMultipliers.isActive
+      ? specialDayMultipliers.inGameShop.boosters.priceMultiplier
+      : 1;
+    const discountedCost = Math.floor(booster.cost * discountModifier);
 
     const wallet = await WalletHelper.getWallet(ctx.user.id);
-    if (wallet.coins < booster.cost) {
+    if (wallet.coins < discountedCost) {
       return false;
     }
 
-    await WalletHelper.removeCoins(ctx.user.id, booster.cost);
+    await WalletHelper.removeCoins(ctx.user.id, discountedCost);
     await this.addBooster(ctx, boosterName);
     return true;
   }

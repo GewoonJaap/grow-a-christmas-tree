@@ -16,6 +16,7 @@ import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { getRandomElement } from "../util/helpers/arrayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics"; // Import Metrics
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const CHRISTMAS_DAY_IMAGES = [
   "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/advent-calendar/christmas-day/advent-calendar-christmasday-1.jpg"
@@ -28,7 +29,20 @@ export class AdventCalendar implements ISlashCommand {
   );
 
   public handler = async (ctx: SlashCommandContext | ButtonContext): Promise<void> => {
-    return await safeReply(ctx, await buildAdventCalendarMessage(ctx));
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("AdventCalendarCommandHandler", async (span) => {
+      try {
+        const result = await safeReply(ctx, await buildAdventCalendarMessage(ctx));
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   public components = [

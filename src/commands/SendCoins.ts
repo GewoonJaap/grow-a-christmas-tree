@@ -16,6 +16,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics";
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -38,12 +39,30 @@ export class SendCoinsCommand implements ISlashCommand {
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    if (ctx.isDM || !ctx.game)
-      return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
-    if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
-      return await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
-    }
-    return this.handleTransfer(ctx);
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("SendCoinsCommandHandler", async (span) => {
+      try {
+        if (ctx.isDM || !ctx.game)
+          return await safeReply(ctx, new MessageBuilder().setContent("This command can only be used in a server."));
+        if (
+          UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+          (await BanHelper.isUserBanned(ctx.user.id))
+        ) {
+          const result = await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+          span.setStatus({ code: SpanStatusCode.OK });
+          return result;
+        }
+        const result = await this.handleTransfer(ctx);
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   private async handleTransfer(ctx: SlashCommandContext): Promise<void> {

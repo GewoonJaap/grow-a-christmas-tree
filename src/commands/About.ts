@@ -12,12 +12,26 @@ import {
 import { SUPPORT_SERVER_INVITE } from "../util/const";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 export class About implements ISlashCommand {
   public builder = new SlashCommandBuilder("about", "Learn about all the magical commands!");
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
-    return await safeReply(ctx, await this.buildAboutMessage(ctx));
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("AboutCommandHandler", async (span) => {
+      try {
+        const result = await safeReply(ctx, await this.buildAboutMessage(ctx));
+        span.setStatus({ code: SpanStatusCode.OK });
+        return result;
+      } catch (error) {
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        throw error;
+      } finally {
+        span.end();
+      }
+    });
   };
 
   public components = [

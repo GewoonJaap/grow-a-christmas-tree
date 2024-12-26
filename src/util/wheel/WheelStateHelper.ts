@@ -1,5 +1,7 @@
 import { IWheelState, WheelState } from "../../models/WheelState";
 
+const MAX_TICKETS = 5000;
+
 export class WheelStateHelper {
   static async getWheelState(userId: string): Promise<InstanceType<typeof WheelState>> {
     const wheelState = await WheelState.findOne({ userId: userId });
@@ -20,7 +22,7 @@ export class WheelStateHelper {
     const wheelState = await WheelStateHelper.getWheelState(userId);
     wheelState.tickets += amount;
     wheelState.tickets = Math.max(wheelState.tickets, 0);
-    wheelState.tickets = Math.min(wheelState.tickets, 100);
+    wheelState.tickets = Math.min(wheelState.tickets, MAX_TICKETS);
     await wheelState.save();
   }
 

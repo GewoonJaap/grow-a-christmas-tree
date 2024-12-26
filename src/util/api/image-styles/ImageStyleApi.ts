@@ -1,4 +1,5 @@
 import pino from "pino";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 const logger = pino({
   level: "info"
@@ -21,73 +22,120 @@ export class ImageStylesApi {
   }
 
   public async getImageStyles(): Promise<ImageStylesReponse> {
-    if (this.cachedStyles != undefined && this.isCacheValid(this.cachedStyles)) {
-      return this.cachedStyles.data;
-    }
-    try {
-      const response = await fetch(`${this.apiUrl}/api/styles`, {
-        method: "GET"
-      });
-      const jsonData = await response.json();
-      this.cacheStylesResponse(jsonData);
-      return jsonData;
-    } catch (error) {
-      logger.error(error);
-      return { success: false, styles: [] };
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("getImageStyles", async (span) => {
+      if (this.cachedStyles != undefined && this.isCacheValid(this.cachedStyles)) {
+        span.setStatus({ code: SpanStatusCode.OK });
+        span.end();
+        return this.cachedStyles.data;
+      }
+      try {
+        const response = await fetch(`${this.apiUrl}/api/styles`, {
+          method: "GET"
+        });
+        const jsonData = await response.json();
+        this.cacheStylesResponse(jsonData);
+        span.setStatus({ code: SpanStatusCode.OK });
+        return jsonData;
+      } catch (error) {
+        logger.error(error);
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        return { success: false, styles: [] };
+      } finally {
+        span.end();
+      }
+    });
   }
 
   public async getImageStyleImage(styleName: string): Promise<ImageReponse> {
-    try {
-      const response = await fetch(`${this.apiUrl}/api/styles/${styleName}/image`, {
-        method: "GET"
-      });
-      return await response.json();
-    } catch (error) {
-      logger.error(error);
-      return { success: false };
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("getImageStyleImage", async (span) => {
+      try {
+        const response = await fetch(`${this.apiUrl}/api/styles/${styleName}/image`, {
+          method: "GET"
+        });
+        const jsonData = await response.json();
+        span.setStatus({ code: SpanStatusCode.OK });
+        return jsonData;
+      } catch (error) {
+        logger.error(error);
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        return { success: false };
+      } finally {
+        span.end();
+      }
+    });
   }
 
   public async hasImageStyleImage(styleName: string): Promise<HasImageReponseType> {
-    try {
-      const response = await fetch(`${this.apiUrl}/api/styles/${styleName}/has-image`, {
-        method: "GET"
-      });
-      return await response.json();
-    } catch (error) {
-      logger.error(error);
-      return { exists: false };
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("hasImageStyleImage", async (span) => {
+      try {
+        const response = await fetch(`${this.apiUrl}/api/styles/${styleName}/has-image`, {
+          method: "GET"
+        });
+        const jsonData = await response.json();
+        span.setStatus({ code: SpanStatusCode.OK });
+        return jsonData;
+      } catch (error) {
+        logger.error(error);
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        return { exists: false };
+      } finally {
+        span.end();
+      }
+    });
   }
 
   public async generateImageStyles(): Promise<ImageReponse[]> {
-    try {
-      const response = await fetch(`${this.apiUrl}/api/styles/generate`, {
-        method: "GET"
-      });
-      return await response.json();
-    } catch (error) {
-      logger.error(error);
-      return [];
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("generateImageStyles", async (span) => {
+      try {
+        const response = await fetch(`${this.apiUrl}/api/styles/generate`, {
+          method: "GET"
+        });
+        const jsonData = await response.json();
+        span.setStatus({ code: SpanStatusCode.OK });
+        return jsonData;
+      } catch (error) {
+        logger.error(error);
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        return [];
+      } finally {
+        span.end();
+      }
+    });
   }
 
   public async getFestiveImageStyles(): Promise<FestiveImageStylesReponse> {
-    if (this.cachedFestiveStyles != undefined && this.isCacheValid(this.cachedFestiveStyles)) {
-      return this.cachedFestiveStyles.data;
-    }
-    try {
-      const response = await fetch(`${this.apiUrl}/api/styles/active-festive-styles`, {
-        method: "GET"
-      });
-      const data = await response.json();
-      this.cacheFestiveStylesResponse(data);
-      return data;
-    } catch (error) {
-      logger.error(error);
-      return { success: false, styles: [] };
-    }
+    const tracer = trace.getTracer("grow-a-tree");
+    return tracer.startActiveSpan("getFestiveImageStyles", async (span) => {
+      if (this.cachedFestiveStyles != undefined && this.isCacheValid(this.cachedFestiveStyles)) {
+        span.setStatus({ code: SpanStatusCode.OK });
+        span.end();
+        return this.cachedFestiveStyles.data;
+      }
+      try {
+        const response = await fetch(`${this.apiUrl}/api/styles/active-festive-styles`, {
+          method: "GET"
+        });
+        const data = await response.json();
+        this.cacheFestiveStylesResponse(data);
+        span.setStatus({ code: SpanStatusCode.OK });
+        return data;
+      } catch (error) {
+        logger.error(error);
+        span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+        span.recordException(error as Error);
+        return { success: false, styles: [] };
+      } finally {
+        span.end();
+      }
+    });
   }
 
   private isCacheValid(cachedData: CachedResponse<unknown> | undefined): boolean {
