@@ -2,14 +2,14 @@ import "dotenv/config";
 
 // Import and initialize telemetry and metrics
 import "./tracing/sdk";
-import { Metrics } from "./tracing/metrics";
-import RedisClient from "./util/redisClient";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 import fastify from "fastify";
 import rawBody from "fastify-raw-body";
 import * as nacl from "tweetnacl";
 import {
   AutocompleteContext,
+  ButtonContext,
   DiscordApplication,
   InteractionContext,
   InteractionHandlerTimedOut,
@@ -56,10 +56,17 @@ import { flagPotentialAutoClickers } from "./util/anti-bot/flaggingHelper";
 import { DynamicButtonsCommandType } from "./util/types/command/DynamicButtonsCommandType";
 import { runMigrations } from "./migrations";
 import { safeReply } from "./util/discord/MessageExtenstions";
+import { Metrics } from "./tracing/metrics";
+import pino from "pino";
+import RedisClient from "./util/redisClient";
+
+const logger = pino({
+  level: "info"
+});
 
 const VERSION = "2.0";
 
-unleash.on("ready", console.log.bind(console, "Unleash ready"));
+unleash.on("ready", logger.info.bind(logger, "Unleash ready"));
 
 declare module "interactions.ts" {
   interface BaseInteractionContext {
@@ -72,7 +79,7 @@ const timeouts = new Map();
 const keys = ["CLIENT_ID", "TOKEN", "PUBLIC_KEY", "PORT"];
 
 if (keys.some((key) => !(key in process.env))) {
-  console.error(`Missing Environment Variables`);
+  logger.error(`Missing Environment Variables`);
   process.exit(1);
 }
 
@@ -93,36 +100,56 @@ if (keys.some((key) => !(key in process.env))) {
 
     hooks: {
       interaction: async (ctx: InteractionContext) => {
-        if (ctx instanceof PingContext) return;
-        if (!ctx.interaction.guild_id) return;
+        const tracer = trace.getTracer("grow-a-tree");
+        return tracer.startActiveSpan("interactionHandler", async (span) => {
+          try {
+            if (ctx instanceof PingContext) return;
+            if (!ctx.interaction.guild_id) return;
 
-        let game;
+            let game;
 
-        try {
-          game = await Guild.findOne({ id: ctx.interaction.guild_id });
+            if (ctx instanceof SlashCommandContext) {
+              Metrics.recordCommandMetric(ctx.interaction.data.name, ctx.user.id, ctx.interaction.guild_id);
+            } else if (ctx instanceof ButtonContext) {
+              Metrics.recordCommandMetric(
+                ctx.interaction.data.custom_id.split(".")[0].split("_")[0].trim(),
+                ctx.user.id,
+                ctx.interaction.guild_id
+              );
+            }
 
-          if (game) await game.populate("contributors");
-        } catch (err) {
-          console.error(err);
-          Metrics.logError(err as Error, "Guild Fetch");
+            try {
+              game = await Guild.findOne({ id: ctx.interaction.guild_id });
 
-          if (ctx instanceof AutocompleteContext) {
-            await safeReply(ctx, []);
-          } else {
-            await safeReply(ctx, SimpleError("There was an error loading your game data"));
+              if (game) await game.populate("contributors");
+            } catch (err) {
+              logger.error(err);
+
+              if (ctx instanceof AutocompleteContext) {
+                await safeReply(ctx, []);
+              } else {
+                await safeReply(ctx, SimpleError("There was an error loading your game data"));
+              }
+
+              return true;
+            }
+
+            ctx.decorate("game", game);
+            ctx.decorate("timeouts", timeouts);
+            try {
+              flagPotentialAutoClickers(ctx as SlashCommandContext);
+            } catch (err) {
+              logger.error(err);
+            }
+            span.setStatus({ code: SpanStatusCode.OK });
+          } catch (error) {
+            span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+            span.recordException(error as Error);
+            throw error;
+          } finally {
+            span.end();
           }
-
-          return true;
-        }
-
-        ctx.decorate("game", game);
-        ctx.decorate("timeouts", timeouts);
-        try {
-          flagPotentialAutoClickers(ctx as SlashCommandContext);
-        } catch (err) {
-          console.error(err);
-          Metrics.logError(err as Error, "Flag Potential Auto Clickers");
-        }
+        });
       }
     }
   });
@@ -185,14 +212,12 @@ if (keys.some((key) => !(key in process.env))) {
       );
     } catch (err) {
       if (err instanceof UnauthorizedInteraction) {
-        console.error("Unauthorized Interaction");
-        Metrics.logError(err as Error, "Unauthorized Interaction");
+        logger.error("Unauthorized Interaction");
         return reply.code(401).send();
       }
 
       if (err instanceof InteractionHandlerTimedOut) {
-        console.error("Interaction Handler Timed Out");
-        Metrics.logError(err as Error, "Interaction Handler Timed Out");
+        logger.error("Interaction Handler Timed Out");
 
         return reply.code(408).send();
       }
@@ -202,15 +227,13 @@ if (keys.some((key) => !(key in process.env))) {
         err instanceof UnknownApplicationCommandType ||
         err instanceof UnknownComponentType
       ) {
-        console.error("Unknown Interaction - Library may be out of date.");
-        console.dir(err.interaction);
-        Metrics.logError(err as Error, "Unknown Interaction");
+        logger.error("Unknown Interaction - Library may be out of date.");
+        logger.error(err.interaction);
 
         return reply.code(400).send();
       }
 
-      console.error(err);
-      Metrics.logError(err as Error, "Internal Server Error");
+      logger.error(err);
       reply.code(500).send({ error: "Internal Server Error" });
     }
   });
@@ -227,7 +250,7 @@ if (keys.some((key) => !(key in process.env))) {
 
     const body = JSON.parse(request.rawBody);
 
-    console.log(body, signature, timestamp);
+    logger.info(body, signature, timestamp);
 
     if (body.type === WebhookEventType.PING) {
       return reply.code(204).send();
@@ -253,7 +276,7 @@ if (keys.some((key) => !(key in process.env))) {
           await handleEntitlementCreate(event.data);
           break;
         default:
-          console.warn(`Unhandled event type: ${event.type}`);
+          logger.warn(`Unhandled event type: ${event.type}`);
       }
 
       return reply.code(204).send();
@@ -271,8 +294,7 @@ if (keys.some((key) => !(key in process.env))) {
       reply.code(200).send(stats);
       return;
     } catch (err: unknown) {
-      console.error(err);
-      Metrics.logError(err as Error, "Fetch Stats");
+      logger.error(err);
       reply.code(500).send();
       return;
     }
@@ -291,15 +313,14 @@ if (keys.some((key) => !(key in process.env))) {
       await runMigrations();
 
       server.listen({ port: parseInt(port), host: address });
-      console.log(`Listening for interactions on http://${address}:${port}.`);
+      logger.info(`Listening for interactions on http://${address}:${port}.`);
     })
     .catch((err: unknown) => {
-      console.error(err);
-      Metrics.logError(err as Error, "MongoDB Connection");
+      logger.error(err);
     });
 })();
 
-console.log(`Grow a christmas tree - V${VERSION}`);
+logger.info(`Grow a christmas tree - V${VERSION}`);
 
 startBackupTimer();
 startAntiBotCleanupTimer();
