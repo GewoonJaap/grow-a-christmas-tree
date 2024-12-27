@@ -22,7 +22,6 @@ import {
   UnknownInteractionType
 } from "interactions.ts";
 import { connect, HydratedDocument } from "mongoose";
-import { createClient } from "redis";
 import {
   About,
   Forest,
@@ -59,6 +58,7 @@ import { runMigrations } from "./migrations";
 import { safeReply } from "./util/discord/MessageExtenstions";
 import { Metrics } from "./tracing/metrics";
 import pino from "pino";
+import RedisClient from "./util/redisClient";
 
 const logger = pino({
   level: "info"
@@ -84,11 +84,9 @@ if (keys.some((key) => !(key in process.env))) {
 }
 
 (async () => {
-  const redisClient = createClient({
-    url: "redis://redis"
-  });
-
-  await redisClient.connect();
+  const redisClientInstance = RedisClient.getInstance();
+  await redisClientInstance.connect();
+  const redisClient = redisClientInstance.getClient();
 
   const app = new DiscordApplication({
     clientId: process.env.CLIENT_ID as string,

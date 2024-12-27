@@ -72,10 +72,10 @@ const TreeStyleSchema = new Schema<ITreeStyle>({
 });
 
 const GuildSchema = new Schema<IGuild>({
-  id: { type: String, required: true, unique: true },
+  id: { type: String, required: true, unique: true, index: true },
 
   name: { type: String, required: true },
-  size: { type: Number, required: true, default: 1 },
+  size: { type: Number, required: true, default: 1, index: true },
 
   currentImageUrl: { type: String, required: false },
   hasAiAccess: { type: Boolean, required: true, default: false },
