@@ -30,11 +30,6 @@ class RedisClient {
       console.info("Redis client connected");
       this.isConnected = true;
     });
-
-    this.client.connect().catch((err) => {
-      console.error("Redis client connection error", err);
-      Metrics.logError(err, "Redis Client Connection Error");
-    });
   }
 
   private reconnect() {
@@ -60,12 +55,18 @@ class RedisClient {
       return;
     }
     try {
-      await this.client.connect();
-      this.isConnected = true;
+      await this.client
+        .connect()
+        .catch((err) => {
+          console.error("Redis client connection error", err);
+          Metrics.logError(err as Error, "Redis Client Connection Error");
+        })
+        .then(() => {
+          this.isConnected = true;
+        });
     } catch (err) {
       console.error("Redis client connection error", err);
       Metrics.logError(err as Error, "Redis Client Connection Error");
-      throw err;
     }
   }
 }

@@ -18,8 +18,6 @@ import { safeReply } from "../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import RedisClient from "../util/redisClient";
 
-const redisClient = RedisClient.getInstance().getClient();
-
 type LeaderboardButtonState = {
   page: number;
 };
@@ -171,6 +169,7 @@ async function buildLeaderboardMessage(
 }
 
 async function getCachedTreeCount(): Promise<number> {
+  const redisClient = RedisClient.getInstance().getClient();
   const cacheKey = "treeCount";
   const cachedCount = await redisClient.get(cacheKey);
 
@@ -185,6 +184,7 @@ async function getCachedTreeCount(): Promise<number> {
 }
 
 async function getCachedTrees(start: number): Promise<IGuild[]> {
+  const redisClient = RedisClient.getInstance().getClient();
   const cacheKey = `trees:${start}`;
   const cachedTrees = await redisClient.get(cacheKey);
 
@@ -192,7 +192,7 @@ async function getCachedTrees(start: number): Promise<IGuild[]> {
     return JSON.parse(cachedTrees);
   }
 
-  const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1, contributors: 1 })
+  const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1 })
     .sort({ size: -1 })
     .skip(start)
     .limit(11)
