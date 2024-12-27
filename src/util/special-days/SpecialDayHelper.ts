@@ -1,5 +1,6 @@
 export class SpecialDayHelper {
   public static isChristmas(): boolean {
+    return true;
     const now = new Date();
     return (now.getMonth() === 11 && now.getDate() === 25) || (now.getMonth() === 11 && now.getDate() === 26);
   }
