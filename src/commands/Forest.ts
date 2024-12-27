@@ -11,13 +11,14 @@ import {
   SlashCommandContext,
   SlashCommandIntegerOption
 } from "interactions.ts";
-import { Guild } from "../models/Guild";
-import { BanHelper } from "../util/bans/BanHelper";
+import { Guild, IGuild } from "../models/Guild";
 import { CHEATER_CLOWN_EMOJI } from "../util/const";
 import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
-import redisClient from "../util/redisClient";
+import RedisClient from "../util/redisClient";
+
+const redisClient = RedisClient.getInstance().getClient();
 
 type LeaderboardButtonState = {
   page: number;
@@ -138,8 +139,7 @@ async function buildLeaderboardMessage(
     const treeName = `${tree.name}`;
     const premiumText = `${tree.hasAiAccess ? " | " + premiumEmoji : ""}`;
     const treeSize = `${tree.size}ft`;
-    const bannedContributors = await BanHelper.areUsersBanned(tree.contributors.map((c) => c.userId));
-    const hasCheaters = cheaterClownEnabled && (tree.isCheating || bannedContributors.length > 0);
+    const hasCheaters = cheaterClownEnabled && tree.isCheating;
 
     description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
       hasCheaters ? CHEATER_CLOWN_EMOJI : ""
@@ -179,12 +179,12 @@ async function getCachedTreeCount(): Promise<number> {
   }
 
   const count = await Guild.estimatedDocumentCount();
-  await redisClient.setEx(cacheKey, 300, count.toString());
+  await redisClient.setEx(cacheKey, 60, count.toString());
 
   return count;
 }
 
-async function getCachedTrees(start: number): Promise<Guild[]> {
+async function getCachedTrees(start: number): Promise<IGuild[]> {
   const cacheKey = `trees:${start}`;
   const cachedTrees = await redisClient.get(cacheKey);
 
@@ -198,7 +198,7 @@ async function getCachedTrees(start: number): Promise<Guild[]> {
     .limit(11)
     .lean();
 
-  await redisClient.setEx(cacheKey, 300, JSON.stringify(trees));
+  await redisClient.setEx(cacheKey, 60, JSON.stringify(trees));
 
   return trees;
 }
