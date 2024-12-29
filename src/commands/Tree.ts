@@ -96,11 +96,13 @@ export class Tree implements ISlashCommand {
           UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
           (await BanHelper.isUserBanned(ctx.user.id))
         ) {
-          await safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+          safeReply(ctx, BanHelper.getBanEmbed(ctx.user.username));
+          await updateEntitlementsToGame(ctx);
           transitionToDefaultTreeView(ctx);
           return;
         }
-        return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+        await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+        await updateEntitlementsToGame(ctx);
       }
     ),
     ...minigameButtons
@@ -205,7 +207,8 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
       }
 
       span.setStatus({ code: SpanStatusCode.OK });
-      return await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+      await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+      await updateEntitlementsToGame(ctx);
     } catch (error) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
       span.recordException(error as Error);
@@ -273,10 +276,12 @@ export function transitionToDefaultTreeView(ctx: ButtonContext | ButtonContext<u
       try {
         disposeActiveTimeouts(ctx);
         await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
+        await updateEntitlementsToGame(ctx);
       } catch (e) {
         logger.error(e);
         try {
           await safeEdit(ctx, await buildTreeDisplayMessage(ctx));
+          await updateEntitlementsToGame(ctx);
         } catch (e) {
           logger.error(e);
         }
@@ -289,8 +294,6 @@ export async function buildTreeDisplayMessage(
   ctx: SlashCommandContext | ButtonContext | ButtonContext<unknown>
 ): Promise<MessageBuilder> {
   if (!ctx.game) throw new Error("Game data missing.");
-
-  await updateEntitlementsToGame(ctx);
 
   const actionBuilder = new ActionRowBuilder().addComponents(
     await ctx.manager.components.createInstance("tree.grow"),
