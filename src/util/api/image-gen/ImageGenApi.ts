@@ -13,7 +13,10 @@ export class ImageGenApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
 
   private readonly getImageCacheKey = (guildId: string, treeLevel: number) => `image-gen:${guildId}:${treeLevel}`;
+  private readonly hasImageCacheKey = (guildId: string, treeLevel: number) =>
+    `image-gen:has-image:${guildId}:${treeLevel}`;
   private readonly getImageTTL = 60 * 5; // 5 minutes
+  private readonly hasImageTTL = 60; // 1 minutes
 
   public constructor() {
     if (this.apiUrl === undefined) {
@@ -70,10 +73,24 @@ export class ImageGenApi {
     return tracer.startActiveSpan("getHasGeneratedImage", async (span) => {
       treeLevel = Math.floor(treeLevel);
       logger.info(`Checking if image exists for guild ${guildId} and tree level ${treeLevel}`);
+
+      const redisClient = RedisClient.getInstance().getClient();
+      const hasImage = await redisClient.get(this.hasImageCacheKey(guildId, treeLevel));
+      if (hasImage) {
+        logger.info(`Getting has image from cache for guild ${guildId} and tree level ${treeLevel}`);
+        span.setStatus({ code: SpanStatusCode.OK });
+        return hasImage === "true";
+      }
+
       try {
         const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/has-image`);
         const jsonResponse = (await response.json()) as HasImageReponseType;
         span.setStatus({ code: SpanStatusCode.OK });
+        await redisClient.setEx(
+          this.hasImageCacheKey(guildId, treeLevel),
+          this.hasImageTTL,
+          jsonResponse.exists.toString()
+        );
         return jsonResponse.exists;
       } catch (error) {
         logger.error(error);
