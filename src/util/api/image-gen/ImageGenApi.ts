@@ -16,7 +16,7 @@ export class ImageGenApi {
   private readonly hasImageCacheKey = (guildId: string, treeLevel: number) =>
     `image-gen:has-image:${guildId}:${treeLevel}`;
   private readonly getImageTTL = 60 * 5; // 5 minutes
-  private readonly hasImageTTL = 60; // 1 minutes
+  private readonly hasImageTTL = 60; // 1 minute
 
   public constructor() {
     if (this.apiUrl === undefined) {
@@ -29,17 +29,18 @@ export class ImageGenApi {
     return tracer.startActiveSpan("getGeneratedImage", async (span) => {
       const redisClient = RedisClient.getInstance().getClient();
 
-      const image = await redisClient.get(this.getImageCacheKey(guildId, treeLevel));
-      if (image) {
-        logger.info(`Getting image from cache for guild ${guildId} and tree level ${treeLevel}`);
-        span.setStatus({ code: SpanStatusCode.OK });
-        return JSON.parse(image);
-      }
-
-      treeLevel = Math.floor(treeLevel);
-      logger.info(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
-      span.setAttribute("styles", JSON.stringify(treeStyles.map((style) => style.styleName)));
       try {
+        const image = await redisClient.get(this.getImageCacheKey(guildId, treeLevel));
+        if (image) {
+          logger.info(`Getting image from cache for guild ${guildId} and tree level ${treeLevel}`);
+          span.setStatus({ code: SpanStatusCode.OK });
+          return JSON.parse(image);
+        }
+
+        treeLevel = Math.floor(treeLevel);
+        logger.info(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
+        span.setAttribute("styles", JSON.stringify(treeStyles.map((style) => style.styleName)));
+
         const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/image`, {
           method: "POST",
           headers: {
@@ -75,14 +76,15 @@ export class ImageGenApi {
       logger.info(`Checking if image exists for guild ${guildId} and tree level ${treeLevel}`);
 
       const redisClient = RedisClient.getInstance().getClient();
-      const hasImage = await redisClient.get(this.hasImageCacheKey(guildId, treeLevel));
-      if (hasImage) {
-        logger.info(`Getting has image from cache for guild ${guildId} and tree level ${treeLevel}`);
-        span.setStatus({ code: SpanStatusCode.OK });
-        return hasImage === "true";
-      }
 
       try {
+        const hasImage = await redisClient.get(this.hasImageCacheKey(guildId, treeLevel));
+        if (hasImage) {
+          logger.info(`Getting has image from cache for guild ${guildId} and tree level ${treeLevel}`);
+          span.setStatus({ code: SpanStatusCode.OK });
+          return hasImage === "true";
+        }
+
         const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/has-image`);
         const jsonResponse = (await response.json()) as HasImageReponseType;
         span.setStatus({ code: SpanStatusCode.OK });
