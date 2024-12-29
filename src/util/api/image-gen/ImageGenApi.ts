@@ -28,6 +28,7 @@ export class ImageGenApi {
 
       const image = await redisClient.get(this.getImageCacheKey(guildId, treeLevel));
       if (image) {
+        logger.info(`Getting image from cache for guild ${guildId} and tree level ${treeLevel}`);
         span.setStatus({ code: SpanStatusCode.OK });
         return JSON.parse(image);
       }
