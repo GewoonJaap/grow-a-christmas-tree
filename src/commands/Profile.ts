@@ -18,6 +18,7 @@ import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
 import { AchievementHelper } from "../util/achievement/AchievementHelper";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
 
 type State = {
   id: string;
@@ -73,81 +74,93 @@ export class Profile implements ISlashCommand {
 }
 
 async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<State>): Promise<MessageBuilder> {
-  if (!ctx.game) throw new Error("Game data missing.");
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("buildProfileMessage", async (span) => {
+    try {
+      if (!ctx.game) throw new Error("Game data missing.");
 
-  let nick: string, id: string, page: number;
+      let nick: string, id: string, page: number;
 
-  if (ctx instanceof SlashCommandContext || !ctx.state) {
-    const target =
-      ctx instanceof SlashCommandContext && ctx.options.has("target")
-        ? ctx.interaction.data.resolved?.users?.[ctx.options.get("target")?.value as string]
-        : undefined;
+      if (ctx instanceof SlashCommandContext || !ctx.state) {
+        const target =
+          ctx instanceof SlashCommandContext && ctx.options.has("target")
+            ? ctx.interaction.data.resolved?.users?.[ctx.options.get("target")?.value as string]
+            : undefined;
 
-    id = target ? target.id : ctx.user.id;
-    nick =
-      ctx instanceof SlashCommandContext && target
-        ? ctx.interaction.data?.resolved?.members?.[id]?.nick ?? target.username
-        : ctx.interaction.member?.nick ?? ctx.user.username;
-    page = 1;
-  } else {
-    id = ctx.state.id;
-    nick = ctx.state.nick;
-    page = ctx.state.page;
-  }
+        id = target ? target.id : ctx.user.id;
+        nick =
+          ctx instanceof SlashCommandContext && target
+            ? ctx.interaction.data?.resolved?.members?.[id]?.nick ?? target.username
+            : ctx.interaction.member?.nick ?? ctx.user.username;
+        page = 1;
+      } else {
+        id = ctx.state.id;
+        nick = ctx.state.nick;
+        page = ctx.state.page;
+      }
 
-  const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
-  const wallet = await WalletHelper.getWallet(id);
-  const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
-  const isBanned = cheaterClownEnabled && (await BanHelper.isUserBanned(id));
+      const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
+      const wallet = await WalletHelper.getWallet(id);
+      const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
+      const isBanned = cheaterClownEnabled && (await BanHelper.isUserBanned(id));
 
-  const contributorRank =
-    ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
+      const contributorRank =
+        ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
 
-  const achievements = await AchievementHelper.getAchievements(id);
+      const achievements = await AchievementHelper.getAchievements(id);
 
-  const achievementsPerPage = 5;
-  const start = (page - 1) * achievementsPerPage;
-  const paginatedAchievements = achievements.slice(start ?? 0, start + achievementsPerPage);
+      const achievementsPerPage = 5;
+      const start = (page - 1) * achievementsPerPage;
+      const paginatedAchievements = achievements.slice(start ?? 0, start + achievementsPerPage);
 
-  const achievementsDescription = paginatedAchievements
-    .map(
-      (achievement) =>
-        `🏅 **${achievement.achievementName}**\n${
-          achievement.description
-        }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
-    )
-    .join("\n");
+      const achievementsDescription = paginatedAchievements
+        .map(
+          (achievement) =>
+            `🏅 **${achievement.achievementName}**\n${
+              achievement.description
+            }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
+        )
+        .join("\n");
 
-  const actionRow = new ActionRowBuilder().addComponents(
-    await ctx.manager.components.createInstance("profile.refresh", { id, nick, page })
-  );
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("profile.refresh", { id, nick, page })
+      );
 
-  if (page > 1) {
-    actionRow.addComponents(await ctx.manager.components.createInstance("profile.back", { id, nick, page }));
-  }
+      if (page > 1) {
+        actionRow.addComponents(await ctx.manager.components.createInstance("profile.back", { id, nick, page }));
+      }
 
-  if (achievements.length > start + achievementsPerPage) {
-    actionRow.addComponents(await ctx.manager.components.createInstance("profile.next", { id, nick, page }));
-  }
+      if (achievements.length > start + achievementsPerPage) {
+        actionRow.addComponents(await ctx.manager.components.createInstance("profile.next", { id, nick, page }));
+      }
 
-  const festiveMessage = SpecialDayHelper.getFestiveMessage();
+      const festiveMessage = SpecialDayHelper.getFestiveMessage();
 
-  const description = `${ctx.user.id === id ? `You have` : `This user has`} ${
-    contributor
-      ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
-          ctx.user.id === id ? `You` : `They `
-        } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
-      : "not yet watered the christmas tree."
-  }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
-    wallet ? wallet.streak : 0
-  } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`;
+      const description = `${ctx.user.id === id ? `You have` : `This user has`} ${
+        contributor
+          ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
+              ctx.user.id === id ? `You` : `They `
+            } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
+          : "not yet watered the christmas tree."
+      }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
+        wallet ? wallet.streak : 0
+      } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`;
 
-  return new MessageBuilder()
-    .addEmbed(
-      new EmbedBuilder()
-        .setTitle(`${isBanned ? CHEATER_CLOWN_EMOJI : ""}${nick}'s Contributions`)
-        .setDescription(description)
-        .setFooter({ text: festiveMessage.isPresent ? festiveMessage.message : "" })
-    )
-    .addComponents(actionRow);
+      span.setStatus({ code: SpanStatusCode.OK });
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder()
+            .setTitle(`${isBanned ? CHEATER_CLOWN_EMOJI : ""}${nick}'s Contributions`)
+            .setDescription(description)
+            .setFooter({ text: festiveMessage.isPresent ? festiveMessage.message : "" })
+        )
+        .addComponents(actionRow);
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }

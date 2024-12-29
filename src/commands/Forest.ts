@@ -103,102 +103,140 @@ export class Forest implements ISlashCommand {
 async function buildLeaderboardMessage(
   ctx: SlashCommandContext | ButtonContext<LeaderboardButtonState>
 ): Promise<MessageBuilder> {
-  const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
-  const state: LeaderboardButtonState =
-    ctx instanceof SlashCommandContext
-      ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
-      : (ctx.state as LeaderboardButtonState);
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("buildLeaderboardMessage", async (span) => {
+    try {
+      const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
+      const state: LeaderboardButtonState =
+        ctx instanceof SlashCommandContext
+          ? { page: ctx.options.has("page") ? Number(ctx.options.get("page")?.value) : 1 }
+          : (ctx.state as LeaderboardButtonState);
 
-  const amountOfTrees = await getCachedTreeCount();
+      const amountOfTrees = await getCachedTreeCount();
 
-  let description = `*Christmas Tree forest with ${amountOfTrees} trees*\n\n`;
+      let description = `*Christmas Tree forest with ${amountOfTrees} trees*\n\n`;
 
-  const start = (state.page - 1) * 10;
+      const start = (state.page - 1) * 10;
 
-  const trees = await getCachedTrees(start);
+      const trees = await getCachedTrees(start);
 
-  const premiumEmojiVariant = UnleashHelper.getVariant(UNLEASH_FEATURES.premiumServerEmoji, ctx);
+      const premiumEmojiVariant = UnleashHelper.getVariant(UNLEASH_FEATURES.premiumServerEmoji, ctx);
 
-  const premiumEmoji = premiumEmojiVariant.enabled
-    ? premiumEmojiVariant.payload?.value ?? PREMIUM_EMOJI
-    : PREMIUM_EMOJI;
+      const premiumEmoji = premiumEmojiVariant.enabled
+        ? premiumEmojiVariant.payload?.value ?? PREMIUM_EMOJI
+        : PREMIUM_EMOJI;
 
-  const footerText = premiumEmojiVariant.payload?.value
-    ? "🌟 Trees with an emoji are enjoying premium! If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar."
-    : "🌟 = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar.";
-  if (trees.length === 0) return SimpleError("This page is empty.");
+      const footerText = premiumEmojiVariant.payload?.value
+        ? "🌟 Trees with an emoji are enjoying premium! If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar."
+        : "🌟 = Premium tree. If you like the bot, consider supporting us by visting the shop, found when clicking the bot avatar.";
+      if (trees.length === 0) return SimpleError("This page is empty.");
 
-  for (let i = 0; i < 10; i++) {
-    if (i === trees.length) break;
-    const pos = i + start;
+      for (let i = 0; i < 10; i++) {
+        if (i === trees.length) break;
+        const pos = i + start;
 
-    const tree = trees[i];
-    const isOwnTree = ctx.game?.id === tree.id;
-    const treeName = `${tree.name}`;
-    const premiumText = `${tree.hasAiAccess ? " | " + premiumEmoji : ""}`;
-    const treeSize = `${tree.size}ft`;
-    const hasCheaters = cheaterClownEnabled && tree.isCheating;
+        const tree = trees[i];
+        const isOwnTree = ctx.game?.id === tree.id;
+        const treeName = `${tree.name}`;
+        const premiumText = `${tree.hasAiAccess ? " | " + premiumEmoji : ""}`;
+        const treeSize = `${tree.size}ft`;
+        const hasCheaters = cheaterClownEnabled && tree.isCheating;
 
-    description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
-      hasCheaters ? CHEATER_CLOWN_EMOJI : ""
-    }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}\n`;
-  }
+        description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
+          hasCheaters ? CHEATER_CLOWN_EMOJI : ""
+        }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}\n`;
+      }
 
-  const actionRow = new ActionRowBuilder().addComponents(
-    await ctx.manager.components.createInstance("forest.refresh", state)
-  );
+      const actionRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("forest.refresh", state)
+      );
 
-  if (state.page > 1) {
-    actionRow.addComponents(await ctx.manager.components.createInstance("forest.back", state));
-  }
+      if (state.page > 1) {
+        actionRow.addComponents(await ctx.manager.components.createInstance("forest.back", state));
+      }
 
-  if (trees.length > 10) {
-    actionRow.addComponents(await ctx.manager.components.createInstance("forest.next", state));
-  }
+      if (trees.length > 10) {
+        actionRow.addComponents(await ctx.manager.components.createInstance("forest.next", state));
+      }
 
-  actionRow.addComponents(await ctx.manager.components.createInstance("forest.first", state));
-  actionRow.addComponents(await ctx.manager.components.createInstance("forest.last", state));
+      actionRow.addComponents(await ctx.manager.components.createInstance("forest.first", state));
+      actionRow.addComponents(await ctx.manager.components.createInstance("forest.last", state));
 
-  return new MessageBuilder()
-    .addEmbed(
-      new EmbedBuilder().setTitle("Forest").setDescription(description).setFooter({
-        text: footerText
-      })
-    )
-    .addComponents(actionRow);
+      span.setStatus({ code: SpanStatusCode.OK });
+      return new MessageBuilder()
+        .addEmbed(
+          new EmbedBuilder().setTitle("Forest").setDescription(description).setFooter({
+            text: footerText
+          })
+        )
+        .addComponents(actionRow);
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 async function getCachedTreeCount(): Promise<number> {
-  const redisClient = RedisClient.getInstance().getClient();
-  const cacheKey = "treeCount";
-  const cachedCount = await redisClient.get(cacheKey);
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("getCachedTreeCount", async (span) => {
+    try {
+      const redisClient = RedisClient.getInstance().getClient();
+      const cacheKey = "treeCount";
+      const cachedCount = await redisClient.get(cacheKey);
 
-  if (cachedCount) {
-    return parseInt(cachedCount, 10);
-  }
+      if (cachedCount) {
+        span.setStatus({ code: SpanStatusCode.OK });
+        return parseInt(cachedCount, 10);
+      }
 
-  const count = await Guild.estimatedDocumentCount();
-  await redisClient.setEx(cacheKey, 60, count.toString());
+      const count = await Guild.estimatedDocumentCount();
+      await redisClient.setEx(cacheKey, 60, count.toString());
 
-  return count;
+      span.setStatus({ code: SpanStatusCode.OK });
+      return count;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 async function getCachedTrees(start: number): Promise<IGuild[]> {
-  const redisClient = RedisClient.getInstance().getClient();
-  const cacheKey = `trees:${start}`;
-  const cachedTrees = await redisClient.get(cacheKey);
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("getCachedTrees", async (span) => {
+    try {
+      const redisClient = RedisClient.getInstance().getClient();
+      const cacheKey = `trees:${start}`;
+      const cachedTrees = await redisClient.get(cacheKey);
 
-  if (cachedTrees) {
-    return JSON.parse(cachedTrees);
-  }
+      if (cachedTrees) {
+        span.setStatus({ code: SpanStatusCode.OK });
+        return JSON.parse(cachedTrees);
+      }
 
-  const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1 })
-    .sort({ size: -1 })
-    .skip(start)
-    .limit(11)
-    .lean();
+      const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1 })
+        .sort({ size: -1 })
+        .skip(start)
+        .limit(11)
+        .lean();
 
-  await redisClient.setEx(cacheKey, 60, JSON.stringify(trees));
+      await redisClient.setEx(cacheKey, 60, JSON.stringify(trees));
 
-  return trees;
+      span.setStatus({ code: SpanStatusCode.OK });
+      return trees;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      throw error;
+    } finally {
+      span.end();
+    }
+  });
 }

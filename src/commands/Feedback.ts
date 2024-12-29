@@ -42,7 +42,9 @@ export class Feedback implements ISlashCommand {
           sendingUserId: ctx.user.id
         };
 
+        const postFeedbackSpan = tracer.startSpan("postFeedback");
         postFeedback(feedback);
+        postFeedbackSpan.end();
 
         const result = await safeReply(
           ctx,
