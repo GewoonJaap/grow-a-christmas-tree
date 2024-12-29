@@ -103,6 +103,7 @@ export class Tree implements ISlashCommand {
         }
         await safeReply(ctx, await buildTreeDisplayMessage(ctx));
         await updateEntitlementsToGame(ctx);
+        return;
       }
     ),
     ...minigameButtons
@@ -207,8 +208,9 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
       }
 
       span.setStatus({ code: SpanStatusCode.OK });
-      await safeReply(ctx, await buildTreeDisplayMessage(ctx));
+      const replyResult = await safeReply(ctx, await buildTreeDisplayMessage(ctx));
       await updateEntitlementsToGame(ctx);
+      return replyResult;
     } catch (error) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
       span.recordException(error as Error);
