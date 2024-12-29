@@ -22,6 +22,7 @@ export class ImageGenApi {
     return tracer.startActiveSpan("getGeneratedImage", async (span) => {
       treeLevel = Math.floor(treeLevel);
       logger.info(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
+      span.setAttribute("styles", JSON.stringify(treeStyles.map((style) => style.styleName)));
       try {
         const response = await fetch(`${this.apiUrl}/api/tree/${guildId}/${treeLevel}/image`, {
           method: "POST",
