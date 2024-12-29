@@ -3,6 +3,7 @@ import { HasImageReponseType } from "../../types/api/ImageGenApi/HasImageRespons
 import { ImageReponse } from "../../types/api/ImageGenApi/ImageResponseType";
 import pino from "pino";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import RedisClient from "../../redisClient";
 
 const logger = pino({
   level: "info"
@@ -10,6 +11,9 @@ const logger = pino({
 
 export class ImageGenApi {
   private apiUrl: string | undefined = process.env.IMAGE_GEN_API;
+
+  private readonly getImageCacheKey = (guildId: string, treeLevel: number) => `image-gen:${guildId}:${treeLevel}`;
+  private readonly getImageTTL = 60 * 5; // 5 minutes
 
   public constructor() {
     if (this.apiUrl === undefined) {
@@ -20,6 +24,14 @@ export class ImageGenApi {
   public async getGeneratedImage(guildId: string, treeLevel: number, treeStyles: ITreeStyle[]): Promise<ImageReponse> {
     const tracer = trace.getTracer("grow-a-tree");
     return tracer.startActiveSpan("getGeneratedImage", async (span) => {
+      const redisClient = RedisClient.getInstance().getClient();
+
+      const image = await redisClient.get(this.getImageCacheKey(guildId, treeLevel));
+      if (image) {
+        span.setStatus({ code: SpanStatusCode.OK });
+        return JSON.parse(image);
+      }
+
       treeLevel = Math.floor(treeLevel);
       logger.info(`Getting image for guild ${guildId} and tree level ${treeLevel}`);
       span.setAttribute("styles", JSON.stringify(treeStyles.map((style) => style.styleName)));
@@ -33,6 +45,13 @@ export class ImageGenApi {
         });
         const jsonResponse = await response.json();
         span.setStatus({ code: SpanStatusCode.OK });
+
+        await redisClient.setEx(
+          this.getImageCacheKey(guildId, treeLevel),
+          this.getImageTTL,
+          JSON.stringify(jsonResponse)
+        );
+
         return jsonResponse;
       } catch (error) {
         logger.error(error);
