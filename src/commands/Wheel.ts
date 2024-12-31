@@ -28,8 +28,8 @@ interface Reward {
 }
 
 const REWARDS: Record<RewardType, Reward> = {
-  tickets: { displayName: "Tickets", probability: 0.2 },
-  coins: { displayName: "Coins", probability: 0.65 },
+  tickets: { displayName: "Tickets", probability: 0.05 },
+  coins: { displayName: "Coins", probability: 0.8 },
   composterEfficiencyUpgrade: { displayName: "Composter Efficiency Upgrade", probability: 0.05 },
   composterQualityUpgrade: { displayName: "Composter Quality Upgrade", probability: 0.05 },
   treeSize: { displayName: "Tree Size Increase", probability: 0.05 }
