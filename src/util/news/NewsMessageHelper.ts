@@ -16,7 +16,7 @@ export class NewsMessageHelper {
   ];
 
   private static newYearMessages: string[] = [
-    "🎉 **Happy New Year!** 🎆 Wishing you a magical year ahead! To kick off 2024, we're gifting extra coins, boosters, and tickets today! Plus, enjoy **25% more** on item purchases in the shop! 🎁🎊"
+    "🎉 **Happy New Year!** 🎆 Wishing you a magical year ahead! To kick off 2025, we're gifting extra coins, boosters, and tickets today! Plus, enjoy **25% more** on item purchases in the shop! 🎁🎊"
   ];
 
   private static valentinesMessages: string[] = [
