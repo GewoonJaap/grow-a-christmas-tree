@@ -101,6 +101,21 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         ctx.state.page--;
         return safeReply(ctx, await this.buildCosmeticsMessage(ctx));
       }
+    ),
+    new Button(
+      "shop.cosmetics.confirm",
+      new ButtonBuilder().setEmoji({ name: "✅" }).setStyle(1).setLabel("Yes, Confirm"),
+      async (ctx: ButtonContext): Promise<void> => {
+        return safeReply(ctx, await this.completeStylePurchase(ctx));
+      }
+    ),
+    new Button(
+      "shop.cosmetics.cancel",
+      new ButtonBuilder().setEmoji({ name: "❌" }).setStyle(2).setLabel("No, Cancel"),
+      async (ctx: ButtonContext): Promise<void> => {
+        logger.info(`User ${ctx.user.id} cancelled the purchase.`);
+        return safeReply(ctx, await this.buildCosmeticsMessage(ctx));
+      }
     )
   ];
 
@@ -246,6 +261,79 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
     ctx: ButtonContext,
     style: FestiveImageStyle | ItemShopStyleItem | ImageStyle | null
   ): Promise<MessageBuilder> {
+    if (!ctx.game || ctx.isDM) {
+      return new MessageBuilder().addEmbed(
+        new EmbedBuilder()
+          .setTitle("Error")
+          .setDescription("Please use /plant to plant a tree first.")
+          .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+      );
+    }
+
+    if (!ctx.game.hasAiAccess) {
+      return await this.buildPurchaseFailedMessage(
+        ctx,
+        "This premium feature is part of the Festive Forest subscription! Upgrade now to enjoy exclusive perks and watch your Christmas tree thrive like never before! 🎅✨",
+        true
+      );
+    }
+
+    if (!style) {
+      return await this.buildPurchaseFailedMessage(
+        ctx,
+        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
+      );
+    }
+
+    const allStyles = await this.getAllStyles(ctx.manager.components);
+    const defaultStyles = await imageStyleApi.getImageStyles();
+
+    const styleAvailable =
+      defaultStyles.styles.some((x) => x.name === style.name) || allStyles.some((x) => x.name === style.name);
+
+    if (!styleAvailable) {
+      return await this.buildPurchaseFailedMessage(
+        ctx,
+        "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨",
+        false,
+        style.name
+      );
+    }
+
+    const cost = "cost" in style ? style.cost : TREE_STYLE_COST;
+    const styleName = style.name;
+
+    if (TreeStyleHelper.hasStyleUnlocked(ctx, styleName)) {
+      return await this.buildPurchaseFailedMessage(
+        ctx,
+        "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨",
+        false,
+        styleName
+      );
+    }
+
+    const wallet = await WalletHelper.getWallet(ctx.user.id);
+
+    if (wallet.coins < cost) {
+      return this.buildNotEnoughCoinsMessage(ctx, cost, styleName);
+    }
+
+    const embed = new EmbedBuilder()
+      .setTitle("Confirm Your Purchase")
+      .setDescription(
+        `You are about to purchase the **${styleName}** style for **${cost}** coins. This style will give your tree a unique and festive look. Do you want to proceed?`
+      )
+      .setImage(await this.getTreeImageUrl(styleName));
+
+    const actionRow = new ActionRowBuilder().addComponents(
+      await ctx.manager.components.createInstance("shop.cosmetics.confirm"),
+      await ctx.manager.components.createInstance("shop.cosmetics.cancel")
+    );
+
+    return new MessageBuilder().addEmbed(embed).addComponents(actionRow);
+  }
+
+  public async completeStylePurchase(ctx: ButtonContext): Promise<MessageBuilder> {
     const startTime = new Date();
     const userId = ctx.user.id;
     const guildId = ctx.interaction.guild_id ?? ctx.game?.id ?? "Unknown";
@@ -261,45 +349,13 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
         );
       }
 
-      if (!ctx.game.hasAiAccess) {
+      const styleName = ctx.interaction.message.embeds[0].description?.match(/\*\*(.*?)\*\*/)?.[1];
+      const cost = parseInt(ctx.interaction.message.embeds[0].description?.match(/\*\*(\d+)\*\*/)?.[1] ?? "0");
+
+      if (!styleName || isNaN(cost)) {
         return await this.buildPurchaseFailedMessage(
           ctx,
-          "This premium feature is part of the Festive Forest subscription! Upgrade now to enjoy exclusive perks and watch your Christmas tree thrive like never before! 🎅✨",
-          true
-        );
-      }
-
-      if (!style) {
-        return await this.buildPurchaseFailedMessage(
-          ctx,
-          "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨"
-        );
-      }
-
-      const allStyles = await this.getAllStyles(ctx.manager.components);
-      const defaultStyles = await imageStyleApi.getImageStyles();
-
-      const styleAvailable =
-        defaultStyles.styles.some((x) => x.name === style.name) || allStyles.some((x) => x.name === style.name);
-
-      if (!styleAvailable) {
-        return await this.buildPurchaseFailedMessage(
-          ctx,
-          "It looks like this style is no longer available! 🎄 Check back later for more festive styles! ✨",
-          false,
-          style.name
-        );
-      }
-
-      const cost = "cost" in style ? style.cost : TREE_STYLE_COST;
-      const styleName = style.name;
-
-      if (TreeStyleHelper.hasStyleUnlocked(ctx, styleName)) {
-        return await this.buildPurchaseFailedMessage(
-          ctx,
-          "It looks like you've already unlocked all the available styles! 🎄 Check back later for more festive styles! ✨",
-          false,
-          styleName
+          "It looks like there was an error with your purchase. Please try again later."
         );
       }
 
@@ -360,8 +416,8 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
           timestamp: endTime.toISOString(),
           initialCoins,
           finalCoins: "N/A",
-          sku: style?.name ?? "N/A",
-          displayName: style?.name ?? "N/A",
+          sku: "N/A",
+          displayName: "N/A",
           success: false,
           specialDayMultipliers: SpecialDayHelper.getSpecialDayMultipliers(),
           guildId,
@@ -369,7 +425,7 @@ export class Cosmetics implements PartialCommand, DynamicButtonsCommandType {
           error: (error as Error).message,
           message: "Cosmetic purchase operation failed."
         },
-        `Cosmetic purchase operation failed for user ${userId} with ${initialCoins} coins for ${style?.name ?? "N/A"}.`
+        `Cosmetic purchase operation failed for user ${userId} with ${initialCoins} coins.`
       );
 
       throw error;
