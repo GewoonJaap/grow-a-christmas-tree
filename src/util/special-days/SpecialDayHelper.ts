@@ -109,8 +109,8 @@ export class SpecialDayHelper {
       return {
         inGameShop: {
           boosters: {
-            priceMultiplier: 1,
-            reason: "💖🌹 Happy Valentine's Day! Enjoy **25%** more rewards and spread the love! 💝✨"
+            priceMultiplier: 0.75,
+            reason: "💖🌹 Happy Valentine's Day! Enjoy a **25%** sale on boosters! 💝✨"
           },
           styles: {
             priceMultiplier: 1,
