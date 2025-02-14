@@ -117,7 +117,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
       const achievementsDescription = paginatedAchievements
         .map(
           (achievement) =>
-            `🏅 **${achievement.achievementName}**\n${
+            `${achievement.emoji} **${achievement.achievementName}**\n${
               achievement.description
             }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
         )
