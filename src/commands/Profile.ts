@@ -105,7 +105,8 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
       const isBanned = cheaterClownEnabled && (await BanHelper.isUserBanned(id));
 
       const contributorRank =
-        ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) + 1;
+        ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) +
+        1;
 
       const achievements = await AchievementHelper.getAchievements(id);
 

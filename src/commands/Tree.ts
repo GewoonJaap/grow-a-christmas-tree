@@ -30,6 +30,8 @@ import { safeReply, safeEdit } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics";
 import pino from "pino";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
+import { AchievementHelper } from "../util/achievement/AchievementHelper";
 
 const logger = pino({
   level: "info"
@@ -143,6 +145,10 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
 
         transitionToDefaultTreeView(ctx);
         return;
+      }
+
+      if (SpecialDayHelper.isValentinesDay()) {
+        await AchievementHelper.grantAchievement(ctx.user.id, "Cupid's Arrow");
       }
 
       const wateringInterval = getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false),

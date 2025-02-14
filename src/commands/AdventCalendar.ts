@@ -60,7 +60,10 @@ async function buildAdventCalendarMessage(ctx: SlashCommandContext | ButtonConte
   const tracer = trace.getTracer("grow-a-tree");
   return tracer.startActiveSpan("buildAdventCalendarMessage", async (span) => {
     try {
-      if (UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) && (await BanHelper.isUserBanned(ctx.user.id))) {
+      if (
+        UnleashHelper.isEnabled(UNLEASH_FEATURES.banEnforcement, ctx) &&
+        (await BanHelper.isUserBanned(ctx.user.id))
+      ) {
         return BanHelper.getBanEmbed(ctx.user.username);
       }
 
@@ -74,7 +77,8 @@ async function buildAdventCalendarMessage(ctx: SlashCommandContext | ButtonConte
       const endOfAdvent = new Date(currentYear, 11, 25, 23, 59, 59); // December 25th
 
       if (!AdventCalendarHelper.isAdventCalendarActive()) {
-        const nextChristmas = currentDate > endOfAdvent ? new Date(currentYear + 1, 11, 1) : new Date(currentYear, 11, 1); // December 1st of next year if after December 25th, otherwise this year
+        const nextChristmas =
+          currentDate > endOfAdvent ? new Date(currentYear + 1, 11, 1) : new Date(currentYear, 11, 1); // December 1st of next year if after December 25th, otherwise this year
         return await buildAdventCalendarUnavailableMessage(ctx, nextChristmas);
       }
 

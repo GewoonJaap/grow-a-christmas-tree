@@ -46,6 +46,11 @@ const ACHIEVEMENTS: Record<string, AchievementConfig> = {
     name: "Christmas Day Celebration",
     description: "Opened the advent calendar on Christmas day",
     emoji: "🎁"
+  },
+  "Cupid's Arrow": {
+    name: "Cupid's Arrow",
+    description: "Gave the tree some love on Valentine's day",
+    emoji: "💘"
   }
 };
 
@@ -58,7 +63,7 @@ export class AchievementHelper {
       throw new Error(`Achievement ${achievementName} not found`);
     }
 
-    const existingAchievement = await Achievement.findOne({ userId, achievementName });
+    const existingAchievement = await AchievementHelper.hasAchievement(userId, achievementName);
     if (existingAchievement) {
       return; // User already has this achievement
     }
