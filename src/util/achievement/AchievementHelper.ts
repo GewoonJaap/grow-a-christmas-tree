@@ -34,7 +34,7 @@ const ACHIEVEMENTS: Record<string, AchievementConfig> = {
   },
   "Tree Waterer": {
     name: "Tree Waterer",
-    description: "Watered the tree 1 time",
+    description: "Watered the tree for the first time",
     emoji: "🌲"
   },
   "Advent Calendar 2024 Participation": {

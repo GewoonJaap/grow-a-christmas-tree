@@ -15,6 +15,7 @@ import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { Metrics } from "../tracing/metrics"; // Import Metrics
 import pino from "pino";
+import { AchievementHelper } from "../util/achievement/AchievementHelper";
 
 const logger = pino({
   level: "info"
@@ -182,6 +183,8 @@ async function handleSpin(ctx: ButtonContext): Promise<MessageBuilder> {
     .setDescription(`🎉 **<@${ctx.user.id}>, You spun the wheel and won ${rewardDescription}!** 🎁`)
     .setColor(0x00ff00)
     .setImage("https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/wheel/wheel-1.png");
+
+  await AchievementHelper.grantAchievement(userId, "Wheel of Fortune Winner");
 
   if (festiveMessages.isPresent) {
     embed.setFooter({ text: festiveMessages.message });
