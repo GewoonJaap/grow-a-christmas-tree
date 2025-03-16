@@ -44,6 +44,38 @@ export class SpecialDayHelper {
     return (now.getMonth() === 11 && now.getDate() === 31) || (now.getMonth() === 0 && now.getDate() === 1);
   }
 
+  public static isEaster(): boolean {
+    const today = new Date();
+    const easterDate = this.calculateEasterDate(today.getFullYear());
+
+    // Check if today is Easter Sunday
+    return today.getMonth() === easterDate.getMonth() && today.getDate() === easterDate.getDate();
+  }
+
+  /**
+   * Calculate Easter Sunday date for a given year using Meeus/Jones/Butcher algorithm
+   * @param year The year to calculate Easter for
+   * @returns Date object representing Easter Sunday
+   */
+  private static calculateEasterDate(year: number): Date {
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31) - 1; // 0-based month
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+
+    return new Date(year, month, day);
+  }
+
   public static getSpecialDayMultipliers(): SpecialDayMultipliers {
     if (this.isChristmas()) {
       return {
@@ -131,6 +163,90 @@ export class SpecialDayHelper {
         },
         isActive: true,
         generalMessage: "💖 Happy Valentine's Day! Enjoy double rewards today! 💖"
+      };
+    }
+    if (this.isStPatricksDay()) {
+      return {
+        inGameShop: {
+          boosters: {
+            priceMultiplier: 0.75,
+            reason: "🍀🌈 Happy St. Patrick's Day! Enjoy a **25%** sale on boosters! 🍺✨"
+          },
+          styles: {
+            priceMultiplier: 1,
+            reason: "🍀🌈 Happy St. Patrick's Day! Enjoy **25%** more rewards and spread the luck of the Irish! 🍺✨"
+          }
+        },
+        realMoneyShop: {
+          multiplier: 1.25,
+          reason: "🍀🌈 Happy St. Patrick's Day! Enjoy **25%** more coins on your purchases! 🍺✨"
+        },
+        tickets: {
+          multiplier: 2,
+          reason: "🍀🌈 Happy St. Patrick's Day! Enjoy **100%** more tickets and spread the luck of the Irish! 🍺✨"
+        },
+        coins: {
+          multiplier: 1.5,
+          reason: "🍀🌈 Happy St. Patrick's Day! Enjoy **50%** more coins and spread the luck of the Irish! 🍺✨"
+        },
+        isActive: true,
+        generalMessage: "🍀 Happy St. Patrick's Day! Enjoy double rewards today! 🍀"
+      };
+    }
+    if (this.isEaster()) {
+      return {
+        inGameShop: {
+          boosters: {
+            priceMultiplier: 0.75,
+            reason: "🐰🥚 Happy Easter! Enjoy a **25%** sale on boosters! 🌷✨"
+          },
+          styles: {
+            priceMultiplier: 1,
+            reason: "🐰🥚 Happy Easter! Enjoy **25%** more rewards and spread the Easter cheer! 🌷✨"
+          }
+        },
+        realMoneyShop: {
+          multiplier: 1.25,
+          reason: "🐰🥚 Happy Easter! Enjoy **25%** more coins on your purchases! 🌷✨"
+        },
+        tickets: {
+          multiplier: 2,
+          reason: "🐰🥚 Happy Easter! Enjoy **100%** more tickets and spread the Easter cheer! 🌷✨"
+        },
+        coins: {
+          multiplier: 1.5,
+          reason: "🐰🥚 Happy Easter! Enjoy **50%** more coins and spread the Easter cheer! 🌷✨"
+        },
+        isActive: true,
+        generalMessage: "🐰 Happy Easter! Enjoy double rewards today! 🐰"
+      };
+    }
+    if (this.isAprilFoolsDay()) {
+      return {
+        inGameShop: {
+          boosters: {
+            priceMultiplier: 0.75,
+            reason: "🤡🎉 Happy April Fool's Day! Enjoy a **25%** sale on boosters! 🎈✨"
+          },
+          styles: {
+            priceMultiplier: 1,
+            reason: "🤡🎉 Happy April Fool's Day! Enjoy **25%** more rewards and spread the fun! 🎈✨"
+          }
+        },
+        realMoneyShop: {
+          multiplier: 1.25,
+          reason: "🤡🎉 Happy April Fool's Day! Enjoy **25%** more coins on your purchases! 🎈✨"
+        },
+        tickets: {
+          multiplier: 2,
+          reason: "🤡🎉 Happy April Fool's Day! Enjoy **100%** more tickets and spread the fun! 🎈✨"
+        },
+        coins: {
+          multiplier: 1.5,
+          reason: "🤡🎉 Happy April Fool's Day! Enjoy **50%** more coins and spread the fun! 🎈✨"
+        },
+        isActive: true,
+        generalMessage: "🤡 Happy April Fool's Day! Enjoy double rewards today! 🤡"
       };
     }
     if (this.isThanksgiving()) {
