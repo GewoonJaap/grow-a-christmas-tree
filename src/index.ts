@@ -28,7 +28,6 @@ import {
   Leaderboard,
   Ping,
   Plant,
-  Profile,
   Tree,
   Recycle,
   NotificationSettings,
@@ -42,7 +41,8 @@ import {
   RedeemPurchasesCommand,
   AdventCalendar,
   Rename,
-  Styles
+  Styles,
+  Profile
 } from "./commands";
 import { Guild, IGuild } from "./models/Guild";
 import { fetchStats } from "./api/stats";

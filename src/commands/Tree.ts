@@ -147,9 +147,7 @@ async function handleTreeGrow(ctx: ButtonContext): Promise<void> {
         return;
       }
 
-      if (SpecialDayHelper.isValentinesDay()) {
-        await AchievementHelper.grantAchievement(ctx.user.id, "Cupid's Arrow");
-      }
+      await AchievementHelper.grantSpecialDayAchievements(ctx.user.id);
 
       const wateringInterval = getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false),
         time = Math.floor(Date.now() / 1000);

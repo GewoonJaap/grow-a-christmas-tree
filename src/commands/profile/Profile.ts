@@ -10,15 +10,16 @@ import {
   SlashCommandContext,
   SlashCommandUserOption
 } from "interactions.ts";
-import { updateEntitlementsToGame } from "../util/discord/DiscordApiExtensions";
-import { WalletHelper } from "../util/wallet/WalletHelper";
-import { BanHelper } from "../util/bans/BanHelper";
-import { CHEATER_CLOWN_EMOJI } from "../util/const";
-import { UnleashHelper, UNLEASH_FEATURES } from "../util/unleash/UnleashHelper";
-import { AchievementHelper } from "../util/achievement/AchievementHelper";
-import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
-import { safeReply } from "../util/discord/MessageExtenstions";
+import { updateEntitlementsToGame } from "../../util/discord/DiscordApiExtensions";
+import { WalletHelper } from "../../util/wallet/WalletHelper";
+import { BanHelper } from "../../util/bans/BanHelper";
+import { CHEATER_CLOWN_EMOJI } from "../../util/const";
+import { UnleashHelper, UNLEASH_FEATURES } from "../../util/unleash/UnleashHelper";
+import { AchievementHelper } from "../../util/achievement/AchievementHelper";
+import { SpecialDayHelper } from "../../util/special-days/SpecialDayHelper";
+import { safeReply } from "../../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
+import { Achievements } from "./categories/Achievements";
 
 type State = {
   id: string;
@@ -33,6 +34,8 @@ const builder = new SlashCommandBuilder("profile", "View a user's contributions 
 builder.setDMEnabled(false);
 
 export class Profile implements ISlashCommand {
+  private categories = [new Achievements()];
+
   public builder = builder;
 
   public handler = async (ctx: SlashCommandContext): Promise<void> => {
@@ -43,6 +46,7 @@ export class Profile implements ISlashCommand {
   };
 
   public components = [
+    ...this.categories.flatMap((category) => category.components),
     new Button(
       "profile.refresh",
       new ButtonBuilder().setEmoji({ name: "🔄" }).setStyle(1),
@@ -51,22 +55,9 @@ export class Profile implements ISlashCommand {
       }
     ),
     new Button(
-      "profile.back",
-      new ButtonBuilder().setEmoji({ name: "◀️" }).setStyle(2),
+      "profile.main",
+      new ButtonBuilder().setEmoji({ name: "👤" }).setStyle(1).setLabel("Main Profile"),
       async (ctx: ButtonContext<State>): Promise<void> => {
-        if (!ctx.state) return;
-
-        ctx.state.page--;
-        return await safeReply(ctx, await buildProfileMessage(ctx));
-      }
-    ),
-    new Button(
-      "profile.next",
-      new ButtonBuilder().setEmoji({ name: "▶️" }).setStyle(2),
-      async (ctx: ButtonContext<State>): Promise<void> => {
-        if (!ctx.state) return;
-
-        ctx.state.page++;
         return await safeReply(ctx, await buildProfileMessage(ctx));
       }
     )
@@ -79,7 +70,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
     try {
       if (!ctx.game) throw new Error("Game data missing.");
 
-      let nick: string, id: string, page: number;
+      let nick: string, id: string;
 
       if (ctx instanceof SlashCommandContext || !ctx.state) {
         const target =
@@ -92,48 +83,25 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
           ctx instanceof SlashCommandContext && target
             ? ctx.interaction.data?.resolved?.members?.[id]?.nick ?? target.username
             : ctx.interaction.member?.nick ?? ctx.user.username;
-        page = 1;
       } else {
         id = ctx.state.id;
         nick = ctx.state.nick;
-        page = ctx.state.page;
       }
 
       const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
       const wallet = await WalletHelper.getWallet(id);
       const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
       const isBanned = cheaterClownEnabled && (await BanHelper.isUserBanned(id));
+      const achievements = await AchievementHelper.getAchievements(id);
 
       const contributorRank =
         ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) +
         1;
 
-      const achievements = await AchievementHelper.getAchievements(id);
-
-      const achievementsPerPage = 5;
-      const start = (page - 1) * achievementsPerPage;
-      const paginatedAchievements = achievements.slice(start ?? 0, start + achievementsPerPage);
-
-      const achievementsDescription = paginatedAchievements
-        .map(
-          (achievement) =>
-            `${achievement.emoji} **${achievement.achievementName}**\n${
-              achievement.description
-            }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
-        )
-        .join("\n");
-
       const actionRow = new ActionRowBuilder().addComponents(
-        await ctx.manager.components.createInstance("profile.refresh", { id, nick, page })
+        await ctx.manager.components.createInstance("profile.refresh", { id, nick }),
+        await ctx.manager.components.createInstance("profile.achievements", { id, nick })
       );
-
-      if (page > 1) {
-        actionRow.addComponents(await ctx.manager.components.createInstance("profile.back", { id, nick, page }));
-      }
-
-      if (achievements.length > start + achievementsPerPage) {
-        actionRow.addComponents(await ctx.manager.components.createInstance("profile.next", { id, nick, page }));
-      }
 
       const festiveMessage = SpecialDayHelper.getFestiveMessage();
 
@@ -143,9 +111,9 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
               ctx.user.id === id ? `You` : `They `
             } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
           : "not yet watered the christmas tree."
-      }\n\n🪙Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥Current Streak: ${
+      }\n\n🪙 Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥 Current Streak: ${
         wallet ? wallet.streak : 0
-      } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n${achievementsDescription}`;
+      } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n🏆 Total Achievements: ${achievements.length}`;
 
       span.setStatus({ code: SpanStatusCode.OK });
       return new MessageBuilder()
