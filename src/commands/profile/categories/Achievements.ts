@@ -11,12 +11,20 @@ import { AchievementHelper } from "../../../util/achievement/AchievementHelper";
 import { SpecialDayHelper } from "../../../util/special-days/SpecialDayHelper";
 import { PartialCommand } from "../../../util/types/command/PartialCommandType";
 import { safeReply } from "../../../util/discord/MessageExtenstions";
+import { getRandomElement } from "../../../util/helpers/arrayHelper";
+import { IAchievement } from "../../../models/Achievement";
 
 type AchievementsState = {
   id: string;
   nick: string;
   page: number;
 };
+
+// Achievement showcase images
+const ACHIEVEMENT_IMAGES = [
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/profile/achievements/achievements-1.jpg",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/profile/achievements/achievements-2.jpg"
+];
 
 export class Achievements implements PartialCommand {
   public entryButtonName = "profile.achievements";
@@ -64,6 +72,56 @@ export class Achievements implements PartialCommand {
     )
   ];
 
+  /**
+   * Format a single achievement with festive flair
+   */
+  private formatAchievement(achievement: IAchievement): string {
+    const dateFormatted = achievement.dateEarned.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric"
+    });
+
+    return `${achievement.emoji} **${achievement.achievementName}** ${achievement.emoji}\n${achievement.description}\n✨ *Earned on ${dateFormatted}* ✨\n`;
+  }
+
+  /**
+   * Build the title for the achievements page
+   */
+  private buildAchievementsTitle(nick: string): string {
+    return `🎄 ${nick}'s Festive Achievements Collection 🎄`;
+  }
+
+  /**
+   * Build the empty achievements message
+   */
+  private buildEmptyAchievementsMessage(): string {
+    return (
+      "✨ *Your achievements tree is just waiting to be decorated!* ✨\n\n" +
+      "Keep spreading holiday cheer and taking care of your tree to earn special achievements.\n\n" +
+      "Return to the main profile and participate in festive activities to start your collection!"
+    );
+  }
+
+  /**
+   * Build the achievements description with header
+   */
+  private buildAchievementsDescription(achievements: IAchievement[], paginatedAchievements: IAchievement[]): string {
+    if (paginatedAchievements.length === 0) {
+      return this.buildEmptyAchievementsMessage();
+    }
+
+    const achievementsHeader =
+      `🌟 **MAGICAL ACCOMPLISHMENTS** 🌟\n` +
+      `Showing ${paginatedAchievements.length} out of ${achievements.length} special ornaments\n\n`;
+
+    const achievementsContent = paginatedAchievements
+      .map((achievement) => this.formatAchievement(achievement))
+      .join("\n");
+
+    return achievementsHeader + achievementsContent;
+  }
+
   public async buildAchievementsMessage(
     ctx: ButtonContext<AchievementsState> | SlashCommandContext,
     state?: AchievementsState
@@ -85,18 +143,13 @@ export class Achievements implements PartialCommand {
     const start = (userState.page - 1) * achievementsPerPage;
     const paginatedAchievements = achievements.slice(start, start + achievementsPerPage);
 
-    const achievementsDescription =
-      paginatedAchievements.length > 0
-        ? paginatedAchievements
-            .map(
-              (achievement) =>
-                `${achievement.emoji} **${achievement.achievementName}**\n${
-                  achievement.description
-                }\nEarned on: ${achievement.dateEarned.toDateString()}\n`
-            )
-            .join("\n")
-        : "No achievements earned yet.";
+    // Get a random image for the embed
+    const randomImage = getRandomElement(ACHIEVEMENT_IMAGES) ?? ACHIEVEMENT_IMAGES[0];
 
+    // Build achievements content
+    const achievementsDescription = this.buildAchievementsDescription(achievements, paginatedAchievements);
+
+    // Create navigation buttons
     const actionRow = new ActionRowBuilder().addComponents(
       await ctx.manager.components.createInstance("profile.achievements.refresh", userState),
       await ctx.manager.components.createInstance("profile.main", userState)
@@ -111,13 +164,17 @@ export class Achievements implements PartialCommand {
     }
 
     const festiveMessage = SpecialDayHelper.getFestiveMessage();
+    const totalPages = Math.ceil(achievements.length / achievementsPerPage) || 1;
 
     const embed = new EmbedBuilder()
-      .setTitle(`${userState.nick}'s Achievements`)
+      .setTitle(this.buildAchievementsTitle(userState.nick))
       .setDescription(achievementsDescription)
+      .setImage(randomImage)
       .setFooter({
-        text: `Page ${userState.page}/${Math.ceil(achievements.length / achievementsPerPage) || 1}${
-          festiveMessage.isPresent ? " • " + festiveMessage.message : ""
+        text: `Page ${userState.page}/${totalPages}${
+          festiveMessage.isPresent
+            ? " • " + festiveMessage.message
+            : " • Keep collecting achievements to complete your tree!"
         }`
       });
 

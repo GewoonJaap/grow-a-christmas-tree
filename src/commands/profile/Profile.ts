@@ -20,6 +20,10 @@ import { SpecialDayHelper } from "../../util/special-days/SpecialDayHelper";
 import { safeReply } from "../../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { Achievements } from "./categories/Achievements";
+import { getRandomElement } from "../../util/helpers/arrayHelper";
+import { IContributor } from "../../models/Guild";
+import { Wallet } from "../../models/Wallet";
+import { IAchievement } from "../../models/Achievement";
 
 type State = {
   id: string;
@@ -30,6 +34,11 @@ type State = {
 const builder = new SlashCommandBuilder("profile", "View a user's contributions to the christmas tree.").addUserOption(
   new SlashCommandUserOption("target", "User whose profile you want to view.")
 );
+
+const IMAGES = [
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/profile/profile-1.jpg",
+  "https://grow-a-christmas-tree.ams3.cdn.digitaloceanspaces.com/profile/profile-2.jpg"
+];
 
 builder.setDMEnabled(false);
 
@@ -64,30 +73,137 @@ export class Profile implements ISlashCommand {
   ];
 }
 
+/**
+ * Extract user information from the context
+ */
+function extractUserInfo(ctx: SlashCommandContext | ButtonContext<State>): { id: string; nick: string } {
+  if (ctx instanceof SlashCommandContext || !ctx.state) {
+    const target =
+      ctx instanceof SlashCommandContext && ctx.options.has("target")
+        ? ctx.interaction.data.resolved?.users?.[ctx.options.get("target")?.value as string]
+        : undefined;
+
+    const id = target ? target.id : ctx.user.id;
+    const nick =
+      ctx instanceof SlashCommandContext && target
+        ? ctx.interaction.data?.resolved?.members?.[id]?.nick ?? target.username
+        : ctx.interaction.member?.nick ?? ctx.user.username;
+
+    return { id, nick };
+  } else {
+    return {
+      id: ctx.state.id,
+      nick: ctx.state.nick
+    };
+  }
+}
+
+/**
+ * Build the profile title with appropriate decoration
+ */
+function buildProfileTitle(nick: string, isBanned: boolean): string {
+  return `${isBanned ? CHEATER_CLOWN_EMOJI : ""}❄️ ${nick}'s Festive Journey ❄️`;
+}
+
+/**
+ * Build the tree tending progress section
+ */
+function buildTreeTendingSection(
+  isOwnProfile: boolean,
+  contributor: IContributor | undefined,
+  treeName: string,
+  contributorRank: number,
+  totalContributors: number
+): string {
+  const header = "🎄 **TREE TENDING PROGRESS** 🎄\n";
+  const subject = isOwnProfile ? "You have" : "This wonderful elf has";
+
+  if (!contributor) {
+    return `${header}${subject} not yet sprinkled holiday magic on the christmas tree. Time to spread some cheer!`;
+  }
+
+  const rankText = isOwnProfile ? "You're" : "They're";
+  return `${header}${subject} lovingly watered \`\`${treeName}\`\` ${contributor.count} times! ${rankText} ranked #${contributorRank} out of ${totalContributors} holiday helpers!`;
+}
+
+/**
+ * Build the treasures section
+ */
+function buildTreasuresSection(wallet: any): string {
+  const coins = wallet ? wallet.coins : 0;
+  const streak = wallet ? wallet.streak : 0;
+  const streakSuffix = streak === 1 ? "" : "s";
+
+  return `✨ **HOLIDAY TREASURES** ✨\n🪙 Gift Coins: ${coins} shiny coins in your stocking!\n\n🔥 Festive Streak: ${streak} magical day${streakSuffix} of continuous holiday spirit!`;
+}
+
+/**
+ * Build the achievements section
+ */
+function buildAchievementsSection(achievements: any[]): string {
+  const achievementsCount = achievements.length;
+  const ornamentText = achievementsCount === 1 ? "ornament" : "ornaments";
+
+  const actionText =
+    achievementsCount > 0 ? "Click the Achievements button to admire your collection!" : "Start your collection today!";
+
+  return `🏆 **ACHIEVEMENTS COLLECTION** 🏆\nYou've earned ${achievementsCount} special ${ornamentText} for your achievement tree!\n${actionText}`;
+}
+
+/**
+ * Build the profile description with all content sections
+ */
+function buildProfileDescription(
+  ctx: SlashCommandContext | ButtonContext<State>,
+  userId: string,
+  contributor: IContributor | undefined,
+  wallet: InstanceType<typeof Wallet>,
+  contributorRank: number,
+  achievements: IAchievement[],
+  treeName: string,
+  totalContributors: number
+): string {
+  // Build each section separately
+  const isOwnProfile = ctx.user.id === userId;
+
+  // Section 1: Tree Tending Progress
+  const treeTendingSection = buildTreeTendingSection(
+    isOwnProfile,
+    contributor,
+    treeName,
+    contributorRank,
+    totalContributors
+  );
+
+  // Section 2: Holiday Treasures
+  const treasuresSection = buildTreasuresSection(wallet);
+
+  // Section 3: Achievements Collection
+  const achievementsSection = buildAchievementsSection(achievements);
+
+  // Combine all sections
+  return `${treeTendingSection}\n\n${treasuresSection}\n\n${achievementsSection}`;
+}
+
+/**
+ * Build the footer text
+ */
+function buildFooterText(festiveMessage: { message: string; isPresent: boolean }): string {
+  return festiveMessage.isPresent
+    ? `🎁 ${festiveMessage.message}`
+    : "🎄 Grow the most magical tree this holiday season! 🎄";
+}
+
 async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<State>): Promise<MessageBuilder> {
   const tracer = trace.getTracer("grow-a-tree");
   return tracer.startActiveSpan("buildProfileMessage", async (span) => {
     try {
       if (!ctx.game) throw new Error("Game data missing.");
 
-      let nick: string, id: string;
+      // Extract user information
+      const { id, nick } = extractUserInfo(ctx);
 
-      if (ctx instanceof SlashCommandContext || !ctx.state) {
-        const target =
-          ctx instanceof SlashCommandContext && ctx.options.has("target")
-            ? ctx.interaction.data.resolved?.users?.[ctx.options.get("target")?.value as string]
-            : undefined;
-
-        id = target ? target.id : ctx.user.id;
-        nick =
-          ctx instanceof SlashCommandContext && target
-            ? ctx.interaction.data?.resolved?.members?.[id]?.nick ?? target.username
-            : ctx.interaction.member?.nick ?? ctx.user.username;
-      } else {
-        id = ctx.state.id;
-        nick = ctx.state.nick;
-      }
-
+      // Get user data
       const contributor = ctx.game.contributors.find((contributor) => contributor.userId === id);
       const wallet = await WalletHelper.getWallet(id);
       const cheaterClownEnabled = UnleashHelper.isEnabled(UNLEASH_FEATURES.showCheaterClown, ctx);
@@ -98,30 +214,37 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
         ctx.game.contributors.sort((a, b) => b.count - a.count).findIndex((contributor) => contributor.userId === id) +
         1;
 
+      // Build UI
       const actionRow = new ActionRowBuilder().addComponents(
         await ctx.manager.components.createInstance("profile.refresh", { id, nick }),
         await ctx.manager.components.createInstance("profile.achievements", { id, nick })
       );
 
+      // Get festive message
       const festiveMessage = SpecialDayHelper.getFestiveMessage();
 
-      const description = `${ctx.user.id === id ? `You have` : `This user has`} ${
-        contributor
-          ? `watered \`\`${ctx.game.name}\`\` ${contributor.count} times. ${
-              ctx.user.id === id ? `You` : `They `
-            } are ranked #${contributorRank} out of ${ctx.game.contributors.length}.`
-          : "not yet watered the christmas tree."
-      }\n\n🪙 Current Coin Balance: ${wallet ? wallet.coins : 0} coins.\n\n🔥 Current Streak: ${
-        wallet ? wallet.streak : 0
-      } day${(wallet?.streak ?? 0) === 1 ? "" : "s"}.\n\n🏆 Total Achievements: ${achievements.length}`;
+      // Build profile sections
+      const profileTitle = buildProfileTitle(nick, isBanned);
+      const description = buildProfileDescription(
+        ctx,
+        id,
+        contributor,
+        wallet,
+        contributorRank,
+        achievements,
+        ctx.game.name,
+        ctx.game.contributors.length
+      );
+      const footerText = buildFooterText(festiveMessage);
 
       span.setStatus({ code: SpanStatusCode.OK });
       return new MessageBuilder()
         .addEmbed(
           new EmbedBuilder()
-            .setTitle(`${isBanned ? CHEATER_CLOWN_EMOJI : ""}${nick}'s Contributions`)
+            .setTitle(profileTitle)
             .setDescription(description)
-            .setFooter({ text: festiveMessage.isPresent ? festiveMessage.message : "" })
+            .setImage(getRandomElement(IMAGES) ?? IMAGES[0])
+            .setFooter({ text: footerText })
         )
         .addComponents(actionRow);
     } catch (error) {
