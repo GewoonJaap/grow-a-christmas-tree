@@ -96,8 +96,79 @@ export class Forest implements ISlashCommand {
         ctx.state.page = maxPages;
         return await safeReply(ctx, await buildLeaderboardMessage(ctx));
       }
+    ),
+    new Button(
+      "forest.my_tree",
+      new ButtonBuilder().setEmoji({ name: "📍" }).setStyle(1),
+      async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
+        if (!ctx.game) {
+          return await safeReply(
+            ctx,
+            SimpleError("You don't have a tree in this server yet. Try watering the tree first!")
+          );
+        }
+
+        // Find the position of the user's tree
+        const treePosition = await findTreePosition(ctx);
+
+        if (treePosition === -1) {
+          return await safeReply(ctx, SimpleError("Couldn't find your tree in the forest. Try refreshing!"));
+        }
+
+        // Calculate which page the tree is on (10 trees per page)
+        const treePage = Math.floor(treePosition / 10) + 1;
+
+        if (!ctx.state) {
+          ctx.state = { page: treePage };
+        } else {
+          ctx.state.page = treePage;
+        }
+
+        return await safeReply(ctx, await buildLeaderboardMessage(ctx));
+      }
     )
   ];
+}
+
+/**
+ * Find the position of a tree in the forest leaderboard
+ * @param treeId The ID of the tree to find
+ * @returns The position (0-indexed) of the tree, or -1 if not found
+ */
+async function findTreePosition(context: SlashCommandContext | ButtonContext<unknown>): Promise<number> {
+  const tracer = trace.getTracer("grow-a-tree");
+  return tracer.startActiveSpan("findTreePosition", async (span) => {
+    if (!context.game) {
+      return -1;
+    }
+    try {
+      // Try to get from cache first
+      const redisClient = RedisClient.getInstance().getClient();
+      const cacheKey = `treePosition:${context.game.id}`;
+      const cachedPosition = await redisClient.get(cacheKey);
+
+      if (cachedPosition) {
+        span.setStatus({ code: SpanStatusCode.OK });
+        return parseInt(cachedPosition, 10);
+      }
+
+      // Count how many trees are taller (have higher size)
+      const largerTreesCount = await Guild.countDocuments({ size: { $gt: context.game.size } });
+
+      // Cache the result for 60 seconds
+      await redisClient.setEx(cacheKey, 60, largerTreesCount.toString());
+
+      span.setStatus({ code: SpanStatusCode.OK });
+      return largerTreesCount;
+    } catch (error) {
+      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
+      span.recordException(error as Error);
+      console.error("Error finding tree position:", error);
+      return -1;
+    } finally {
+      span.end();
+    }
+  });
 }
 
 async function buildLeaderboardMessage(
@@ -114,7 +185,7 @@ async function buildLeaderboardMessage(
 
       const amountOfTrees = await getCachedTreeCount();
 
-      let description = `*Christmas Tree forest with ${amountOfTrees} trees*\n\n`;
+      let description = `🌲 **FESTIVE FOREST** 🌲\n*A magical forest of ${amountOfTrees} sparkling Christmas trees*\n\n`;
 
       const start = (state.page - 1) * 10;
 
@@ -136,40 +207,49 @@ async function buildLeaderboardMessage(
         const pos = i + start;
 
         const tree = trees[i];
-        const isOwnTree = ctx.game?.id === tree.id;
+        const isOwnTree = ctx.game?.id == tree.id;
+
         const treeName = `${tree.name}`;
         const premiumText = `${tree.hasAiAccess ? " | " + premiumEmoji : ""}`;
         const treeSize = `${tree.size}ft`;
         const hasCheaters = cheaterClownEnabled && tree.isCheating;
 
+        const treeIndicator = isOwnTree ? "📍 " : "";
+
         description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
           hasCheaters ? CHEATER_CLOWN_EMOJI : ""
-        }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}\n`;
+        }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}${treeIndicator}\n`;
       }
 
+      // First row of navigation buttons
       const actionRow = new ActionRowBuilder().addComponents(
-        await ctx.manager.components.createInstance("forest.refresh", state)
+        await ctx.manager.components.createInstance("forest.refresh", state),
+        await ctx.manager.components.createInstance("forest.my_tree", state)
+      );
+
+      // Second row of pagination buttons
+      const paginationRow = new ActionRowBuilder().addComponents(
+        await ctx.manager.components.createInstance("forest.first", state)
       );
 
       if (state.page > 1) {
-        actionRow.addComponents(await ctx.manager.components.createInstance("forest.back", state));
+        paginationRow.addComponents(await ctx.manager.components.createInstance("forest.back", state));
       }
 
       if (trees.length > 10) {
-        actionRow.addComponents(await ctx.manager.components.createInstance("forest.next", state));
+        paginationRow.addComponents(await ctx.manager.components.createInstance("forest.next", state));
       }
 
-      actionRow.addComponents(await ctx.manager.components.createInstance("forest.first", state));
-      actionRow.addComponents(await ctx.manager.components.createInstance("forest.last", state));
+      paginationRow.addComponents(await ctx.manager.components.createInstance("forest.last", state));
 
       span.setStatus({ code: SpanStatusCode.OK });
       return new MessageBuilder()
         .addEmbed(
-          new EmbedBuilder().setTitle("Forest").setDescription(description).setFooter({
+          new EmbedBuilder().setTitle("❄️ The Enchanted Forest ❄️").setDescription(description).setFooter({
             text: footerText
           })
         )
-        .addComponents(actionRow);
+        .addComponents(actionRow, paginationRow);
     } catch (error) {
       span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
       span.recordException(error as Error);
@@ -221,7 +301,7 @@ async function getCachedTrees(start: number): Promise<IGuild[]> {
         return JSON.parse(cachedTrees);
       }
 
-      const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1 })
+      const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1, id: 1 })
         .sort({ size: -1 })
         .skip(start)
         .limit(11)
