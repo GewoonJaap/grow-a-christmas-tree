@@ -110,7 +110,7 @@ export class Forest implements ISlashCommand {
         }
 
         // Find the position of the user's tree
-        const treePosition = await TreeUtils.findTreePosition(ctx);
+        const treePosition = (await TreeUtils.findTreePosition(ctx)) - 1;
 
         if (treePosition === -1) {
           return await safeReply(ctx, SimpleError("Couldn't find your tree in the forest. Try refreshing!"));
