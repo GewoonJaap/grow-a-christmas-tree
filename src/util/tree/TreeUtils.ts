@@ -7,7 +7,7 @@ export class TreeUtils {
   /**
    * Find the position of a tree in the forest leaderboard
    * @param treeId The ID of the tree to find
-   * @returns The position (0-indexed) of the tree, or -1 if not found
+   * @returns The position (1 is first position) of the tree, or -1 if not found
    */
   static async findTreePosition(context: SlashCommandContext | ButtonContext<unknown>): Promise<number> {
     const tracer = trace.getTracer("grow-a-tree");
@@ -27,7 +27,8 @@ export class TreeUtils {
         }
 
         // Count how many trees are taller (have higher size)
-        const largerTreesCount = await Guild.countDocuments({ size: { $gt: context.game.size } });
+        let largerTreesCount = await Guild.countDocuments({ size: { $gt: context.game.size } });
+        largerTreesCount += 1; // 1 is first position instead of 0
 
         // Cache the result for 60 seconds
         await redisClient.setEx(cacheKey, 60, largerTreesCount.toString());
