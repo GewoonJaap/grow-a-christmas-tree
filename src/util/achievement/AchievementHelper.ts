@@ -1,4 +1,5 @@
 import { IAchievement, Achievement } from "../../models/Achievement";
+import { SpecialDayHelper } from "../special-days/SpecialDayHelper";
 
 interface AchievementConfig {
   name: string;
@@ -51,6 +52,41 @@ const ACHIEVEMENTS: Record<string, AchievementConfig> = {
     name: "Cupid's Arrow",
     description: "Gave the tree some love on Valentine's day",
     emoji: "💘"
+  },
+  "St. Patrick's Day Celebration": {
+    name: "St. Patrick's Day Celebration",
+    description: "Celebrated St. Patrick's Day with the tree",
+    emoji: "🍀"
+  },
+  "Easter Egg Hunt": {
+    name: "Easter Egg Hunt",
+    description: "Participated in the Easter celebration",
+    emoji: "🥚"
+  },
+  "April Fool's Prankster": {
+    name: "April Fool's Prankster",
+    description: "Had fun on April Fool's Day",
+    emoji: "🤡"
+  },
+  "Thanksgiving Feast": {
+    name: "Thanksgiving Feast",
+    description: "Gave thanks on Thanksgiving Day",
+    emoji: "🦃"
+  },
+  "Black Friday Shopper": {
+    name: "Black Friday Shopper",
+    description: "Took advantage of Black Friday deals",
+    emoji: "🛍️"
+  },
+  "Halloween Spooktacular": {
+    name: "Halloween Spooktacular",
+    description: "Celebrated Halloween with the tree",
+    emoji: "🎃"
+  },
+  "New Year's Eve Party": {
+    name: "New Year's Eve Party",
+    description: "Rang in the New Year with the tree",
+    emoji: "🎉"
   }
 };
 
@@ -86,5 +122,29 @@ export class AchievementHelper {
 
   static async getAchievements(userId: string): Promise<IAchievement[]> {
     return await Achievement.find({ userId });
+  }
+
+  static async grantSpecialDayAchievements(userId: string): Promise<void> {
+    const specialDayAchievements: Array<[() => boolean, AchievementName]> = [
+      [SpecialDayHelper.isValentinesDay, "Cupid's Arrow"],
+      [SpecialDayHelper.isStPatricksDay, "St. Patrick's Day Celebration"],
+      [SpecialDayHelper.isEaster, "Easter Egg Hunt"],
+      [SpecialDayHelper.isAprilFoolsDay, "April Fool's Prankster"],
+      [SpecialDayHelper.isThanksgiving, "Thanksgiving Feast"],
+      [SpecialDayHelper.isBlackFriday, "Black Friday Shopper"],
+      [SpecialDayHelper.isHalloween, "Halloween Spooktacular"],
+      [SpecialDayHelper.isNewYearsEve, "New Year's Eve Party"],
+      [SpecialDayHelper.isEarthDay, "Earth Day Champion"]
+    ];
+
+    // Filter the achievements that are valid for today
+    const achievementsToGrant = specialDayAchievements
+      .filter(([checkFunction]) => checkFunction.call(SpecialDayHelper))
+      .map(([, achievementName]) => achievementName);
+
+    // Grant all achievements concurrently
+    await Promise.all(
+      achievementsToGrant.map((achievementName) => AchievementHelper.grantAchievement(userId, achievementName))
+    );
   }
 }
