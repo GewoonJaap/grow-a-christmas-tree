@@ -216,9 +216,9 @@ async function buildLeaderboardMessage(
 
         const treeIndicator = isOwnTree ? "📍 " : "";
 
-        description += `${treeIndicator}${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
+        description += `${pos < 3 ? MEDAL_EMOJIS[i] : `${pos + 1}${pos < 9 ? " " : ""}`} - ${
           hasCheaters ? CHEATER_CLOWN_EMOJI : ""
-        }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}\n`;
+        }${isOwnTree ? `**${treeName}**` : treeName} - ${treeSize}${premiumText}${treeIndicator}\n`;
       }
 
       // First row of navigation buttons
