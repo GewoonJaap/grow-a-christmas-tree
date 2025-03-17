@@ -209,18 +209,39 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
       const efficiencyLevel = ctx.game.composter?.efficiencyLevel ?? 0;
       const qualityLevel = ctx.game.composter?.qualityLevel ?? 0;
 
-      const efficiencyUpgradeCost = BASE_COST + efficiencyLevel * COST_INCREMENT;
-      const qualityUpgradeCost = BASE_COST + qualityLevel * COST_INCREMENT;
+      // Format upgrade costs or show "MAXED OUT" when reaching max level
+      const efficiencyUpgradeCost =
+        efficiencyLevel >= MAX_LEVEL ? "✨ MAXED OUT ✨" : `${BASE_COST + efficiencyLevel * COST_INCREMENT} coins`;
+
+      const qualityUpgradeCost =
+        qualityLevel >= MAX_LEVEL ? "✨ MAXED OUT ✨" : `${BASE_COST + qualityLevel * COST_INCREMENT} coins`;
+
       const growthChance = calculateGrowthChance(efficiencyLevel, ctx.game?.hasAiAccess ?? false);
       const growthAmount = calculateGrowthAmount(qualityLevel, ctx.game?.hasAiAccess ?? false);
       const upsellData = upsellText(ctx.game.hasAiAccess ?? false);
 
+      // Create enchanted descriptions for maxed out levels
+      const efficiencyLevelText =
+        efficiencyLevel >= MAX_LEVEL ? `${efficiencyLevel} 🎄 (FULLY ENCHANTED)` : efficiencyLevel.toString();
+
+      const qualityLevelText =
+        qualityLevel >= MAX_LEVEL ? `${qualityLevel} 🎄 (FULLY ENCHANTED)` : qualityLevel.toString();
+
       const embed = new EmbedBuilder()
         .setTitle("Santa's Magic Composter")
         .setDescription(
-          `Upgrade the composter to make your tree grow faster!\n\n🧝 **Elf-Powered Efficiency:** Increases the chance that Santa's workshop elves give your tree an extra magical boost!\n✨ **Sparkling Spirit:** Enhances the growth boost your tree receives each time you water it!\n\n🧝 **Current Efficiency Level:** ${efficiencyLevel}\n🪙 **Efficiency Upgrade Cost:** ${efficiencyUpgradeCost} coins\n\n✨ **Current Quality Level:** ${qualityLevel}\n🪙 **Quality Upgrade Cost:** ${qualityUpgradeCost} coins\n\n**Extra Growth Chance:** ${growthChance}%\n**Growth Amount:** ${growthAmount}ft`
+          `Upgrade the composter to make your tree grow faster!\n\n` +
+            `🧝 **Elf-Powered Efficiency:** Increases the chance that Santa's workshop elves give your tree an extra magical boost!\n` +
+            `🧝 **Current Efficiency Level:** ${efficiencyLevelText}\n` +
+            `🪙 **Efficiency Upgrade Cost:** ${efficiencyUpgradeCost}\n\n` +
+            `✨ **Sparkling Spirit:** Enhances the growth boost your tree receives each time you water it!\n` +
+            `✨ **Current Quality Level:** ${qualityLevelText}\n` +
+            `🪙 **Quality Upgrade Cost:** ${qualityUpgradeCost}\n\n` +
+            `**Extra Growth Chance:** ${growthChance}%\n` +
+            `**Growth Amount:** ${growthAmount}ft`
         )
         .setImage(getRandomElement(composterImages) ?? "")
+        .setColor(0x2e8b57) // Forest green color for more festivity
         .setFooter({ text: upsellData.message });
 
       if (festiveMessage.isPresent) {
@@ -239,6 +260,15 @@ async function buildComposterMessage(ctx: SlashCommandContext | ButtonContext): 
 
       if (qualityLevel < MAX_LEVEL) {
         actionRow.addComponents(await ctx.manager.components.createInstance("composter.upgrade.quality"));
+      }
+
+      // Add a celebration message if both upgrades are maxed out
+      if (efficiencyLevel >= MAX_LEVEL && qualityLevel >= MAX_LEVEL) {
+        embed.setDescription(
+          embed.data.description +
+            "\n\n🎉 **CONGRATULATIONS!** 🎉\n" +
+            "Your composter has reached maximum enchantment! Santa's workshop elves cheer for your dedication!"
+        );
       }
 
       actionRow.addComponents(await ctx.manager.components.createInstance("composter.refresh"));
