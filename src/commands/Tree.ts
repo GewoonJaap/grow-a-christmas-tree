@@ -32,6 +32,7 @@ import pino from "pino";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import { SpecialDayHelper } from "../util/special-days/SpecialDayHelper";
 import { AchievementHelper } from "../util/achievement/AchievementHelper";
+import { TreeUtils } from "../util/tree/TreeUtils";
 
 const logger = pino({
   level: "info"
@@ -388,6 +389,8 @@ export async function buildTreeDisplayMessage(
       const embed = new EmbedBuilder().setTitle(`${ctx.game.name} ${ctx.game.hasAiAccess ? "✨" : ""}`);
       const time = Math.floor(Date.now() / 1000);
 
+      const treePosition = await TreeUtils.findTreePosition(ctx);
+
       const treeImage = await calculateTreeTierImage(
         ctx.game.size,
         ctx.game.hasAiAccess ?? false,
@@ -408,7 +411,10 @@ export async function buildTreeDisplayMessage(
           ctx.game.lastWateredAt + getWateringInterval(ctx, ctx.game.size, ctx.game.superThirsty ?? false) < time
             ? getTreeAge(ctx, ctx.game.size) * 1000
             : (getTreeAge(ctx, ctx.game.size - 1) + time - ctx.game.lastWateredAt) * 1000
-        )} growing. Nice!${getStyleMetadata(treeImage.metadata, treeImage.isLoadingNewImage ?? false)}`
+        )} growing, making it the No. ${treePosition} tree in the forest. Nice!${getStyleMetadata(
+          treeImage.metadata,
+          treeImage.isLoadingNewImage ?? false
+        )}`
       });
 
       if (canBeWateredAt < Date.now() / 1000) {
