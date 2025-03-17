@@ -17,6 +17,7 @@ import { UNLEASH_FEATURES, UnleashHelper } from "../util/unleash/UnleashHelper";
 import { safeReply } from "../util/discord/MessageExtenstions";
 import { trace, SpanStatusCode } from "@opentelemetry/api";
 import RedisClient from "../util/redisClient";
+import { TreeUtils } from "../util/tree/TreeUtils";
 
 type LeaderboardButtonState = {
   page: number;
@@ -109,7 +110,7 @@ export class Forest implements ISlashCommand {
         }
 
         // Find the position of the user's tree
-        const treePosition = await findTreePosition(ctx);
+        const treePosition = await TreeUtils.findTreePosition(ctx);
 
         if (treePosition === -1) {
           return await safeReply(ctx, SimpleError("Couldn't find your tree in the forest. Try refreshing!"));
@@ -128,47 +129,6 @@ export class Forest implements ISlashCommand {
       }
     )
   ];
-}
-
-/**
- * Find the position of a tree in the forest leaderboard
- * @param treeId The ID of the tree to find
- * @returns The position (0-indexed) of the tree, or -1 if not found
- */
-async function findTreePosition(context: SlashCommandContext | ButtonContext<unknown>): Promise<number> {
-  const tracer = trace.getTracer("grow-a-tree");
-  return tracer.startActiveSpan("findTreePosition", async (span) => {
-    if (!context.game) {
-      return -1;
-    }
-    try {
-      // Try to get from cache first
-      const redisClient = RedisClient.getInstance().getClient();
-      const cacheKey = `treePosition:${context.game.id}`;
-      const cachedPosition = await redisClient.get(cacheKey);
-
-      if (cachedPosition) {
-        span.setStatus({ code: SpanStatusCode.OK });
-        return parseInt(cachedPosition, 10);
-      }
-
-      // Count how many trees are taller (have higher size)
-      const largerTreesCount = await Guild.countDocuments({ size: { $gt: context.game.size } });
-
-      // Cache the result for 60 seconds
-      await redisClient.setEx(cacheKey, 60, largerTreesCount.toString());
-
-      span.setStatus({ code: SpanStatusCode.OK });
-      return largerTreesCount;
-    } catch (error) {
-      span.setStatus({ code: SpanStatusCode.ERROR, message: (error as Error).message });
-      span.recordException(error as Error);
-      console.error("Error finding tree position:", error);
-      return -1;
-    } finally {
-      span.end();
-    }
-  });
 }
 
 async function buildLeaderboardMessage(
