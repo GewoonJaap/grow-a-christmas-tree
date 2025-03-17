@@ -99,7 +99,7 @@ export class Forest implements ISlashCommand {
     ),
     new Button(
       "forest.my_tree",
-      new ButtonBuilder().setEmoji({ name: "📍" }).setStyle(1).setLabel("My Tree"),
+      new ButtonBuilder().setEmoji({ name: "📍" }).setStyle(1),
       async (ctx: ButtonContext<LeaderboardButtonState>): Promise<void> => {
         if (!ctx.game) {
           return await safeReply(
@@ -208,6 +208,7 @@ async function buildLeaderboardMessage(
 
         const tree = trees[i];
         const isOwnTree = ctx.game?.id == tree.id;
+
         const treeName = `${tree.name}`;
         const premiumText = `${tree.hasAiAccess ? " | " + premiumEmoji : ""}`;
         const treeSize = `${tree.size}ft`;
@@ -300,7 +301,7 @@ async function getCachedTrees(start: number): Promise<IGuild[]> {
         return JSON.parse(cachedTrees);
       }
 
-      const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1 })
+      const trees = await Guild.find({}, { name: 1, size: 1, hasAiAccess: 1, isCheating: 1, id: 1 })
         .sort({ size: -1 })
         .skip(start)
         .limit(11)
