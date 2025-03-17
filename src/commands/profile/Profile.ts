@@ -217,7 +217,7 @@ async function buildProfileMessage(ctx: SlashCommandContext | ButtonContext<Stat
       // Build UI
       const actionRow = new ActionRowBuilder().addComponents(
         await ctx.manager.components.createInstance("profile.refresh", { id, nick }),
-        await ctx.manager.components.createInstance("profile.achievements", { id, nick })
+        await ctx.manager.components.createInstance(new Achievements().entryButtonName, { id, nick, page: 1 })
       );
 
       // Get festive message

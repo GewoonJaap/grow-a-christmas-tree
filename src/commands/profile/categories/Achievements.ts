@@ -34,12 +34,7 @@ export class Achievements implements PartialCommand {
       this.entryButtonName,
       new ButtonBuilder().setEmoji({ name: "🏆" }).setStyle(1).setLabel("Achievements"),
       async (ctx: ButtonContext): Promise<void> => {
-        const state: AchievementsState = {
-          id: ctx.user.id,
-          nick: ctx.user.username,
-          page: 1
-        };
-        return safeReply(ctx, await this.buildAchievementsMessage(ctx, state));
+        return safeReply(ctx, await this.buildAchievementsMessage(ctx, ctx.state));
       }
     ),
     new Button(
@@ -129,6 +124,9 @@ export class Achievements implements PartialCommand {
     if (!ctx.game) {
       return new MessageBuilder().setContent("This command can only be used in a server.");
     }
+
+    console.log("Building achievements message");
+    console.log(state);
 
     // Set default state if not provided
     const userState = state || {
